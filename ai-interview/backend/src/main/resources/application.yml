@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: ai-interview
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+  datasource:
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:3306/ai_interview?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: ${MYSQL_PASSWORD:root123456}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: Asia/Shanghai
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+jwt:
+  secret: ${JWT_SECRET:dev-only-secret-key-32bytes-minimum!!}
+  expire-hours: 24
+
+ai:
+  provider: ${AI_PROVIDER:mock}        # mock / qwen
+  api-url: ${AI_API_URL:}
+  api-key: ${AI_API_KEY:}
+  model: ${AI_MODEL:qwen-plus}
+  timeout: 30000
+
+app:
+  upload-dir: ${UPLOAD_DIR:./uploads}  # 音频存储目录（prod 指向挂载卷 /app/uploads）
+  security:
+    login-rate-limit-per-minute: 5     # 登录限流：每 IP 每分钟次数（计划 §7 补充）
+  interview:
+    max-rounds: 8
+    min-rounds: 5
+    followup-limit: 3                  # 同题主问题追问上限
+    default-duration-minutes: 30
+    min-duration-minutes: 15
+    max-duration-minutes: 60
+    timer-push-seconds: 30             # TIMER 推送粒度（计划 §5.6）
+    timer-final-push-seconds: 10       # 最后 60s 内的推送粒度
+    timer-final-window-seconds: 60

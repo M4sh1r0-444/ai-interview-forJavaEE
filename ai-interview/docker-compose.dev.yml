@@ -1,0 +1,36 @@
+# 开发期依赖：仅 MySQL + Redis（计划 §2.2）
+# 说明：本机 6379 已被其他项目的容器占用，开发期 Redis 固定映射宿主机 6380
+# （application-dev.yml 中 spring.data.redis.port 与之保持一致）。
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: aiinterview-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: ai_interview        # Flyway 负责建表，这里只建空库
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --ngram-token-size=2              # 中文全文检索最小粒度（默认即 2，显式声明）
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot123456"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: aiinterview-redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  mysql-data:

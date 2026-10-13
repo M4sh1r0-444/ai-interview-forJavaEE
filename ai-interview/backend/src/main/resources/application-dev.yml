@@ -1,0 +1,11 @@
+# 开发环境：直连本机容器端口。
+# 注意：本机 6379 已被其他项目容器占用，开发期 Redis 固定 6380
+#（docker-compose.dev.yml 中 redis 映射 6380:6379，与此保持一致）。
+spring:
+  data:
+    redis:
+      port: 6380
+
+logging:
+  level:
+    com.example.interview: DEBUG

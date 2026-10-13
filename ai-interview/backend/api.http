@@ -1,0 +1,135 @@
+### M1 接口调试脚本（IDEA HTTP Client，与计划附录C同步维护）
+### 使用：依次执行 1→2 后，把 2 返回的 token 填入下方 TOKEN 变量
+
+@BASE = http://127.0.0.1:8080
+@TOKEN = {{login.response.body.data.token}}
+
+### 0. 健康检查
+GET {{BASE}}/actuator/health
+
+### 1. 注册（附录C-1）
+POST {{BASE}}/api/auth/register
+Content-Type: application/json
+
+{"username": "stu01", "password": "123456", "major": "软件工程"}
+
+### 2. 登录（附录C-2，种子账号 demo01/123456；管理员 admin/Admin@123456）
+# @name login
+POST {{BASE}}/api/auth/login
+Content-Type: application/json
+
+{"username": "demo01", "password": "123456"}
+
+### 3. 岗位列表（附录C-3）
+GET {{BASE}}/api/positions
+Authorization: Bearer {{TOKEN}}
+
+### 3b. 岗位详情 / 技能清单
+GET {{BASE}}/api/positions/1
+Authorization: Bearer {{TOKEN}}
+
+###
+GET {{BASE}}/api/positions/1/skills
+Authorization: Bearer {{TOKEN}}
+
+### 4. 个人信息
+GET {{BASE}}/api/users/me
+Authorization: Bearer {{TOKEN}}
+
+### 5. 修改个人资料
+PUT {{BASE}}/api/users/me
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"realName": "张三", "major": "软件工程"}
+
+### 6. 登出（此后旧 token 应 401）
+POST {{BASE}}/api/auth/logout
+Authorization: Bearer {{TOKEN}}
+
+### 7. 管理员登录
+# @name adminLogin
+POST {{BASE}}/api/auth/login
+Content-Type: application/json
+
+{"username": "admin", "password": "Admin@123456"}
+
+### 8. 题库列表（管理端）
+GET {{BASE}}/api/admin/questions?positionId=1&page=1&size=5
+Authorization: Bearer {{adminLogin.response.body.data.token}}
+
+### 9. 新增题目
+POST {{BASE}}/api/admin/questions
+Authorization: Bearer {{adminLogin.response.body.data.token}}
+Content-Type: application/json
+
+{
+  "positionId": 1,
+  "type": "TECHNICAL",
+  "content": "说说 ConcurrentHashMap 的底层实现？",
+  "background": null,
+  "difficulty": 4,
+  "skillTags": ["concurrency_jvm"],
+  "referenceAnswer": "CAS + synchronized 锁桶头节点……",
+  "keyPoints": ["能说出 JDK8 的 Node 数组+链表+红黑树", "能说出 sizeCtl 与初始化并发控制"],
+  "deductionPoints": ["只停留在 JDK7 分段锁"],
+  "followupTemplates": ["扩容时读写请求怎么处理？"]
+}
+
+### 10. 无 token 访问（应 401，code=40101）
+GET {{BASE}}/api/positions
+
+### 11. 学生访问管理端（应 403，code=40301）
+GET {{BASE}}/api/admin/questions
+Authorization: Bearer {{TOKEN}}
+
+### ==================== M2 文字面试闭环（附录C-4~6） ====================
+
+### 12. 创建面试会话（附录C-4；Java岗=1，文字，难度3，5题，15分钟）
+# @name createInterview
+POST {{BASE}}/api/interviews
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"positionId": 1, "mode": "TEXT", "difficulty": 3, "rounds": 5, "durationMinutes": 15}
+
+### 12b. 参数越界（rounds=9 → code=40002）
+POST {{BASE}}/api/interviews
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"positionId": 1, "mode": "TEXT", "difficulty": 3, "rounds": 9, "durationMinutes": 15}
+
+### 13. 开始面试（附录C-5，返回首题 MessageVO；同时 WS 推 QUESTION）
+POST {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/start
+Authorization: Bearer {{TOKEN}}
+
+### 13b. 重复 start（应 code=10005 状态冲突）
+POST {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/start
+Authorization: Bearer {{TOKEN}}
+
+### 14. 提交文字回答（附录C-6；受理返回 {accepted:true}，
+###     AI 追问异步落库并经 WS 推 FOLLOW_UP，随后 GET 消息可见）
+POST {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/messages/text
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"roundNo": 0, "content": "缓存击穿是指热点key过期瞬间大量请求直达数据库，可以用互斥锁或逻辑过期缓解 42。"}
+
+### 15. 会话详情（status 应回到 WAITING_USER，currentRound 推进，remainSeconds 倒计时）
+GET {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}
+Authorization: Bearer {{TOKEN}}
+
+### 16. 消息列表（学生视角：未问到的主问题被隐藏；AI 消息 followupIndex 0=主问题/1..3=追问）
+GET {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/messages
+Authorization: Bearer {{TOKEN}}
+
+### 17. 中止面试（非终态均可 → ABORTED；此后答题/再 abort 均 10005）
+POST {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/abort
+Authorization: Bearer {{TOKEN}}
+
+### 18. WebSocket（另开终端，Node 22 原生客户端；可依次收到 QUESTION/FOLLOW_UP/TIMER）
+# node -e '
+#   const sid = <把会话id粘进来>; const tk = "<把token粘进来>";
+#   const ws = new WebSocket(`ws://127.0.0.1:8080/ws/interviews/${sid}?token=${tk}`);
+#   ws.onmessage = (e) => console.log(e.data);'
