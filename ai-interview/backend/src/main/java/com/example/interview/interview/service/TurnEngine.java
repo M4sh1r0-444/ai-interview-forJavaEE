@@ -8,6 +8,7 @@ import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.ai.prompt.PromptBuilder;
 import com.example.interview.ai.provider.AiProvider;
 import com.example.interview.assessment.engine.ScoreCalculator;
+import com.example.interview.assessment.engine.VoiceMetricsCalculator;
 import com.example.interview.assessment.service.ReportService;
 import com.example.interview.assessment.service.TurnEvaluationStore;
 import com.example.interview.common.result.ResultCode;
@@ -23,6 +24,7 @@ import com.example.interview.interview.statemachine.InterviewStatus;
 import com.example.interview.interview.statemachine.InterviewStateMachine;
 import com.example.interview.interview.websocket.InterviewWebSocketHandler;
 import com.example.interview.interview.websocket.WsMessageType;
+import com.example.interview.knowledge.service.KnowledgeSearchService;
 import com.example.interview.position.dto.CompetencyModel;
 import com.example.interview.position.entity.Position;
 import com.example.interview.position.mapper.PositionMapper;
@@ -44,11 +46,12 @@ import java.util.Map;
  * 一轮问答编排引擎（计划 §6.2，方案 §13.1 流程代码化）。
  *
  * <pre>
- * [同步事务段 由 InterviewService 完成] 校验归属/状态 → PROCESSING_AI → 存 USER 消息
+ * [同步事务段 由 InterviewService 完成] 校验归属/状态 → PROCESSING_AI → 存 USER 消息 + 关键词提取
  * [异步 aiExecutor 本类完成]
- *   evaluateTurn 逐题评分（快照入暂存，唤醒规则引擎 R1/R4/R5/R6 评分输入，D15）
- *   → 规则引擎决策 → PromptBuilder 拼 Prompt（DEBUG 日志）→ AiProvider.nextQuestion
- *   → 硬规则覆盖（追问≥3 强制换题）→ 追问落库并推 FOLLOW_UP / 推进轮次推 QUESTION
+ *   知识检索（M4：回答关键词 FULLTEXT 召回 Top5，空结果自然降级）
+ *   → evaluateTurn 逐题评分（+ AUDIO 场注入 voice 维度；快照入暂存，唤醒规则引擎 D15）
+ *   → 规则引擎决策 → PromptBuilder 拼 Prompt（知识片段段 DEBUG 可观测，M4-4.4）
+ *   → AiProvider.nextQuestion → 硬规则覆盖（追问≥3 强制换题）→ 追问落库并推 FOLLOW_UP / 推进轮次
  *   / 轮次用尽 → FINISHED → ReportService 异步生成报告（M3）
  * </pre>
  */
@@ -72,6 +75,8 @@ public class TurnEngine {
     private final ScoreCalculator scoreCalculator;
     private final TurnEvaluationStore evaluationStore;
     private final ReportService reportService;
+    private final KnowledgeSearchService knowledgeSearchService;
+    private final VoiceMetricsCalculator voiceCalculator;
 
     @Value("${app.interview.followup-limit:3}")
     private int followupLimit;
@@ -106,8 +111,19 @@ public class TurnEngine {
         String lastAnswer = reversedUserText(roundMsgs);
         int followupCount = (int) roundMsgs.stream().filter(m -> "AI".equals(m.getSpeaker())).count() - 1;
 
-        // 逐题评分（M3-3.1）：累积口径（本轮全部问答）评分并快照入暂存，供报告与规则引擎复用
-        AiTurnEvaluation evaluation = evaluateQuietly(sessionId, round, question, roundMsgs);
+        // 知识检索（M4-4.3/4.4）：按回答关键词召回本岗位知识片段，注入评分与出题上下文
+        List<String> knowledgeChunks =
+                knowledgeSearchService.searchForAnswer(s.getPositionId(), lastAnswer);
+
+        // 逐题评分（M3-3.1）：累积口径（本轮全部问答）评分并快照入暂存，供报告与规则引擎复用；
+        // AUDIO 场补 voice 维度（M4-4.2：语速/停顿/语气词指标换算）
+        AiTurnEvaluation evaluation =
+                evaluateQuietly(sessionId, round, question, roundMsgs, knowledgeChunks);
+        if (evaluation != null && evaluation.getScores() != null && "AUDIO".equals(s.getMode())) {
+            voiceCalculator.applyVoiceDimension(evaluation.getScores(),
+                    VoiceMetricsCalculator.joinedTranscript(roundMsgs),
+                    VoiceMetricsCalculator.sumDurationMs(roundMsgs));
+        }
 
         // 规则引擎决策（计划 §6.4 七条规则；M3 起接入评分输入，D15 唤醒）
         FollowupContext ruleCtx = FollowupContext.builder()
@@ -121,12 +137,13 @@ public class TurnEngine {
                 .build();
         FollowupDecision decision = ruleEngine.decide(ruleCtx);
 
-        // 拼装 AI 上下文与 Prompt（DEBUG 可观测，计划 §4.4）
-        NextQuestionContext aiCtx = buildContext(s, question, roundMsgs, followupCount, lastAnswer, decision);
+        // 拼装 AI 上下文与 Prompt（DEBUG 可观测；知识片段段即 M4-4.4 的 Prompt 注入）
+        NextQuestionContext aiCtx = buildContext(s, question, roundMsgs, followupCount,
+                lastAnswer, decision, knowledgeChunks);
         String prompt = promptBuilder.buildNextQuestionPrompt(aiCtx);
         log.debug("session={} round={} prompt:\n{}", sessionId, round, prompt);
 
-        // AiProvider 产出（mock 默认；真实 Provider + 三级容错 M4 接入）
+        // AiProvider 产出（mock 默认；真实 Provider 三级容错 M4-4.6 接入）
         AiNextQuestionResult r = aiProvider.nextQuestion(aiCtx);
 
         // 硬规则：追问次数用尽强制换题（优先级高于 AI 输出，计划 §6.4 最后一行）
@@ -224,12 +241,14 @@ public class TurnEngine {
 
     /** 逐题评分：失败不阻断面试（规则引擎对 null 容忍），仅告警降级。 */
     private AiTurnEvaluation evaluateQuietly(Long sessionId, int round, Question question,
-                                             List<InterviewMessage> roundMsgs) {
+                                             List<InterviewMessage> roundMsgs,
+                                             List<String> knowledgeChunks) {
         try {
             AiTurnEvaluation evaluation = aiProvider.evaluateTurn(TurnEvaluationContext.builder()
+                    .sessionId(sessionId)
                     .question(question)
                     .roundMessages(roundMsgs)
-                    .knowledgeChunks(List.of()) // M4：KnowledgeSearchService 检索注入
+                    .knowledgeChunks(knowledgeChunks)
                     .build());
             evaluationStore.append(sessionId, round, evaluation);
             return evaluation;
@@ -269,7 +288,8 @@ public class TurnEngine {
 
     private NextQuestionContext buildContext(InterviewSession s, Question question,
                                              List<InterviewMessage> roundMsgs, int followupCount,
-                                             String lastAnswer, FollowupDecision decision) {
+                                             String lastAnswer, FollowupDecision decision,
+                                             List<String> knowledgeChunks) {
         Position position = positionMapper.selectById(s.getPositionId());
         List<String> positionSkills = parseSkillNames(position);
 
@@ -288,6 +308,7 @@ public class TurnEngine {
         }
 
         return NextQuestionContext.builder()
+                .sessionId(s.getId())
                 .positionName(position != null ? position.getName() : "")
                 .positionSkills(positionSkills)
                 .difficulty(s.getDifficulty())
@@ -301,7 +322,7 @@ public class TurnEngine {
                 .followupTemplates(question != null ? question.getFollowupTemplates() : null)
                 .targetSkills(question != null ? question.getSkillTags() : null)
                 .history(history)
-                .knowledgeChunks(List.of()) // M4：KnowledgeSearchService 检索注入
+                .knowledgeChunks(knowledgeChunks)
                 .lastUserAnswer(abbreviate(lastAnswer))
                 .requestedAction(decision.getAction().name())
                 .instruction(decision.getInstruction())

@@ -14,10 +14,12 @@ import com.example.interview.interview.entity.InterviewSession;
 import com.example.interview.interview.mapper.InterviewMessageMapper;
 import com.example.interview.interview.mapper.InterviewSessionMapper;
 import com.example.interview.interview.scheduler.InterviewTimerScheduler;
+import com.example.interview.interview.storage.AudioStorageService;
 import com.example.interview.interview.statemachine.InterviewStatus;
 import com.example.interview.interview.statemachine.InterviewStateMachine;
 import com.example.interview.interview.websocket.InterviewWebSocketHandler;
 import com.example.interview.interview.websocket.WsMessageType;
+import com.example.interview.knowledge.service.KeywordExtractor;
 import com.example.interview.position.entity.Position;
 import com.example.interview.position.mapper.PositionMapper;
 import com.example.interview.question.entity.Question;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,8 +41,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 面试会话服务（计划 §4.3/§5.3）：创建 / start（组卷+落库首题）/ 文字回答受理 /
- * finish（收卷并触发报告，兼报告失败重试入口）/ abort / 详情 / 消息查询。
+ * 面试会话服务（计划 §4.3/§5.3）：创建 / start（组卷+落库首题）/ 文字与音频回答受理 /
+ * finish（收卷并触发报告，兼报告失败重试入口）/ abort / 详情 / 消息查询 / 音频回放读取。
  * 所有状态转换经状态机乐观锁；AI 产出由 TurnEngine 异步完成，报告由 ReportService 异步生成。
  */
 @Slf4j
@@ -55,6 +58,8 @@ public class InterviewService {
     private final InterviewTimerScheduler timerScheduler;
     private final InterviewWebSocketHandler wsHandler;
     private final ReportService reportService;
+    private final KeywordExtractor keywordExtractor;
+    private final AudioStorageService audioStorage;
 
     @Value("${app.interview.min-rounds:5}")
     private int minRounds;
@@ -144,8 +149,9 @@ public class InterviewService {
     // ==================== 用例 11：文字回答受理 ====================
 
     /**
-     * 同步事务段（计划 §6.2 步骤 1~2）：归属与状态校验、WAITING_USER→PROCESSING_AI、
-     * 保存 USER 消息。AI 编排由 Controller 触发 TurnEngine 异步执行（事务提交后启动）。
+     * 同步事务段（计划 §6.2 步骤 1~3）：归属与状态校验、WAITING_USER→PROCESSING_AI、
+     * 保存 USER 消息并写入提取关键词（keywords_json，供检索与报告）。
+     * AI 编排由 Controller 触发 TurnEngine 异步执行（事务提交后启动）。
      */
     @Transactional
     public Map<String, Object> submitTextAnswer(Long id, TextAnswerRequest req) {
@@ -165,12 +171,85 @@ public class InterviewService {
         m.setSpeaker("USER");
         m.setInputType("TEXT");
         m.setContentText(req.getContent());
+        m.setKeywords(keywordExtractor.extract(req.getContent()));
         messageMapper.insert(m);
-        log.info("收到文字回答 session={} round={} length={}", id, req.getRoundNo(), req.getContent().length());
+        log.info("收到文字回答 session={} round={} length={} keywords={}",
+                id, req.getRoundNo(), req.getContent().length(), m.getKeywords());
         Map<String, Object> resp = new HashMap<>();
         resp.put("accepted", true);
         resp.put("roundNo", req.getRoundNo());
         return resp;
+    }
+
+    // ==================== 用例 12：音频回答受理（M4） ====================
+
+    /**
+     * 音频回答（计划 §5.3 #12 / §6.9）：转写在前端完成，后端校验格式大小 →
+     * 落盘 uploads → 以 asrText 为 content_text 进入与文字同一分析流程；语音指标
+     * 用 durationMs/字数计算（pauseCount 表单参数受 9 表约束不落库，停顿由转写标记推断）。
+     * 提交后推 TRANSCRIPT 回显确认（计划 §5.6）。
+     */
+    @Transactional
+    public Map<String, Object> submitAudioAnswer(Long id, MultipartFile file, int roundNo,
+                                                 String asrText, Integer durationMs, Integer pauseCount) {
+        if (asrText == null || asrText.isBlank() || asrText.length() > 5000) {
+            throw new BizException(ResultCode.PARAM_INVALID, "asrText 必填且长度 1~5000");
+        }
+        if (durationMs == null || durationMs < 1 || durationMs > 600_000) {
+            throw new BizException(ResultCode.PARAM_INVALID, "durationMs 必填且取值 1~600000 毫秒");
+        }
+        if (pauseCount != null && (pauseCount < 0 || pauseCount > 999)) {
+            throw new BizException(ResultCode.PARAM_INVALID, "pauseCount 取值 0~999");
+        }
+        InterviewSession s = loadForMutation(id);
+        if (!"AUDIO".equals(s.getMode())) {
+            throw new BizException(ResultCode.PARAM_OUT_OF_RANGE, "仅 mode=AUDIO 会话可提交音频回答");
+        }
+        if (!InterviewStatus.WAITING_USER.name().equals(s.getStatus())) {
+            throw new BizException(ResultCode.STATUS_CONFLICT,
+                    "当前状态 " + s.getStatus() + " 不可提交回答");
+        }
+        if (!s.getCurrentRound().equals(roundNo)) {
+            throw new BizException(ResultCode.PARAM_OUT_OF_RANGE,
+                    "roundNo 应为当前轮次 " + s.getCurrentRound());
+        }
+        String audioPath = audioStorage.store(file); // 校验失败抛 40001，事务回滚不落消息
+
+        stateMachine.transition(id, InterviewStatus.WAITING_USER, InterviewStatus.PROCESSING_AI);
+        InterviewMessage m = new InterviewMessage();
+        m.setSessionId(id);
+        m.setRoundNo(roundNo);
+        m.setSpeaker("USER");
+        m.setInputType("AUDIO");
+        m.setContentText(asrText);
+        m.setAsrText(asrText);
+        m.setAudioPath(audioPath);
+        m.setAudioDurationMs(durationMs);
+        m.setKeywords(keywordExtractor.extract(asrText));
+        messageMapper.insert(m);
+        afterCommit(() -> wsHandler.push(id, WsMessageType.TRANSCRIPT, Map.of(
+                "messageId", m.getId(), "asrText", asrText)));
+        log.info("收到音频回答 session={} round={} bytes={} durationMs={}ms 转写{}字 path={}",
+                id, roundNo, file.getSize(), durationMs, asrText.length(), audioPath);
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("accepted", true);
+        resp.put("roundNo", roundNo);
+        return resp;
+    }
+
+    /** 音频回放（计划 §6.9 可选项）：归属本人/ADMIN 可读（loadForRead 统一校验），流式返回落盘文件。 */
+    public AudioResource loadAudio(Long sessionId, Long messageId) {
+        loadForRead(sessionId);
+        InterviewMessage m = messageMapper.selectById(messageId);
+        if (m == null || !m.getSessionId().equals(sessionId) || m.getAudioPath() == null) {
+            throw new BizException(ResultCode.NOT_FOUND_OR_FORBIDDEN, "音频消息不存在");
+        }
+        return new AudioResource(audioStorage.resolve(m.getAudioPath()),
+                audioStorage.contentTypeOf(m.getAudioPath()));
+    }
+
+    /** 回放资源：文件路径 + Content-Type。 */
+    public record AudioResource(java.nio.file.Path path, String contentType) {
     }
 
     // ==================== 用例 13：结束并生成报告 ====================

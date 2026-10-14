@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | M3 开发完成（待进入 M4） |
-| 当前里程碑 | M3 ✅（2026-10-14 完成） |
-| 整体进度 | 计划阶段 100%；开发阶段 3/6 里程碑（M1 ✅、M2 ✅、M3 ✅） |
+| 当前阶段 | M4 开发完成（待进入 M5） |
+| 当前里程碑 | M4 ✅（2026-10-14 完成） |
+| 整体进度 | 计划阶段 100%；开发阶段 4/6 里程碑（M1 ✅、M2 ✅、M3 ✅、M4 ✅） |
 | 上次更新 | 2026-10-14 |
-| 上次更新人 | ZCode（M3 开发会话） |
+| 上次更新人 | ZCode（M4 开发会话） |
 
 ### 里程碑状态
 
@@ -29,7 +29,7 @@
 | M1 | 基础工程 + 认证 + 岗位题库 | ✅ 已完成 | 2026-10-13 | 2026-10-13 |
 | M2 | 文字面试闭环 | ✅ 已完成 | 2026-10-13 | 2026-10-13 |
 | M3 | 评分 + 报告 + 历史 | ✅ 已完成 | 2026-10-14 | 2026-10-14 |
-| M4 | 语音 + 知识库 RAG | ⬜ 未开始 | | |
+| M4 | 语音 + 知识库 RAG | ✅ 已完成 | 2026-10-14 | 2026-10-14 |
 | M5 | 个性化 + 管理端补全 | ⬜ 未开始 | | |
 | M6 | 测试 + 部署 + 验收 | ⬜ 未开始 | | |
 
@@ -45,9 +45,10 @@
 | 4 | 开发期容器编排（M1-1.1） | `ai-interview/docker-compose.dev.yml` | 2026-10-13 | ✅ 已交付 | MySQL 8.0（3306）+ Redis 7（宿主机 6380），两容器 healthy |
 | 5 | 后端 Maven 工程（M1-1.2~1.7） | `ai-interview/backend/` | 2026-10-13 | ✅ 已交付 | Spring Boot 3.3.12 单体；common/auth/position/question/admin 五包；`mvn test` 全绿（10 用例） |
 | 6 | Flyway 脚本 V1~V4（M1-1.3/1.8/1.9） | `backend/src/main/resources/db/migration/` | 2026-10-13 | ✅ 已交付 | V1 建 9 表；V2 账号+2 岗位+能力模型；V3/V4 两岗位各 30 题种子（已迁移验证） |
-| 7 | 接口调试脚本（M1 起） | `backend/api.http` | 2026-10-13 | 🔧 持续维护 | IDEA HTTP Client，与计划附录 C 同步；M2 追加用例 12~18（面试闭环 + WS），M3 追加 19~21（finish/report/history） |
+| 7 | 接口调试脚本（M1 起） | `backend/api.http` | 2026-10-13 | 🔧 持续维护 | IDEA HTTP Client，与计划附录 C 同步；M2 追加用例 12~18（面试闭环 + WS），M3 追加 19~21（finish/report/history），M4 追加 22~25（音频回答/回放 + 管理端知识库 + Provider 观测） |
 | 8 | 文字面试闭环模块（M2-2.1~2.7） | `backend/` interview/ai 包等 | 2026-10-13 | ✅ 已交付 | interview（实体/状态机/服务/TurnEngine/规则引擎/WS/定时器）+ ai（Mock/Prompt/解析容错）；`mvn test` 38 用例全绿 |
 | 9 | 评分+报告+历史模块（M3-3.1~3.5） | `backend/` assessment/growth 包等 | 2026-10-14 | ✅ 已交付 | assessment（ScoreCalculator/ReportService/EvaluationReport/TurnEvaluationStore）+ growth（history 接口）+ Mock 评分引擎与报告拼装 + finish/重试/TIMEOUT 收卷；`mvn test` 56 用例全绿（M3 新增 18） |
+| 10 | 语音+知识库RAG+真实Provider模块（M4-4.1~4.6） | `backend/` knowledge/interview.storage/ai 包等 | 2026-10-14 | ✅ 已交付 | knowledge（实体/FULLTEXT检索/KeywordExtractor/管理服务）+ AudioStorageService + 音频回答/回放接口 + VoiceMetricsCalculator（AUDIO 场 voice 维度）+ V5 种子 42 条 + OpenAiCompatibleProvider（三级容错/会话熔断）+ WebClientConfig；`mvn test` 85 用例全绿（M4 新增 29） |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。
 
@@ -97,16 +98,16 @@
 
 > M3 测试汇总：`mvn test` = **56 用例全绿**（M2 38 + M3 新增 18：ScoreCalculatorTest 11、InterviewReportFlowIT 4、ReportRetryIT 1、HistoryGrowthIT 1、WebSocketPushIT 增 1）；测试类 14 个。六维中 voice 维度排期 M4（AUDIO 场语音指标）。
 
-### M4 语音 + 知识库 RAG
+### M4 语音 + 知识库 RAG ✅（2026-10-14 完成）
 
 | 任务 | 内容 | 状态 | 完成日期 | 验证记录/备注 |
 |---|---|---|---|---|
-| 4.1 | 音频上传与存储 | ⬜ | | 验证：AudioAnswerIT |
-| 4.2 | 语音指标计算 | ⬜ | | 验证：VoiceMetricsCalculatorTest |
-| 4.3 | 知识检索（V5 种子 + FULLTEXT） | ⬜ | | 验证：检索 SQL 手验 |
-| 4.4 | 知识片段注入 Prompt | ⬜ | | 验证：DEBUG 日志 |
-| 4.5 | admin knowledge 接口 + rebuild | ⬜ | | 验证：新增即被检索 |
-| 4.6 | 真实 Provider（OpenAiCompatible） | ⬜ | | 验证：qwen 模式跑通一场 |
+| 4.1 | 音频上传与存储 | ✅ | 2026-10-14 | AudioAnswerIT 3 用例通过：AUDIO 会话 multipart 提交（webm/wav/mp3 白名单 + Content-Type 复核 + UUID 命名落盘 `uploads/audio/yyyyMM/`）→ 消息含 inputType/asrText/audioPath/audioDurationMs/keywords；非音频扩展名、text/plain、缺 asrText、durationMs 越界均 40001 且状态不受影响；TEXT 会话提交 40002；受保护回放接口本人 200/他人 40401（D21）；超 10MB 由 multipart 全局限制 + GlobalExceptionHandler → 40001。curl（18080）实测落盘 `audio/202610/<uuid>.webm`、回放 200（35 bytes，audio/webm）、TRANSCRIPT 推送按计划 §5.6 |
+| 4.2 | 语音指标计算 | ✅ | 2026-10-14 | VoiceMetricsCalculatorTest 8 用例通过（600 字/200 秒 → 语速 180；空转写/零时长不除零；停顿标记计数；满速带 90~100；过慢/过快封顶 60；无时长中性 55；分段线性边界值）。TurnEngine 运行期与 ReportService 重算路径均对 AUDIO 场注入 voice 维度；curl AUDIO 场报告 dimensionScores 含 voice=60.0（语速极端区封顶生效，决策 D19） |
+| 4.3 | 知识检索（V5 种子 + FULLTEXT） | ✅ | 2026-10-14 | V5__seed_knowledge_chunks.sql 两岗位各 21 条（7 技能 × 3，content 300~800 字、keywords 8+ 个、skill_tags 对齐能力模型），dev/test 库 Flyway 自动迁移。SQL 手验（utf8mb4 客户端）：`+缓存 +击穿`/`+互斥锁 +逻辑过期` 召回「缓存穿透、击穿、雪崩的区别与对策」为 Top1（score 12/33）；岗位隔离（岗位 2 查 `+缓存 +redis` 为空）；KnowledgeSearchIT 5 用例含种子召回/无匹配空列表 |
+| 4.4 | 知识片段注入 Prompt | ✅ | 2026-10-14 | KeywordExtractor（词典法：能力模型技能名/编码 + 知识库 keywords 聚合、最长匹配去重、英文技术词正则、停用词与单字过滤、TopN10、BOOLEAN 查询词 >4 取前 4）→ keywords_json 入库（文字/音频回答统一）→ TurnEngine 检索 Top5 注入 evaluateTurn 与 nextQuestion 上下文。DEBUG 日志实测：`知识检索 positionId=1 query=+readview +可重复读 +mvcc +版本链 命中 2/5 条`，prompt 含【参考知识片段】《…》；KeywordExtractorTest 8 用例通过 |
+| 4.5 | admin knowledge 接口 + rebuild | ✅ | 2026-10-14 | POST /api/admin/knowledge（校验 title/content≤8000/keywords/skillTags、岗位存在性，落库 sourceType=MANUAL）+ 词典即时刷新；POST /api/admin/knowledge/rebuild（OPTIMIZE TABLE）。curl 实测新增片段（id=43）后提交事务类回答立即召回 2 条（含新片段）；学生 403（HTTP 403/code 40301）；参数缺失 40001、岗位不存在 40002 |
+| 4.6 | 真实 Provider（OpenAiCompatible） | ✅ | 2026-10-14 | OpenAiCompatibleProvider：WebClient POST {api-url}/chat/completions（system 限定只输出 JSON + response_format=json_object + temperature 0.3，超时 ai.timeout）；三级容错=失败重试 1 次（退避 1s）→ Mock 降级 → 连续 3 次失败锁会话（sessionId 熔断）。OpenAiCompatibleProviderTest 5 用例（JDK HttpServer 模拟）：正常解析/围栏剥壳/5xx 重试降级/坏 JSON 连续 3 次锁定（第 4 次不再打服务端）/报告降级。实测：qwen 缺 AI_API_URL/KEY 启动即失败（信息明确，D20）；不可达端点跑完一场（真实调用失败→WARN 降级 mock→面试照常出追问）；AiConfig 移除 D14 的 mock 回退 |
 
 ### M5 个性化 + 管理端补全
 
@@ -155,6 +156,10 @@
 | 2026-10-14 | 决策 | **D17：逐题评分结果不落库**（严守 9 表约束）——进程内 TurnEvaluationStore 按 (session, round) 暂存累积评分快照（供应变得分），报告读取时缺漏轮次用 Mock 引擎确定性重算；真实 Provider 的 Redis 报告缓存排期 M4。AiReport.summary 与 reportText 合并存 report_text 列（无独立列），读取按首个空行拆分 | 计划 §6.6 / §3.1 |
 | 2026-10-14 | 偏差 | **D18：history 返回 `Page<HistoryItemVO>`**（records+total，与管理端题库列表分页契约一致），计划 §5.4#20 写的是裸数组；未 start（CREATED）的会话不入历史（started_at 非空才计入） | 计划 §5.4-20 |
 | 2026-10-14 | 说明 | **D15 于 M3 落地**：TurnEngine 每答先 evaluateTurn 再喂规则引擎（coveredRatio/missingPoints/lastTwoScores 全接入）。因引擎既定优先级 R1（缺得分点即追问）先于 R5/R6，通用回答下换题恒由追问上限 R7 触发；R5/R6 在题目无得分点数据等边角场景运行期可达，七条规则行为仍由 FollowupRuleEngineTest 全覆盖 | 计划 §6.4 |
+| 2026-10-14 | 偏差 | **D19：pauseCount 表单参数接受但不落库**——interview_message 无 pause_count 列且 9 表 DDL 冻结，停顿次数由转写中的省略号/破折号/显式标记推断（正则，先长后短防 `——` 双计）。VoiceMetricsCalculator：语速=字数÷分钟、语气词密度/百字、停顿按每 2 分钟折算；voice=语速×0.5+停顿×0.2+语气词×0.3，语速 <120 或 >320 字/分时封顶 60（语速为一票否决项）；无时长/无转写中性 55 | 计划 §5.3-12 / §6.6 |
+| 2026-10-14 | 偏差 | **D20：D14 于 M4 落地**——ai.provider=qwen 真实启用 OpenAiCompatibleProvider（WebClient），缺 AI_API_URL/AI_API_KEY 启动即抛错（配置错误显式暴露，优于静默降级）；运行期三级容错：重试 1 次（1s 退避）→ Mock 降级 → 连续 3 次失败会话锁定 mock。NextQuestionContext/TurnEvaluationContext/ReportContext 增 sessionId 字段支撑会话级熔断；PromptBuilder 补 evaluateTurn/generateReport 两套 Prompt | 计划 §6.8 / §9-M4-4.6 |
+| 2026-10-14 | 偏差 | **D21：MessageVO 补 audioPath 字段**（计划 §4.3 MessageVO 未列，音频回答验证/前端展示需要）；计划 §6.9 的"可选回放接口"交付：GET /api/interviews/{id}/messages/{mid}/audio（归属本人/ADMIN，FileSystemResource 流式 + Content-Type 按扩展名） | 计划 §4.3 / §6.9 |
+| 2026-10-14 | 说明 | KeywordExtractor 检索/匹配用字符串列名 QueryWrapper（非 lambda），脱离 Spring 容器可运行，纯单测无需起 MyBatis-Plus 上下文；词典为 volatile 快照整体替换（refresh 由管理端新增触发 + 首次使用懒加载） | 计划 §6.5 |
 
 ## 5. 问题与风险跟踪
 
@@ -168,18 +173,19 @@
 | P4 | 2026-10-13 | MockMvc 读取响应默认 ISO-8859-1 导致中文断言乱码 | ✅ 已解决 | 测试 `body()` 统一 `getContentAsString(UTF_8)` |
 | P5 | 2026-10-13 | M2 手工验证时登录返回 42901：集成测试大量登录把共享 Redis（6380）的限流键 `rl:login:127.0.0.1` 打满，dev 应用（限 5/分）沿用同一计数 | ✅ 已解决 | 限流键 TTL 60s，等窗口重置即可；非代码缺陷，联调时知悉此现象（测试与开发共用 Redis 时先跑测试会短暂触发限流） |
 | P6 | 2026-10-14 | 本机 8080 端口被**其他项目**（`~/Desktop/Agent/AI-interview/self-interview-learning`，Gradle/Spring AI 应用，PID 随启动变化）占用，本项目 dev 后端无法按默认端口启动 | ⚠ 环境问题（非本项目缺陷） | 不动他人环境：冒烟/联调临时用 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=18080`；若该服务系本人可自行停用则恢复 8080。测试不受影响（RANDOM_PORT/MockMvc） |
+| R3 | 2026-10-14 | 预置风险：ngram token=2，单字/单英文查询不命中 FULLTEXT | ✅ 已验证防护 | KeywordExtractor 过滤词长 <2 与停用词、查询词超 4 取前 4；V5 内容均为完整技术词。手验时另发现：docker exec mysql 客户端默认字符集非 utf8mb4 会把中文查询条件转码失配（M4 SQL 手验需加 `--default-character-set=utf8mb4`），应用侧 JDBC 无此问题 |
 
 > 开发中新遇到的问题在此追加；已解决的把状态改为 ✅ 并填解决方式。计划 §11 的 R1~R12 作为预置风险清单，触发时在此登记。
 
 ## 6. 环境状态备忘
 
-| 组件 | 状态（2026-10-14 M3 完成时检测） | 备注 |
+| 组件 | 状态（2026-10-14 M4 完成时检测） | 备注 |
 |---|---|---|
 | JDK 17 | ✅ Temurin 17.0.20（`~/tools/jdk-17.0.20.1+1`，tarball 安装） | 运行/测试统一 `JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home` |
 | JDK 25 | 仍存在（系统默认） | 仅做兜底；编译由 `maven.compiler.release=17` 保证 |
 | Maven | 3.9.16（~/tools/apache-maven-3.9.16） | settings.xml 已配阿里云镜像 |
 | Docker | ✅ colima 运行中 | 镜像经 daocloud 源拉取（D7） |
-| aiinterview-mysql | ✅ healthy，端口 3306 | `docker compose -f docker-compose.dev.yml up -d` |
+| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库已迁移至 V5（42 条知识片段）；测试库 ai_interview_test 同步 V5 |
 | aiinterview-redis | ✅ healthy，宿主机端口 6380 | 6379 被其他项目占用（D6） |
 | 本机 8080 | ⚠ 被其他项目占用（P6） | dev 后端临时换 `--server.port=18080`；测试不受影响 |
 | Node | v22.23.3 / npm 10.9.9 | 仅前端用，超出本计划范围 |
@@ -208,3 +214,4 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-13 | **M1 完成**：任务 1.1~1.9 全部 ✅（产物 #4~#7 交付）；安装 Temurin 17；起 dev 容器；应用启动+Flyway V1~V4 迁移+9 表断言通过；附录 C 认证用例与安全边界 curl 全通过；`mvn test` 10 用例全绿；登记偏差 D6~D10、问题 P1~P4（均解决）、R1 解决 | ZCode（M1 开发会话） |
 | 2026-10-13 | **M2 完成**：任务 2.1~2.7 全部 ✅（产物 #8 交付，api.http 增用例 12~18）；新增 interview（实体/状态机/TurnEngine/规则引擎/WS/定时器）与 ai（Mock/Prompt/解析容错）模块，无新增 Flyway 脚本；`mvn test` 38 用例全绿（M2 新增 28）；手工验证：curl 建会话→start 首题→文字回答追问落库→abort 终态、Node WS 实测 QUESTION/FOLLOW_UP/TIMER；登记决策 D11~D15、问题 P5 | ZCode（M2 开发会话） |
 | 2026-10-14 | **M3 完成**：任务 3.1~3.5 全部 ✅（产物 #9 交付，api.http 增用例 19~21）；新增 assessment（ScoreCalculator/ReportService/EvaluationReport/TurnEvaluationStore/ReportVO）与 growth（history）模块，MockAiProvider 补全 evaluateTurn 规则评分引擎与 generateReport 报告拼装，TurnEngine 接入评分输入（D15 唤醒）、finish/轮次用尽/TIMEOUT 三处触发报告生成，无新增 Flyway 脚本；`mvn test` 56 用例全绿（M3 新增 18，测试类 14）；手工验证：curl（18080，P6）finish→report 完整 ReportVO（63.77 分）→history、启动恢复自动收卷昨日遗留会话并出报告；登记决策 D16~D18、问题 P6 | ZCode（M3 开发会话） |
+| 2026-10-14 | **M4 完成**：任务 4.1~4.6 全部 ✅（产物 #10 交付，api.http 增用例 22~25）；新增 knowledge（实体/FULLTEXT Mapper/KeywordExtractor/KnowledgeSearchService/KnowledgeAdminService）与 interview.storage（AudioStorageService）模块、VoiceMetricsCalculator、OpenAiCompatibleProvider + WebClientConfig + AiChatResponse，Flyway V5 种子 42 条知识片段，TurnEngine/InterviewService/ReportService 接入关键词提取、知识检索注入 Prompt 与 AUDIO 场 voice 维度，MessageVO 补 audioPath（D21）；`mvn test` 85 用例全绿（M4 新增 29：VoiceMetricsCalculatorTest 8、KeywordExtractorTest 8、OpenAiCompatibleProviderTest 5、AudioAnswerIT 3、KnowledgeSearchIT 5，测试类 19）；手工验证：SQL 手验 FULLTEXT 召回（utf8mb4 客户端）、curl 音频全流程（落盘/回放/报告含 voice）、新增知识片段即被检索、qwen 缺 key fail-fast 与不可达端点自动回 mock；登记决策 D19~D21、风险 R3 验证 | ZCode（M4 开发会话） |

@@ -12,6 +12,9 @@ import com.example.interview.interview.service.TurnEngine;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +22,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * 面试核心接口（计划 §5.3）。M2 交付：创建/开始/文字回答/中止/详情/消息；
- * M3 交付：finish（#13）/report（#17）；音频回答（#12）排期 M4。
+ * 面试核心接口（计划 §5.3）。M2：创建/开始/文字回答/中止/详情/消息；
+ * M3：finish（#13）/report（#17）；M4：音频回答（#12）与受保护音频回放。
  */
 @Slf4j
 @RestController
@@ -64,6 +68,39 @@ public class InterviewController {
             log.error("触发 AI 编排失败 session={}", id, e);
         }
         return Result.ok(resp);
+    }
+
+    /**
+     * 用例 12：提交音频回答（multipart：file + roundNo + asrText + durationMs + pauseCount?）。
+     * 转写由前端 Web Speech API 完成后随表单上送；受理契约与文字一致，
+     * AI 产出异步落库并经 WS 推送；受理成功后另推 TRANSCRIPT 回显确认。
+     */
+    @PostMapping("/{id}/messages/audio")
+    public Result<Map<String, Object>> submitAudio(@PathVariable Long id,
+                                                   @RequestParam("file") MultipartFile file,
+                                                   @RequestParam("roundNo") int roundNo,
+                                                   @RequestParam("asrText") String asrText,
+                                                   @RequestParam("durationMs") Integer durationMs,
+                                                   @RequestParam(value = "pauseCount", required = false) Integer pauseCount) {
+        Map<String, Object> resp = interviewService.submitAudioAnswer(
+                id, file, roundNo, asrText, durationMs, pauseCount);
+        try {
+            turnEngine.processTurn(id);
+        } catch (Exception e) {
+            // 线程池拒绝等极端情况：会话停在 PROCESSING_AI，由定时器 TIMEOUT 兜底
+            log.error("触发 AI 编排失败 session={}", id, e);
+        }
+        return Result.ok(resp);
+    }
+
+    /** 用例 12b：受保护音频回放（归属本人/ADMIN，计划 §6.9 可选项）。 */
+    @GetMapping("/{id}/messages/{messageId}/audio")
+    public ResponseEntity<FileSystemResource> audio(@PathVariable Long id,
+                                                    @PathVariable Long messageId) {
+        InterviewService.AudioResource resource = interviewService.loadAudio(id, messageId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, resource.contentType())
+                .body(new FileSystemResource(resource.path()));
     }
 
     /** 用例 13：结束面试。受理即返，报告异步生成，就绪经 WS REPORT_READY 通知；重试入口同此接口。 */

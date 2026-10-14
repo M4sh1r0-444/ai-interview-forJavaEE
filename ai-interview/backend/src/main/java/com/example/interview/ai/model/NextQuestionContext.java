@@ -14,6 +14,8 @@ import java.util.List;
 @Builder
 public class NextQuestionContext {
 
+    /** 所属面试会话（真实 Provider 会话级熔断与日志追踪用） */
+    private Long sessionId;
     private String positionName;
     private List<String> positionSkills;
 

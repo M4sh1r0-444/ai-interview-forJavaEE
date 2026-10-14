@@ -13,6 +13,8 @@ import java.util.Map;
 @Builder
 public class ReportContext {
 
+    /** 所属面试会话（真实 Provider 会话级熔断与日志追踪用） */
+    private Long sessionId;
     private String positionName;
     private Integer difficulty;
     /** 完成的主问题轮次数 */

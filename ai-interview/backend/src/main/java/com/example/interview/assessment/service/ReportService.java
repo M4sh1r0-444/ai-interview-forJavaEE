@@ -9,6 +9,7 @@ import com.example.interview.ai.provider.AiProvider;
 import com.example.interview.assessment.dto.QuestionEvidenceVO;
 import com.example.interview.assessment.dto.ReportVO;
 import com.example.interview.assessment.engine.ScoreCalculator;
+import com.example.interview.assessment.engine.VoiceMetricsCalculator;
 import com.example.interview.assessment.entity.EvaluationReport;
 import com.example.interview.assessment.mapper.EvaluationReportMapper;
 import com.example.interview.auth.security.CurrentUser;
@@ -61,6 +62,7 @@ public class ReportService {
     private final EvaluationReportMapper reportMapper;
     private final AiProvider aiProvider;
     private final ScoreCalculator calculator;
+    private final VoiceMetricsCalculator voiceCalculator;
     private final TurnEvaluationStore evaluationStore;
     private final InterviewWebSocketHandler wsHandler;
     private final TransactionTemplate transactionTemplate;
@@ -102,6 +104,7 @@ public class ReportService {
         Aggregation agg = aggregate(s, position, model);
 
         AiReport aiReport = aiProvider.generateReport(ReportContext.builder()
+                .sessionId(sessionId)
                 .positionName(position != null ? position.getName() : "")
                 .difficulty(s.getDifficulty())
                 .roundCount(agg.rounds.size())
@@ -288,11 +291,19 @@ public class ReportService {
         if (evaluations == null || evaluations.size() != answers.size()) {
             evaluations = new ArrayList<>();
             for (int i = 0; i < answers.size(); i++) {
-                evaluations.add(aiProvider.evaluateTurn(TurnEvaluationContext.builder()
+                AiTurnEvaluation eval = aiProvider.evaluateTurn(TurnEvaluationContext.builder()
+                        .sessionId(s.getId())
                         .question(question)
                         .roundMessages(roundMsgs.subList(0, indexOfNthUser(roundMsgs, i) + 1))
                         .knowledgeChunks(List.of())
-                        .build()));
+                        .build());
+                // AUDIO 场重算路径同样补 voice 维度（与 TurnEngine 运行期口径一致，M4-4.2）
+                if (eval.getScores() != null && "AUDIO".equals(s.getMode())) {
+                    voiceCalculator.applyVoiceDimension(eval.getScores(),
+                            VoiceMetricsCalculator.joinedTranscript(roundMsgs),
+                            VoiceMetricsCalculator.sumDurationMs(roundMsgs));
+                }
+                evaluations.add(eval);
             }
         }
         return new RoundData(mainQuestion != null ? mainQuestion.getQuestionId() : null,

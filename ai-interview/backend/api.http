@@ -3,6 +3,7 @@
 
 @BASE = http://127.0.0.1:8080
 @TOKEN = {{login.response.body.data.token}}
+@ADMIN_TOKEN = {{adminLogin.response.body.data.token}}
 
 ### 0. 健康检查
 GET {{BASE}}/actuator/health
@@ -152,3 +153,67 @@ Authorization: Bearer {{TOKEN}}
 ###     totalScore 在报告生成后回填，ABORTED 为 null）
 GET {{BASE}}/api/users/me/history?page=1&size=10
 Authorization: Bearer {{TOKEN}}
+
+### ==================== M4 语音 + 知识库 RAG ====================
+### 说明：22（音频回答）需先执行 12（mode=AUDIO）+13 建会话并 start；
+###       音频文件可用任意小文件改名 .webm 模拟（真实链路由前端录音 + Web Speech 转写）
+
+### 22. 提交音频回答（multipart：file + roundNo + asrText + durationMs + pauseCount?）
+###     受理返回 {accepted:true}；AI 产出异步经 WS 推送；受理后另推 TRANSCRIPT{messageId,asrText}
+###     文字/语音同一分析链路：asrText 作为 content_text；语音指标由 durationMs/字数换算
+POST {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/messages/audio
+Authorization: Bearer {{TOKEN}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="answer.webm"
+Content-Type: audio/webm
+
+< ./uploads/sample.webm
+--WebAppBoundary
+Content-Disposition: form-data; name="roundNo"
+
+0
+--WebAppBoundary
+Content-Disposition: form-data; name="asrText"
+
+缓存击穿指热点key过期瞬间大量请求同时打到数据库，常见对策是互斥锁保证只有一个线程回源、逻辑过期让旧值先行兜底，并把热点key的TTL加随机抖动错开过期时间，同时配合接口限流与多级缓存降低数据库压力。
+--WebAppBoundary
+Content-Disposition: form-data; name="durationMs"
+
+120000
+--WebAppBoundary
+Content-Disposition: form-data; name="pauseCount"
+
+2
+--WebAppBoundary--
+
+### 22b. 消息列表（AUDIO 回答含 audioPath/asrText/audioDurationMs/keywords；
+###      TEXT 场报告无 voice 维度，AUDIO 场 dimensionScores 含 voice）
+GET {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/messages
+Authorization: Bearer {{TOKEN}}
+
+### 22c. 受保护音频回放（归属本人/ADMIN，流式返回；越权 40401）
+GET {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/messages/33/audio
+Authorization: Bearer {{TOKEN}}
+
+### 23. 管理端新增知识片段（立即可被检索；词典同步刷新；ADMIN_TOKEN 见用例 7 adminLogin）
+
+POST {{BASE}}/api/admin/knowledge
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"positionId": 1, "title": "事务隔离级别速记", "content": "读未提交脏读、读已提交不可重复读、可重复读默认且间隙锁防幻读、串行化全加锁；MVCC 用 ReadView 与 undo 版本链实现快照读，写操作走当前读。", "keywords": "事务隔离,脏读,幻读,间隙锁,MVCC,ReadView,版本链,快照读,当前读", "skillTags": "mysql"}
+
+### 24. 管理端重建全文索引（OPTIMIZE TABLE knowledge_chunk）
+POST {{BASE}}/api/admin/knowledge/rebuild
+Authorization: Bearer {{ADMIN_TOKEN}}
+
+### 25. 知识检索注入 Prompt 的观测（dev profile DEBUG 日志可见）
+# grep -E "知识检索|参考知识片段" logs/... ：
+#   KnowledgeSearchService - 知识检索 positionId=1 query=+缓存击穿 +互斥锁 ... 命中 2/5 条
+#   TurnEngine - session=N round=0 prompt: ...【参考知识片段】-《缓存穿透、击穿、雪崩的区别与对策》...
+# 真实 Provider 切换（重启生效）：
+#   AI_PROVIDER=qwen AI_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1 \
+#   AI_API_KEY=sk-xxx AI_MODEL=qwen-plus mvn spring-boot:run
+#   —— 缺 key 启动即失败（配置错误显式暴露）；运行期故障自动重试 1 次后降级 mock，连续 3 次失败锁会话

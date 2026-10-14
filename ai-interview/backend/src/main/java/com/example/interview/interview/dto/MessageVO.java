@@ -21,6 +21,8 @@ public class MessageVO {
     private String speaker;
     private String inputType;
     private String contentText;
+    /** 音频相对路径（仅 AUDIO 回答消息） */
+    private String audioPath;
     private Integer audioDurationMs;
     private String asrText;
     private Long questionId;
@@ -37,6 +39,7 @@ public class MessageVO {
                 .speaker(m.getSpeaker())
                 .inputType(m.getInputType())
                 .contentText(m.getContentText())
+                .audioPath(m.getAudioPath())
                 .audioDurationMs(m.getAudioDurationMs())
                 .asrText(m.getAsrText())
                 .questionId(m.getQuestionId())

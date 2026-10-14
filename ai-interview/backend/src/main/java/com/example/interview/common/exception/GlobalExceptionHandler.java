@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * 全局异常处理（计划 §4.3）：BizException→业务码；参数校验→40001；
@@ -45,6 +46,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<Void>> handleAccessDenied(AccessDeniedException e) {
         return ResponseEntity.status(ResultCode.FORBIDDEN.getHttpStatus())
                 .body(Result.fail(ResultCode.FORBIDDEN, null));
+    }
+
+    /** 音频上传超过 multipart 上限（10MB，计划 §7-5）→ 40001。 */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Result<Void>> handleMaxUpload(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(ResultCode.PARAM_INVALID.getHttpStatus())
+                .body(Result.fail(ResultCode.PARAM_INVALID, "上传文件超过大小限制"));
     }
 
     @ExceptionHandler(Exception.class)
