@@ -1,5 +1,7 @@
 package com.example.interview.interview.controller;
 
+import com.example.interview.assessment.dto.ReportVO;
+import com.example.interview.assessment.service.ReportService;
 import com.example.interview.common.result.Result;
 import com.example.interview.interview.dto.CreateInterviewRequest;
 import com.example.interview.interview.dto.InterviewDetailVO;
@@ -23,7 +25,7 @@ import java.util.Map;
 
 /**
  * 面试核心接口（计划 §5.3）。M2 交付：创建/开始/文字回答/中止/详情/消息；
- * 音频回答（#12）、finish（#13）、report（#17）分别在 M4/M3 交付。
+ * M3 交付：finish（#13）/report（#17）；音频回答（#12）排期 M4。
  */
 @Slf4j
 @RestController
@@ -33,6 +35,7 @@ public class InterviewController {
 
     private final InterviewService interviewService;
     private final TurnEngine turnEngine;
+    private final ReportService reportService;
 
     /** 用例 9：创建会话。 */
     @PostMapping
@@ -63,6 +66,12 @@ public class InterviewController {
         return Result.ok(resp);
     }
 
+    /** 用例 13：结束面试。受理即返，报告异步生成，就绪经 WS REPORT_READY 通知；重试入口同此接口。 */
+    @PostMapping("/{id}/finish")
+    public Result<Map<String, Object>> finish(@PathVariable Long id) {
+        return Result.ok(interviewService.finish(id));
+    }
+
     /** 用例 14：中止面试（非终态均可）。 */
     @PostMapping("/{id}/abort")
     public Result<InterviewDetailVO> abort(@PathVariable Long id) {
@@ -80,5 +89,11 @@ public class InterviewController {
     public Result<List<MessageVO>> messages(@PathVariable Long id,
                                             @RequestParam(required = false) Integer roundNo) {
         return Result.ok(interviewService.messages(id, roundNo));
+    }
+
+    /** 用例 17：评估报告（归属本人/ADMIN）；未生成返回 10004。 */
+    @GetMapping("/{id}/report")
+    public Result<ReportVO> report(@PathVariable Long id) {
+        return Result.ok(reportService.getReport(id));
     }
 }

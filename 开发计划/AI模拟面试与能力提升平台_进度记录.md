@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | M2 开发完成（待进入 M3） |
-| 当前里程碑 | M2 ✅（2026-10-13 完成） |
-| 整体进度 | 计划阶段 100%；开发阶段 2/6 里程碑（M1 ✅、M2 ✅） |
-| 上次更新 | 2026-10-13 |
-| 上次更新人 | ZCode（M2 开发会话） |
+| 当前阶段 | M3 开发完成（待进入 M4） |
+| 当前里程碑 | M3 ✅（2026-10-14 完成） |
+| 整体进度 | 计划阶段 100%；开发阶段 3/6 里程碑（M1 ✅、M2 ✅、M3 ✅） |
+| 上次更新 | 2026-10-14 |
+| 上次更新人 | ZCode（M3 开发会话） |
 
 ### 里程碑状态
 
@@ -28,7 +28,7 @@
 |---|---|---|---|---|
 | M1 | 基础工程 + 认证 + 岗位题库 | ✅ 已完成 | 2026-10-13 | 2026-10-13 |
 | M2 | 文字面试闭环 | ✅ 已完成 | 2026-10-13 | 2026-10-13 |
-| M3 | 评分 + 报告 + 历史 | ⬜ 未开始 | | |
+| M3 | 评分 + 报告 + 历史 | ✅ 已完成 | 2026-10-14 | 2026-10-14 |
 | M4 | 语音 + 知识库 RAG | ⬜ 未开始 | | |
 | M5 | 个性化 + 管理端补全 | ⬜ 未开始 | | |
 | M6 | 测试 + 部署 + 验收 | ⬜ 未开始 | | |
@@ -45,8 +45,9 @@
 | 4 | 开发期容器编排（M1-1.1） | `ai-interview/docker-compose.dev.yml` | 2026-10-13 | ✅ 已交付 | MySQL 8.0（3306）+ Redis 7（宿主机 6380），两容器 healthy |
 | 5 | 后端 Maven 工程（M1-1.2~1.7） | `ai-interview/backend/` | 2026-10-13 | ✅ 已交付 | Spring Boot 3.3.12 单体；common/auth/position/question/admin 五包；`mvn test` 全绿（10 用例） |
 | 6 | Flyway 脚本 V1~V4（M1-1.3/1.8/1.9） | `backend/src/main/resources/db/migration/` | 2026-10-13 | ✅ 已交付 | V1 建 9 表；V2 账号+2 岗位+能力模型；V3/V4 两岗位各 30 题种子（已迁移验证） |
-| 7 | 接口调试脚本（M1 起） | `backend/api.http` | 2026-10-13 | 🔧 持续维护 | IDEA HTTP Client，与计划附录 C 同步；M2 追加用例 12~18（面试闭环 + WS） |
+| 7 | 接口调试脚本（M1 起） | `backend/api.http` | 2026-10-13 | 🔧 持续维护 | IDEA HTTP Client，与计划附录 C 同步；M2 追加用例 12~18（面试闭环 + WS），M3 追加 19~21（finish/report/history） |
 | 8 | 文字面试闭环模块（M2-2.1~2.7） | `backend/` interview/ai 包等 | 2026-10-13 | ✅ 已交付 | interview（实体/状态机/服务/TurnEngine/规则引擎/WS/定时器）+ ai（Mock/Prompt/解析容错）；`mvn test` 38 用例全绿 |
+| 9 | 评分+报告+历史模块（M3-3.1~3.5） | `backend/` assessment/growth 包等 | 2026-10-14 | ✅ 已交付 | assessment（ScoreCalculator/ReportService/EvaluationReport/TurnEvaluationStore）+ growth（history 接口）+ Mock 评分引擎与报告拼装 + finish/重试/TIMEOUT 收卷；`mvn test` 56 用例全绿（M3 新增 18） |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。
 
@@ -84,15 +85,17 @@
 
 > M2 测试汇总：`mvn test` = **38 用例全绿**（M1 10 + M2 28：InterviewStatusTest 3、PaperAssemblerTest 4、FollowupRuleEngineTest 9、AiResponseParserTest 5、InterviewTextFlowIT 5、WebSocketPushIT 2）。测试类数 10 个，达成计划"单元 ≥10 测试类"下限的类数口径（含集成 6 个）。
 
-### M3 评分 + 报告 + 历史
+### M3 评分 + 报告 + 历史 ✅（2026-10-14 完成）
 
 | 任务 | 内容 | 状态 | 完成日期 | 验证记录/备注 |
 |---|---|---|---|---|
-| 3.1 | 逐题评分 + 六维聚合 | ⬜ | | 验证：ScoreCalculatorTest |
-| 3.2 | 报告生成与落库 | ⬜ | | 验证：report 接口完整 ReportVO |
-| 3.3 | finish / TIMEOUT 自动收卷 | ⬜ | | 验证：InterviewFlowIT |
-| 3.4 | history 接口 | ⬜ | | 验证：HistoryGrowthIT(history) |
-| 3.5 | 报告失败重试 | ⬜ | | 验证：10004 → 重试成功 |
+| 3.1 | 逐题评分 + 六维聚合 | ✅ | 2026-10-14 | ScoreCalculatorTest 11 用例通过（手算样例 78.28 误差≤0.01、缺失维度权重归一化、岗位自定义权重生效、clamp 0~100、难度加权聚合 0.6~1.4、应变分映射）；MockAiProvider.evaluateTurn 规则评分引擎（key_points 命中率→technical、长度比→depth、结构信号→logic、语气词密度→communication、技能标签→match）；TurnEngine 每答评分入 TurnEvaluationStore，评分输入接入追问规则引擎（D15 唤醒，联调验证每轮 R1/R4 追问×3 后 R7 换题） |
+| 3.2 | 报告生成与落库 | ✅ | 2026-10-14 | InterviewReportFlowIT.fullInterviewGeneratesCompleteReport：完整一场 → report 返回完整 ReportVO（五维均 0~100、totalScore 回填 session、亮点/不足/建议/评语/逐题证据含 covered/missing/证据句/理由）；WebSocketPushIT.finishPushesProgressAndReportReady：finish → WS 依次收 PROGRESS(FINISHED)/REPORT_READY{reportId}；curl 冒烟（18080）跑通 finish→report 63.77 分→history |
+| 3.3 | finish / TIMEOUT 自动收卷 | ✅ | 2026-10-14 | InterviewReportFlowIT：中途 finish 与注入过期定时器 TIMEOUT 均自动生成报告（TIMEOUT 报告含轮 0 逐题证据）；CREATED 会话 finish 10005；重启恢复路径实测——昨日遗留 WAITING_USER 会话（id=2）启动恢复自动 TIMEOUT 并出报告 55.66 分；InterviewTextFlowIT 5 用例适配新规则动态后全绿 |
+| 3.4 | history 接口 | ✅ | 2026-10-14 | HistoryGrowthIT.historyListsStartedSessionsNewestFirst：完成场（FINISHED+总分）+中止场共 2 条按时间倒序，CREATED 未开始会话不入历史，分页 total=2/size=1 正确，未登录 401、新用户空历史；curl 冒烟 history 返回 3 条（含 M2 遗留 ABORTED/TIMEOUT 场） |
+| 3.5 | 报告失败重试 | ✅ | 2026-10-14 | ReportRetryIT：@SpyBean 使 generateReport 首调抛 AiFallbackException（模拟断开 AI）→ report 10004 → 再次 POST finish（重试入口）→ 报告生成成功 code=0 → 再 finish 幂等直接返回 reportId；未 finish/ABORTED 场 report 10004（InterviewReportFlowIT.reportNotReadyReturns10004） |
+
+> M3 测试汇总：`mvn test` = **56 用例全绿**（M2 38 + M3 新增 18：ScoreCalculatorTest 11、InterviewReportFlowIT 4、ReportRetryIT 1、HistoryGrowthIT 1、WebSocketPushIT 增 1）；测试类 14 个。六维中 voice 维度排期 M4（AUDIO 场语音指标）。
 
 ### M4 语音 + 知识库 RAG
 
@@ -148,6 +151,10 @@
 | 2026-10-13 | 决策 | **D13：durationMinutes 不落库**（严守 9 表约束），start 时注册内存定时器；重启按 `started_at+最大时长60min` 上界恢复（超界直接收卷）；到期转 TIMEOUT 后报告生成于 M3 接入 | 计划 §5.3-9 / §6.1 |
 | 2026-10-13 | 决策 | **D14：ai.provider 非 mock 时（qwen）显式 WARN 并回退 MockAiProvider**，真实 OpenAiCompatibleProvider 排期 M4-4.6；M2 交付 Mock + PromptBuilder + AiResponseParser（三级容错的第一级防线） | 计划 §6.8 / §9-M4 |
 | 2026-10-13 | 决策 | **D15：追问规则 R5/R6（连续两轮低/高分调难度）M2 运行期休眠**——评分输入（lastTwoScores/coveredRatio/missingPoints）排期 M3 evaluateTurn；引擎与单测已按方案 §6.5 七条规则完整交付 | 计划 §6.4 |
+| 2026-10-14 | 决策 | **D16：finish 异步契约**——返回 `{accepted:true, status, reportId}`，偏离计划 §5.3#13 的同步 `{reportId}`。理由：报告生成 @Async 防阻塞（计划 §4.4/R12），reportId 经 WS REPORT_READY / finish 幂等调用 / GET report 获取；FINISHED/TIMEOUT 且报告缺失时再调 finish 即重试入口（M3-3.5） | 计划 §5.3-13 |
+| 2026-10-14 | 决策 | **D17：逐题评分结果不落库**（严守 9 表约束）——进程内 TurnEvaluationStore 按 (session, round) 暂存累积评分快照（供应变得分），报告读取时缺漏轮次用 Mock 引擎确定性重算；真实 Provider 的 Redis 报告缓存排期 M4。AiReport.summary 与 reportText 合并存 report_text 列（无独立列），读取按首个空行拆分 | 计划 §6.6 / §3.1 |
+| 2026-10-14 | 偏差 | **D18：history 返回 `Page<HistoryItemVO>`**（records+total，与管理端题库列表分页契约一致），计划 §5.4#20 写的是裸数组；未 start（CREATED）的会话不入历史（started_at 非空才计入） | 计划 §5.4-20 |
+| 2026-10-14 | 说明 | **D15 于 M3 落地**：TurnEngine 每答先 evaluateTurn 再喂规则引擎（coveredRatio/missingPoints/lastTwoScores 全接入）。因引擎既定优先级 R1（缺得分点即追问）先于 R5/R6，通用回答下换题恒由追问上限 R7 触发；R5/R6 在题目无得分点数据等边角场景运行期可达，七条规则行为仍由 FollowupRuleEngineTest 全覆盖 | 计划 §6.4 |
 
 ## 5. 问题与风险跟踪
 
@@ -160,12 +167,13 @@
 | P3 | 2026-10-13 | V3/V4 种子 SQL 的 JSON 字段内含未转义双引号，且批量修复脚本误伤 `","` 数组分隔符导致元素合并 | ✅ 已解决 | 内嵌引号统一改「」；还原被误替换分隔符后用 Python json.loads 全量校验 JSON 字面量，重建库重新迁移并断言（30 题/比例/字段完整性全过） |
 | P4 | 2026-10-13 | MockMvc 读取响应默认 ISO-8859-1 导致中文断言乱码 | ✅ 已解决 | 测试 `body()` 统一 `getContentAsString(UTF_8)` |
 | P5 | 2026-10-13 | M2 手工验证时登录返回 42901：集成测试大量登录把共享 Redis（6380）的限流键 `rl:login:127.0.0.1` 打满，dev 应用（限 5/分）沿用同一计数 | ✅ 已解决 | 限流键 TTL 60s，等窗口重置即可；非代码缺陷，联调时知悉此现象（测试与开发共用 Redis 时先跑测试会短暂触发限流） |
+| P6 | 2026-10-14 | 本机 8080 端口被**其他项目**（`~/Desktop/Agent/AI-interview/self-interview-learning`，Gradle/Spring AI 应用，PID 随启动变化）占用，本项目 dev 后端无法按默认端口启动 | ⚠ 环境问题（非本项目缺陷） | 不动他人环境：冒烟/联调临时用 `mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=18080`；若该服务系本人可自行停用则恢复 8080。测试不受影响（RANDOM_PORT/MockMvc） |
 
 > 开发中新遇到的问题在此追加；已解决的把状态改为 ✅ 并填解决方式。计划 §11 的 R1~R12 作为预置风险清单，触发时在此登记。
 
 ## 6. 环境状态备忘
 
-| 组件 | 状态（2026-10-13 M2 完成时检测） | 备注 |
+| 组件 | 状态（2026-10-14 M3 完成时检测） | 备注 |
 |---|---|---|
 | JDK 17 | ✅ Temurin 17.0.20（`~/tools/jdk-17.0.20.1+1`，tarball 安装） | 运行/测试统一 `JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home` |
 | JDK 25 | 仍存在（系统默认） | 仅做兜底；编译由 `maven.compiler.release=17` 保证 |
@@ -173,6 +181,7 @@
 | Docker | ✅ colima 运行中 | 镜像经 daocloud 源拉取（D7） |
 | aiinterview-mysql | ✅ healthy，端口 3306 | `docker compose -f docker-compose.dev.yml up -d` |
 | aiinterview-redis | ✅ healthy，宿主机端口 6380 | 6379 被其他项目占用（D6） |
+| 本机 8080 | ⚠ 被其他项目占用（P6） | dev 后端临时换 `--server.port=18080`；测试不受影响 |
 | Node | v22.23.3 / npm 10.9.9 | 仅前端用，超出本计划范围 |
 
 **日常启动（M1 之后继续开发时）：**
@@ -182,6 +191,7 @@ cd ai-interview
 docker compose -f docker-compose.dev.yml up -d          # 容器已常驻可跳过
 export JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home
 cd backend && mvn spring-boot:run                        # dev profile，Redis 连 6380
+# 若 8080 被占（P6）：mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=18080
 # 测试：mvn test（用 ai_interview_test 库 + 6380 Redis）
 # 账号：admin / Admin@123456；demo01 / 123456
 ```
@@ -197,3 +207,4 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-13 | 创建本文档；登记初始状态：计划阶段完成（产物 #1 #2），M1~M6 全部未开始，决策 5 条，环境检测 1 次 | ZCode |
 | 2026-10-13 | **M1 完成**：任务 1.1~1.9 全部 ✅（产物 #4~#7 交付）；安装 Temurin 17；起 dev 容器；应用启动+Flyway V1~V4 迁移+9 表断言通过；附录 C 认证用例与安全边界 curl 全通过；`mvn test` 10 用例全绿；登记偏差 D6~D10、问题 P1~P4（均解决）、R1 解决 | ZCode（M1 开发会话） |
 | 2026-10-13 | **M2 完成**：任务 2.1~2.7 全部 ✅（产物 #8 交付，api.http 增用例 12~18）；新增 interview（实体/状态机/TurnEngine/规则引擎/WS/定时器）与 ai（Mock/Prompt/解析容错）模块，无新增 Flyway 脚本；`mvn test` 38 用例全绿（M2 新增 28）；手工验证：curl 建会话→start 首题→文字回答追问落库→abort 终态、Node WS 实测 QUESTION/FOLLOW_UP/TIMER；登记决策 D11~D15、问题 P5 | ZCode（M2 开发会话） |
+| 2026-10-14 | **M3 完成**：任务 3.1~3.5 全部 ✅（产物 #9 交付，api.http 增用例 19~21）；新增 assessment（ScoreCalculator/ReportService/EvaluationReport/TurnEvaluationStore/ReportVO）与 growth（history）模块，MockAiProvider 补全 evaluateTurn 规则评分引擎与 generateReport 报告拼装，TurnEngine 接入评分输入（D15 唤醒）、finish/轮次用尽/TIMEOUT 三处触发报告生成，无新增 Flyway 脚本；`mvn test` 56 用例全绿（M3 新增 18，测试类 14）；手工验证：curl（18080，P6）finish→report 完整 ReportVO（63.77 分）→history、启动恢复自动收卷昨日遗留会话并出报告；登记决策 D16~D18、问题 P6 | ZCode（M3 开发会话） |

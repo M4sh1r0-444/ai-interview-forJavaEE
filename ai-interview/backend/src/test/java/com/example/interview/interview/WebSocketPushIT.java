@@ -27,9 +27,10 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 计划 M2-2.6 完成标准：连接 /ws/interviews/{id}?token= 后依次收到
- * QUESTION（start）、FOLLOW_UP（文字回答）、TIMER（定时器，test profile 1s 粒度）；
- * 无效 token 连接被 close(4401)。
+ * WS 推送链路（计划 M2-2.6 / M3-3.2）：
+ * 连接 /ws/interviews/{id}?token= 后依次收到 QUESTION（start）、FOLLOW_UP（文字回答）、
+ * TIMER（定时器，test profile 1s 粒度）；finish 后收到 PROGRESS(FINISHED) 与
+ * REPORT_READY{reportId}；无效 token 连接被 close(4401)。
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -118,6 +119,31 @@ class WebSocketPushIT {
         }
         assertThat(handler.closeStatus).isNotNull();
         assertThat(handler.closeStatus.getCode()).isEqualTo(4401);
+    }
+
+    /** M3-3.2/3.3：finish 收卷 → WS 依次收到 PROGRESS（FINISHED）与 REPORT_READY（reportId）。 */
+    @Test
+    void finishPushesProgressAndReportReady() throws Exception {
+        Session s = newUserWithSession();
+        CollectingHandler handler = new CollectingHandler();
+        StandardWebSocketClient client = new StandardWebSocketClient();
+        URI uri = URI.create("ws://127.0.0.1:" + port + "/ws/interviews/" + s.sessionId()
+                + "?token=" + s.token());
+        client.doHandshake(handler, new WebSocketHttpHeaders(), uri).get(5, TimeUnit.SECONDS);
+
+        rest.postForEntity("/api/interviews/" + s.sessionId() + "/start",
+                jsonEntity(s.token(), null), String.class);
+        poll(handler, "QUESTION", 5);
+        rest.postForEntity("/api/interviews/" + s.sessionId() + "/messages/text",
+                jsonEntity(s.token(), Map.of("roundNo", 0, "content", GOOD_ANSWER)), String.class);
+        poll(handler, "FOLLOW_UP", 5);
+
+        rest.postForEntity("/api/interviews/" + s.sessionId() + "/finish",
+                jsonEntity(s.token(), null), String.class);
+        Map<String, Object> progress = poll(handler, "PROGRESS", 5);
+        assertThat(((Map<String, Object>) progress.get("payload")).get("status")).isEqualTo("FINISHED");
+        Map<String, Object> ready = poll(handler, "REPORT_READY", 10);
+        assertThat(((Map<String, Object>) ready.get("payload")).get("reportId")).isNotNull();
     }
 
     // ==================== 工具 ====================

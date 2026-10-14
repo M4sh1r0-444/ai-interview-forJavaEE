@@ -26,7 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * 计划 §8.2 InterviewFlowIT 的 M2 部分（文字闭环）：建会话→start→含追问的多轮回答→
  * 轮次用尽 FINISHED；非法 start/回答被 10005 拒绝；未问到的主问题不暴露；
- * 越权 40401；abort/TIMEOUT 后终态不可再答题。评分与报告断言在 M3 补齐。
+ * 越权 40401；abort/TIMEOUT 后终态不可再答题。报告断言见 InterviewReportFlowIT。
+ * M3 起规则引擎接入评分输入（D15）：得分点未覆盖（R1）/覆盖完整（R4）均触发追问，
+ * 追问上限 3 次后 R7 强制换题——通用回答下每轮固定 4 次作答后进入下一题。
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -197,25 +199,9 @@ class InterviewTextFlowIT {
         });
         assertThat(aiCountInRound(token, id, 0)).isEqualTo(4); // 主问题 + 3 追问
 
-        // 轮 1~4：正常回答两次（第 1 次默认追问一次，第 2 次进入下一题）
+        // 轮 1~4：通用回答驱动，每轮 4 答（R1/R4 追问 ×3 后 R7 换题）
         for (int round = 1; round <= 4; round++) {
-            assertThat(code(submitText(token, id, round, GOOD_ANSWER))).isZero();
-            int r = round;
-            awaitUntil("追问 round" + r, () -> {
-                try {
-                    return aiCountInRound(token, id, r) >= 2;
-                } catch (Exception e) {
-                    return false;
-                }
-            });
-            assertThat(code(submitText(token, id, round, GOOD_ANSWER))).isZero();
-            awaitUntil("进入下一轮 round" + r, () -> {
-                try {
-                    return ((Number) detail(token, finalId).get("currentRound")).intValue() == r + 1;
-                } catch (Exception e) {
-                    return false;
-                }
-            });
+            answerRoundUntilAdvanced(token, id, round);
         }
 
         // 轮次用尽 → FINISHED，currentRound=plannedRounds，全部消息可见
@@ -225,21 +211,19 @@ class InterviewTextFlowIT {
         assertThat(finished.get("finishedAt")).isNotNull();
         assertThat(finished.get("remainSeconds")).isNull();
 
-        // 消息完整性：轮 0 = 主问题+3 追问+4 回答；轮 1~4 各 = 主问题+1 追问+2 回答
+        // 消息完整性：每轮 主问题+3 追问 与 4 次回答交替
         List<Map<String, Object>> msgs = messages(token, id);
-        assertThat(msgs.size()).isEqualTo(5 + 3 + 4 + 4 + 8);
-        assertThat(msgs.stream().filter(m -> "AI".equals(m.get("speaker"))).count()).isEqualTo(12);
-        assertThat(msgs.stream().filter(m -> "USER".equals(m.get("speaker"))).count()).isEqualTo(12);
+        assertThat(msgs.size()).isEqualTo(5 * 8);
+        assertThat(msgs.stream().filter(m -> "AI".equals(m.get("speaker"))).count()).isEqualTo(20);
+        assertThat(msgs.stream().filter(m -> "USER".equals(m.get("speaker"))).count()).isEqualTo(20);
         for (int r = 0; r < 5; r++) {
             final int round = r;
             List<Map<String, Object>> roundMsgs = msgs.stream()
                     .filter(m -> ((Number) m.get("roundNo")).intValue() == round).toList();
-            int expectedAi = round == 0 ? 4 : 2;
-            int expectedUser = round == 0 ? 4 : 2;
             assertThat(roundMsgs.stream().filter(m -> "AI".equals(m.get("speaker"))).count())
-                    .as("轮 %d AI 消息数", round).isEqualTo(expectedAi);
+                    .as("轮 %d AI 消息数", round).isEqualTo(4);
             assertThat(roundMsgs.stream().filter(m -> "USER".equals(m.get("speaker"))).count())
-                    .as("轮 %d USER 消息数", round).isEqualTo(expectedUser);
+                    .as("轮 %d USER 消息数", round).isEqualTo(4);
             // 轮内 AI/USER 交替：首条为主问题（followupIndex=0），追问 followupIndex 递增
             assertThat(roundMsgs.get(0).get("speaker")).isEqualTo("AI");
             assertThat(roundMsgs.get(0).get("followupIndex")).isEqualTo(0);
@@ -254,6 +238,25 @@ class InterviewTextFlowIT {
         assertThat(code(submitText(token, id, 4, GOOD_ANSWER))).isEqualTo(10005);
     }
 
+    /** 驱动一轮直至换题（M3 动态：追问×3 后 R7 强制换题，固定 4 次作答）。 */
+    private void answerRoundUntilAdvanced(String token, long id, int round) throws Exception {
+        for (int k = 0; k <= 4 && ((Number) detail(token, id).get("currentRound")).intValue() == round; k++) {
+            long expected = aiCountInRound(token, id, round) + 1;
+            assertThat(code(submitText(token, id, round, GOOD_ANSWER))).isZero();
+            int finalRound = round;
+            awaitUntil("轮 " + round + " 第 " + k + " 答 AI 产出", () -> {
+                try {
+                    return aiCountInRound(token, id, finalRound) >= expected
+                            || ((Number) detail(token, id).get("currentRound")).intValue() > finalRound;
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+        }
+        assertThat(((Number) detail(token, id).get("currentRound")).intValue())
+                .as("轮 %d 应已推进", round).isGreaterThan(round);
+    }
+
     @Test
     void futureQuestionsHiddenUntilAsked() throws Exception {
         String token = registerAndLogin();
@@ -265,32 +268,16 @@ class InterviewTextFlowIT {
         assertThat(visible).hasSize(1);
         assertThat(((Number) visible.get(0).get("roundNo")).intValue()).isZero();
 
-        // 推进到轮 1 后：轮 1 主问题可见，轮 2~4 仍隐藏
-        submitText(token, id, 0, GOOD_ANSWER);
-        long finalId = id;
-        awaitUntil("追问产出", () -> {
-            try {
-                return aiCountInRound(token, finalId, 0) >= 2;
-            } catch (Exception e) {
-                return false;
-            }
-        });
-        submitText(token, id, 0, GOOD_ANSWER);
-        awaitUntil("进入轮 1", () -> {
-            try {
-                return ((Number) detail(token, finalId).get("currentRound")).intValue() == 1;
-            } catch (Exception e) {
-                return false;
-            }
-        });
+        // 驱动轮 0 至换题（M3 动态：追问×3 后换题）
+        answerRoundUntilAdvanced(token, id, 0);
         List<Map<String, Object>> visibleNow = messages(token, id);
         int maxVisibleRound = visibleNow.stream()
                 .mapToInt(m -> ((Number) m.get("roundNo")).intValue()).max().orElse(-1);
         assertThat(maxVisibleRound).isEqualTo(1);
-        // ADMIN 视角可见全部：5 道主问题 + 轮 0 的 1 次追问
+        // ADMIN 视角可见全部：5 道主问题 + 轮 0 的 3 次追问
         String adminToken = adminLogin();
         List<Map<String, Object>> adminView = messages(adminToken, id);
-        assertThat(adminView.stream().filter(m -> "AI".equals(m.get("speaker"))).count()).isEqualTo(6);
+        assertThat(adminView.stream().filter(m -> "AI".equals(m.get("speaker"))).count()).isEqualTo(8);
     }
 
     @Test

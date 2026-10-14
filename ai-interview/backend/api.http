@@ -128,8 +128,27 @@ Authorization: Bearer {{TOKEN}}
 POST {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/abort
 Authorization: Bearer {{TOKEN}}
 
-### 18. WebSocket（另开终端，Node 22 原生客户端；可依次收到 QUESTION/FOLLOW_UP/TIMER）
+### 18. WebSocket（另开终端，Node 22 原生客户端；可依次收到 QUESTION/FOLLOW_UP/TIMER/PROGRESS/REPORT_READY）
 # node -e '
 #   const sid = <把会话id粘进来>; const tk = "<把token粘进来>";
 #   const ws = new WebSocket(`ws://127.0.0.1:8080/ws/interviews/${sid}?token=${tk}`);
 #   ws.onmessage = (e) => console.log(e.data);'
+
+### ==================== M3 评分 + 报告 + 历史（附录C-7~8） ====================
+### 说明：17（abort）与会话绑定，跑 M3 用例前请重新执行 12/13/14 建新会话
+
+### 19. 结束面试（附录C-7；受理即返，报告异步生成，
+###     WS 推 PROGRESS(FINISHED) → REPORT_READY{reportId}；TIMEOUT 到期自动走同一报告流程）
+POST {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/finish
+Authorization: Bearer {{TOKEN}}
+
+### 20. 评估报告（附录C-8；未生成时 code=10004，可重复调 19 触发重试生成）
+###     data：totalScore、dimensionScores（六维，TEXT 场无 voice）、summary/strengths/
+###     weaknesses/improvementPlan/reportText、questionEvidence 逐题证据
+GET {{BASE}}/api/interviews/{{createInterview.response.body.data.id}}/report
+Authorization: Bearer {{TOKEN}}
+
+### 21. 面试历史（分页 ?page=&size=；只含 start 过的会话，时间倒序；
+###     totalScore 在报告生成后回填，ABORTED 为 null）
+GET {{BASE}}/api/users/me/history?page=1&size=10
+Authorization: Bearer {{TOKEN}}

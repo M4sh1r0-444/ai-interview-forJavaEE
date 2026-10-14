@@ -2,9 +2,14 @@ package com.example.interview.interview.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.interview.ai.model.AiNextQuestionResult;
+import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
+import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.ai.prompt.PromptBuilder;
 import com.example.interview.ai.provider.AiProvider;
+import com.example.interview.assessment.engine.ScoreCalculator;
+import com.example.interview.assessment.service.ReportService;
+import com.example.interview.assessment.service.TurnEvaluationStore;
 import com.example.interview.common.result.ResultCode;
 import com.example.interview.interview.entity.InterviewMessage;
 import com.example.interview.interview.entity.InterviewSession;
@@ -30,6 +35,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +46,10 @@ import java.util.Map;
  * <pre>
  * [同步事务段 由 InterviewService 完成] 校验归属/状态 → PROCESSING_AI → 存 USER 消息
  * [异步 aiExecutor 本类完成]
- *   规则引擎决策 → PromptBuilder 拼 Prompt（DEBUG 日志）→ AiProvider.nextQuestion
+ *   evaluateTurn 逐题评分（快照入暂存，唤醒规则引擎 R1/R4/R5/R6 评分输入，D15）
+ *   → 规则引擎决策 → PromptBuilder 拼 Prompt（DEBUG 日志）→ AiProvider.nextQuestion
  *   → 硬规则覆盖（追问≥3 强制换题）→ 追问落库并推 FOLLOW_UP / 推进轮次推 QUESTION
- *   / 轮次用尽 → FINISHED（报告生成 M3 接入）
+ *   / 轮次用尽 → FINISHED → ReportService 异步生成报告（M3）
  * </pre>
  */
 @Slf4j
@@ -62,6 +69,9 @@ public class TurnEngine {
     private final InterviewTimerScheduler timerScheduler;
     private final TransactionTemplate transactionTemplate;
     private final InterviewService interviewService;
+    private final ScoreCalculator scoreCalculator;
+    private final TurnEvaluationStore evaluationStore;
+    private final ReportService reportService;
 
     @Value("${app.interview.followup-limit:3}")
     private int followupLimit;
@@ -96,12 +106,18 @@ public class TurnEngine {
         String lastAnswer = reversedUserText(roundMsgs);
         int followupCount = (int) roundMsgs.stream().filter(m -> "AI".equals(m.getSpeaker())).count() - 1;
 
-        // 规则引擎决策（计划 §6.4 七条规则；评分相关输入 M3 接入）
+        // 逐题评分（M3-3.1）：累积口径（本轮全部问答）评分并快照入暂存，供报告与规则引擎复用
+        AiTurnEvaluation evaluation = evaluateQuietly(sessionId, round, question, roundMsgs);
+
+        // 规则引擎决策（计划 §6.4 七条规则；M3 起接入评分输入，D15 唤醒）
         FollowupContext ruleCtx = FollowupContext.builder()
                 .answerText(lastAnswer)
                 .question(question)
                 .followupCount(followupCount)
                 .followupLimit(followupLimit)
+                .coveredRatio(coveredRatio(question, evaluation))
+                .missingPoints(evaluation != null ? evaluation.getMissingPoints() : null)
+                .lastTwoScores(lastTwoCompletedRoundScores(sessionId, round))
                 .build();
         FollowupDecision decision = ruleEngine.decide(ruleCtx);
 
@@ -189,7 +205,9 @@ public class TurnEngine {
                 "status", InterviewStatus.FINISHED.name(),
                 "currentRound", s.getPlannedRounds(),
                 "plannedRounds", s.getPlannedRounds()));
-        log.info("面试轮次完成 session={} → FINISHED（报告生成与 REPORT_READY 于 M3 接入）", s.getId());
+        // 报告异步生成（M3-3.2）：generateAsync 内部自校验状态，并发/已生成均幂等
+        reportService.generateAsync(s.getId());
+        log.info("面试轮次完成 session={} → FINISHED，报告生成已触发", s.getId());
     }
 
     /** 异常恢复：回退 WAITING_USER 让用户可重新作答，并推 ERROR（计划 §5.6）。 */
@@ -202,6 +220,51 @@ public class TurnEngine {
         }
         wsHandler.push(sessionId, WsMessageType.ERROR, Map.of(
                 "code", ResultCode.INTERNAL_ERROR.getCode(), "message", message));
+    }
+
+    /** 逐题评分：失败不阻断面试（规则引擎对 null 容忍），仅告警降级。 */
+    private AiTurnEvaluation evaluateQuietly(Long sessionId, int round, Question question,
+                                             List<InterviewMessage> roundMsgs) {
+        try {
+            AiTurnEvaluation evaluation = aiProvider.evaluateTurn(TurnEvaluationContext.builder()
+                    .question(question)
+                    .roundMessages(roundMsgs)
+                    .knowledgeChunks(List.of()) // M4：KnowledgeSearchService 检索注入
+                    .build());
+            evaluationStore.append(sessionId, round, evaluation);
+            return evaluation;
+        } catch (Exception e) {
+            log.warn("逐题评分失败，规则引擎降级为无评分输入 session={} round={}: {}",
+                    sessionId, round, e.getMessage());
+            return null;
+        }
+    }
+
+    /** 得分点覆盖率；评分或得分点不可得时返回 null（引擎跳过相关规则）。 */
+    private Double coveredRatio(Question question, AiTurnEvaluation evaluation) {
+        if (question == null || question.getKeyPoints() == null || question.getKeyPoints().isEmpty()
+                || evaluation == null) {
+            return null;
+        }
+        int covered = evaluation.getCoveredPoints() != null ? evaluation.getCoveredPoints().size() : 0;
+        int missing = evaluation.getMissingPoints() != null ? evaluation.getMissingPoints().size() : 0;
+        return covered + missing > 0 ? (double) covered / (covered + missing) : null;
+    }
+
+    /**
+     * 最近两个已完成轮次（round < 当前轮）的最终内容分，升序 [旧, 新]（R5/R6 输入）。
+     * 内容分用默认权重换算（60/85 阈值本就是绝对口径）。
+     */
+    private List<Integer> lastTwoCompletedRoundScores(Long sessionId, int currentRound) {
+        List<Integer> scores = new ArrayList<>(2);
+        for (int r = currentRound - 1; r >= 0 && scores.size() < 2; r--) {
+            List<AiTurnEvaluation> evals = evaluationStore.get(sessionId, r);
+            if (evals != null && !evals.isEmpty()) {
+                AiTurnEvaluation latest = evals.get(evals.size() - 1);
+                scores.add(0, (int) Math.round(scoreCalculator.contentScore(latest.getScores(), null)));
+            }
+        }
+        return scores;
     }
 
     private NextQuestionContext buildContext(InterviewSession s, Question question,

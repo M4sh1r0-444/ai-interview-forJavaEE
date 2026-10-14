@@ -15,7 +15,11 @@ public class ReportContext {
 
     private String positionName;
     private Integer difficulty;
-    /** 逐题评分结果 */
+    /** 完成的主问题轮次数 */
+    private Integer roundCount;
+    /** 计算所得总分（文案引用） */
+    private Double totalScore;
+    /** 逐题评分结果（每轮取最终快照） */
     private List<AiTurnEvaluation> turnEvaluations;
     /** 会话六维聚合分 */
     private Map<String, Double> dimensionScores;

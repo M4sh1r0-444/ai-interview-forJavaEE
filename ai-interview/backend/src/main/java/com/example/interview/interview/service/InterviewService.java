@@ -1,6 +1,7 @@
 package com.example.interview.interview.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.example.interview.assessment.service.ReportService;
 import com.example.interview.auth.security.CurrentUser;
 import com.example.interview.common.exception.BizException;
 import com.example.interview.common.result.ResultCode;
@@ -38,7 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 面试会话服务（计划 §4.3/§5.3）：创建 / start（组卷+落库首题）/ 文字回答受理 /
- * abort / 详情 / 消息查询。所有状态转换经状态机乐观锁；AI 产出由 TurnEngine 异步完成。
+ * finish（收卷并触发报告，兼报告失败重试入口）/ abort / 详情 / 消息查询。
+ * 所有状态转换经状态机乐观锁；AI 产出由 TurnEngine 异步完成，报告由 ReportService 异步生成。
  */
 @Slf4j
 @Service
@@ -52,6 +54,7 @@ public class InterviewService {
     private final InterviewStateMachine stateMachine;
     private final InterviewTimerScheduler timerScheduler;
     private final InterviewWebSocketHandler wsHandler;
+    private final ReportService reportService;
 
     @Value("${app.interview.min-rounds:5}")
     private int minRounds;
@@ -167,6 +170,53 @@ public class InterviewService {
         Map<String, Object> resp = new HashMap<>();
         resp.put("accepted", true);
         resp.put("roundNo", req.getRoundNo());
+        return resp;
+    }
+
+    // ==================== 用例 13：结束并生成报告 ====================
+
+    /**
+     * 主动收卷（计划 §5.3 #13）：WAITING_USER/PROCESSING_AI → FINISHED，事务提交后
+     * 异步生成报告。FINISHED/TIMEOUT 幂等：已生成报告直接返回 reportId；未生成
+     * （上次生成失败）则重新触发生成——即 M3-3.5 的重试入口。
+     * RUNNING 为事务内中间态外部不可见；CREATED/ABORTED 不可 finish（用 abort）。
+     */
+    @Transactional
+    public Map<String, Object> finish(Long id) {
+        InterviewSession s = loadForMutation(id);
+        InterviewStatus from = InterviewStatus.valueOf(s.getStatus());
+        Long existingReportId = reportService.reportIdOf(id);
+
+        if (from == InterviewStatus.FINISHED || from == InterviewStatus.TIMEOUT) {
+            if (existingReportId == null) {
+                afterCommit(() -> reportService.generateAsync(id));
+                log.info("报告重试触发 session={} status={}", id, from);
+            }
+            return finishResponse(from.name(), existingReportId);
+        }
+        if (from != InterviewStatus.WAITING_USER && from != InterviewStatus.PROCESSING_AI) {
+            throw new BizException(ResultCode.STATUS_CONFLICT,
+                    "当前状态 " + from + " 不能结束（未开始的面试请使用 abort）");
+        }
+        stateMachine.transitionFromAnyOf(id,
+                InterviewStatus.sourcesOf(InterviewStatus.FINISHED), InterviewStatus.FINISHED);
+        afterCommit(() -> {
+            timerScheduler.cancel(id);
+            wsHandler.push(id, WsMessageType.PROGRESS, Map.of(
+                    "status", InterviewStatus.FINISHED.name(),
+                    "currentRound", s.getCurrentRound(),
+                    "plannedRounds", s.getPlannedRounds()));
+            reportService.generateAsync(id);
+        });
+        log.info("面试主动收卷 session={} from={} answeredRounds={}", id, from, s.getCurrentRound());
+        return finishResponse(InterviewStatus.FINISHED.name(), null);
+    }
+
+    private Map<String, Object> finishResponse(String status, Long reportId) {
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("accepted", true);
+        resp.put("status", status);
+        resp.put("reportId", reportId);
         return resp;
     }
 

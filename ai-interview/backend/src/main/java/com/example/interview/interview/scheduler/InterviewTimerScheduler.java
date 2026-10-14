@@ -1,6 +1,7 @@
 package com.example.interview.interview.scheduler;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.example.interview.assessment.service.ReportService;
 import com.example.interview.interview.entity.InterviewSession;
 import com.example.interview.interview.mapper.InterviewSessionMapper;
 import com.example.interview.interview.statemachine.InterviewStatus;
@@ -46,6 +47,7 @@ public class InterviewTimerScheduler {
     private final InterviewSessionMapper sessionMapper;
     private final InterviewStateMachine stateMachine;
     private final InterviewWebSocketHandler wsHandler;
+    private final ReportService reportService;
 
     @Value("${app.interview.timer-push-seconds:30}")
     private int pushSeconds;
@@ -118,7 +120,9 @@ public class InterviewTimerScheduler {
                         "currentRound", s.getCurrentRound(),
                         "plannedRounds", s.getPlannedRounds()));
             }
-            log.info("面试到期自动收卷 session={} → TIMEOUT（报告生成 M3 接入）", sessionId);
+            // 自动收卷走 finish 报告流程（计划 §6.1）：TIMEOUT 同样生成报告（M3-3.3）
+            reportService.generateAsync(sessionId);
+            log.info("面试到期自动收卷 session={} → TIMEOUT，报告生成已触发", sessionId);
         }
     }
 
