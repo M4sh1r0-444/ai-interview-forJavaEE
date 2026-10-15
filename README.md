@@ -41,7 +41,7 @@
 | 实时 | Spring WebSocket | 面试过程推送 |
 | AI | OpenAI 兼容 Chat API / Mock | 默认 `ai.provider=mock` 离线可演示；qwen 模式含三级容错 |
 | HTTP 客户端 | Spring WebClient | 调用大模型（30s 超时、API Key 日志脱敏） |
-| 迁移 | Flyway | V1 建表 + V2~V5 种子数据 |
+| 迁移 | Flyway | V1 建表 + V2~V6 种子数据 |
 | 构建 | Maven 3.9 | |
 
 ## 3. 仓库结构
@@ -67,13 +67,13 @@
             │   ├── ai/          # AiProvider 双实现（Mock/OpenAI 兼容）、PromptBuilder、JSON 容错解析
             │   ├── knowledge/   # 知识片段实体、FULLTEXT 检索、关键词词典、管理服务
             │   ├── assessment/  # 评分计算、语音指标、报告生成
-            │   ├── growth/      # 掌握度、推荐（M5）、历史（M3）
+            │   ├── growth/      # 掌握度更新、成长曲线、个性化推荐、历史
             │   ├── admin/       # 管理端接口（题库、知识库）
             │   └── common/      # 统一响应、异常、配置、工具、日志
-            └── main/resources/db/migration/  # Flyway V1~V5
+            └── main/resources/db/migration/  # Flyway V1~V6
 ```
 
-## 4. 当前进度（4/6 里程碑）
+## 4. 当前进度（5/6 里程碑）
 
 > 实时进度以 [`开发计划/AI模拟面试与能力提升平台_进度记录.md`](开发计划/AI模拟面试与能力提升平台_进度记录.md) 为准。
 
@@ -83,19 +83,21 @@
 | M2 | 文字面试闭环（状态机/组卷/AI 编排/追问/WS/定时器） | ✅ 2026-10-13 |
 | M3 | 评分 + 报告 + 历史 | ✅ 2026-10-14 |
 | M4 | 语音回答 + 知识库 RAG + 真实大模型 Provider | ✅ 2026-10-14 |
-| M5 | 个性化（掌握度/成长/推荐）+ 管理端补全 | ⬜ 未开始 |
+| M5 | 个性化（掌握度/成长/推荐）+ 管理端补全 | ✅ 2026-10-15 |
 | M6 | 全量测试 + Docker 部署 + 验收 | ⬜ 未开始 |
 
-**当前已交付（M1~M4）：**
+**当前已交付（M1~M5 全部）：**
 
-- REST 接口 25 个：认证与用户 5、岗位 3、面试 10（创建/start/文字回答/音频回答/音频回放/finish/abort/详情/消息/报告）、历史 1、管理端 6（题库 CRUD 4 + 知识片段新增/索引重建）；WebSocket 1 个。
-- 种子数据：2 个岗位（Java 后端 / Web 前端）能力模型、各 30 道题（含参考答案、得分点、失分点、追问模板）、知识片段 42 条（每岗 21 条覆盖全部技能）、管理员与演示学生账号。
+- REST 接口 39 个：认证与用户 5、岗位 3、面试 10（创建/start/文字回答/音频回答/音频回放/finish/abort/详情/消息/报告）、成长域 3（历史/成长曲线/个性化推荐）、管理端 18（题库 CRUD 4、知识片段新增/索引重建 2、岗位列表/详情/新增/修改/评分权重 5、学习资源 CRUD 4、用户列表/启停 2、统计看板 1）；WebSocket 1 个。
+- 种子数据：2 个岗位（Java 后端 / Web 前端）能力模型、各 30 道题（含参考答案、得分点、失分点、追问模板）、知识片段 42 条（每岗 21 条覆盖全部技能）、学习资源 28 条（每岗 14 条，覆盖 ARTICLE/QUESTION/PRACTICE/PROJECT）、管理员与演示学生账号。
 - 完整面试闭环：建会话 → start 出首题 → 文字/音频回答（异步受理 + 关键词提取 + 知识检索注入 Prompt）→ 规则引擎驱动追问/换题 → finish / 轮次用尽 / 超时收卷 → 六维评估报告（AUDIO 场含 voice）→ 历史查询，全程 WS 推送。
 - 评估链路：逐题评分快照 + 难度加权聚合 + 岗位可调权重 + 应变分（追问回升幅度）；报告失败可经 finish 重试，重启后报告可确定性重建。
+- 个性化成长（M5）：报告落库自动更新能力掌握度（首次直取、此后 旧×0.7 + 本次×0.3，同会话幂等）→ 按技能的成长曲线（records 升序 + current）→ 个性化推荐（短板识别四规则 + 优先级 (100-掌握度)×权重 Top3 + 学习资源/练习 + 错题重练 retryQuestions + 下一次面试配置建议；Redis 缓存报告事件预生成，TTL 10min）。
+- 管理端补全（M5）：统计看板（用户数/面试场次/岗位题量/平均分/近 7 日趋势）、岗位与评分权重维护（组内和=1 校验）、学习资源 CRUD（技能对齐校验、下架逻辑删）、用户启停（禁用登录拦截、防自禁用）。
 - AI 双模式：mock 全流程离线可演示；qwen 真实调用含三级容错（重试 → Mock 降级 → 会话锁定），缺 API Key 启动即显式失败。
-- 测试：`mvn test` **85 个用例全绿**（19 个测试类：状态机、组卷、追问七规则、JSON 容错、评分公式、语音指标、关键词词典、真实 Provider 容错，及文字/报告/音频/知识库/认证/岗位/管理/WS 等 9 个集成测试类）。
+- 测试：`mvn test` **114 个用例全绿**（25 个测试类：状态机、组卷、追问七规则、JSON 容错、评分公式、语音指标、关键词词典、真实 Provider 容错、掌握度折算、短板四规则、推荐引擎，及文字/报告/音频/知识库/认证/岗位/管理/安全边界/历史成长/推荐/管理端扩展等 15 个集成测试类）。
 
-**尚未实现**：掌握度与成长曲线、短板推荐（M5）、管理端扩展接口与统计看板（M5）、Docker 化部署与验收（M6）。`growth`/`recommendations` 等接口随 M5 交付。
+**尚未实现**：全量 `mvn verify` 与覆盖率统计、Docker 化部署与离线演练、验收自检（M6）。
 
 ## 5. 快速开始
 
@@ -116,7 +118,7 @@ curl http://127.0.0.1:8080/actuator/health
 
 种子账号：`admin / Admin@123456`（管理员）、`demo01 / 123456`（演示学生）。
 
-核心流程演示（详见 `ai-interview/backend/api.http`，用例 1~25）：
+核心流程演示（详见 `ai-interview/backend/api.http`，用例 1~32）：
 
 ```bash
 BASE=http://127.0.0.1:8080
@@ -139,6 +141,9 @@ curl -s $BASE/api/interviews/$SID -H "$AUTH"
 curl -s -X POST $BASE/api/interviews/$SID/finish -H "$AUTH"
 sleep 2 && curl -s $BASE/api/interviews/$SID/report -H "$AUTH"
 curl -s "$BASE/api/users/me/history?page=1&size=10" -H "$AUTH"
+# 成长曲线（报告落库时自动写能力掌握度：首次直取，此后 旧×0.7+本次×0.3）与个性化推荐
+curl -s "$BASE/api/users/me/growth?positionId=1" -H "$AUTH"
+curl -s "$BASE/api/users/me/recommendations?positionId=1" -H "$AUTH"
 # 音频回答（mode=AUDIO 会话；转写由前端 Web Speech 完成后随表单上送）
 # printf '\x1aE\xdf\xa3fake' > /tmp/a.webm
 # curl -s -X POST $BASE/api/interviews/$SID/messages/audio -H "$AUTH" \
@@ -148,7 +153,7 @@ curl -s "$BASE/api/users/me/history?page=1&size=10" -H "$AUTH"
 # node -e 'const ws=new WebSocket(`ws://127.0.0.1:8080/ws/interviews/'$SID'?token='$TOKEN'`);ws.onmessage=e=>console.log(e.data)'
 ```
 
-运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 85 用例全绿）。
+运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 114 用例全绿）。
 
 **切换真实大模型**（可选，默认 mock 离线可演示）：
 
