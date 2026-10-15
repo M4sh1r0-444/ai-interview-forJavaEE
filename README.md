@@ -53,11 +53,19 @@
 │   ├── AI模拟面试与能力提升平台_后端开发计划.md   # 可执行开发计划（DDL/接口/里程碑）
 │   └── AI模拟面试与能力提升平台_进度记录.md       # 唯一进度事实源（实时更新）
 └── ai-interview/
-    ├── docker-compose.dev.yml   # 开发期 MySQL 8 + Redis 7
-    └── backend/                 # Spring Boot 后端（10 个业务包 + common）
+    ├── docker-compose.dev.yml       # 开发期 MySQL 8 + Redis 7
+    ├── docker-compose.yml           # 正式五服务编排（mysql/redis/backend/frontend/nginx）
+    ├── docker-compose.offline.yml   # 离线（断网）演练叠加编排（M6-6.4）
+    ├── .env(.example)               # 部署环境变量（AI_PROVIDER/AI_API_KEY 等）
+    ├── nginx/nginx.conf             # 静态页 + /api 反代 + /ws 升级
+    ├── frontend/                    # 占位静态页（正式 Vue3 前端联调阶段替换）
+    ├── 答辩演示脚本.md              # 方案 §19 15 步逐条映射（M6-6.6）
+    ├── qa/                          # 质量与演练脚本（AI 抽测 / 离线演练 + 结果留存）
+    └── backend/                     # Spring Boot 后端（10 个业务包 + common）
+        ├── README.md                # 新人 30 分钟启动文档（M6-6.6）
         ├── pom.xml
-        ├── api.http             # IDEA HTTP Client 调试脚本（与计划附录 C 同步）
-        ├── uploads/             # 音频落盘目录（gitignore，运行期生成）
+        ├── api.http                 # IDEA HTTP Client 调试脚本（与计划附录 C 同步）
+        ├── uploads/                 # 音频落盘目录（gitignore，运行期生成）
         └── src/
             ├── main/java/com/example/interview/
             │   ├── auth/        # 认证、用户、JWT、Security 接入
@@ -68,12 +76,12 @@
             │   ├── knowledge/   # 知识片段实体、FULLTEXT 检索、关键词词典、管理服务
             │   ├── assessment/  # 评分计算、语音指标、报告生成
             │   ├── growth/      # 掌握度更新、成长曲线、个性化推荐、历史
-            │   ├── admin/       # 管理端接口（题库、知识库）
+            │   ├── admin/       # 管理端接口（题库、知识库、岗位、资源、用户、看板）
             │   └── common/      # 统一响应、异常、配置、工具、日志
             └── main/resources/db/migration/  # Flyway V1~V6
 ```
 
-## 4. 当前进度（5/6 里程碑）
+## 4. 当前进度（6/6 里程碑，开发计划全部交付）
 
 > 实时进度以 [`开发计划/AI模拟面试与能力提升平台_进度记录.md`](开发计划/AI模拟面试与能力提升平台_进度记录.md) 为准。
 
@@ -84,9 +92,9 @@
 | M3 | 评分 + 报告 + 历史 | ✅ 2026-10-14 |
 | M4 | 语音回答 + 知识库 RAG + 真实大模型 Provider | ✅ 2026-10-14 |
 | M5 | 个性化（掌握度/成长/推荐）+ 管理端补全 | ✅ 2026-10-15 |
-| M6 | 全量测试 + Docker 部署 + 验收 | ◐ 进行中（6.1~6.3 ✅ 2026-10-15） |
+| M6 | 全量测试 + Docker 部署 + 验收 | ✅ 2026-10-15 |
 
-**当前已交付（M1~M5 全部）：**
+**当前已交付（M1~M6 全部）：**
 
 - REST 接口 39 个：认证与用户 5、岗位 3、面试 10（创建/start/文字回答/音频回答/音频回放/finish/abort/详情/消息/报告）、成长域 3（历史/成长曲线/个性化推荐）、管理端 18（题库 CRUD 4、知识片段新增/索引重建 2、岗位列表/详情/新增/修改/评分权重 5、学习资源 CRUD 4、用户列表/启停 2、统计看板 1）；WebSocket 1 个。
 - 种子数据：2 个岗位（Java 后端 / Web 前端）能力模型、各 30 道题（含参考答案、得分点、失分点、追问模板）、知识片段 42 条（每岗 21 条覆盖全部技能）、学习资源 28 条（每岗 14 条，覆盖 ARTICLE/QUESTION/PRACTICE/PROJECT）、管理员与演示学生账号。
@@ -97,12 +105,14 @@
 - AI 双模式：mock 全流程离线可演示；qwen 真实调用含三级容错（重试 → Mock 降级 → 会话锁定），缺 API Key 启动即显式失败。
 - 测试：`mvn test` **114 个用例全绿**（25 个测试类：状态机、组卷、追问七规则、JSON 容错、评分公式、语音指标、关键词词典、真实 Provider 容错、掌握度折算、短板四规则、推荐引擎，及文字/报告/音频/知识库/认证/岗位/管理/安全边界/历史成长/推荐/管理端扩展等 15 个集成测试类）。
 - 质量与部署（M6 6.1~6.3）：`mvn verify` 全绿 + JaCoCo 行覆盖率 **89.0%**（核心包全部 ≥60%，check 门禁固化进 pom）；AI 质量抽测 **40/40 条人工分差 ≤15（100%，达标线 80%）**，记录见 [`开发计划/AI质量抽测记录_M6.md`](开发计划/AI质量抽测记录_M6.md)；五服务 Docker 编排（mysql/redis/backend/frontend/nginx）一键启动，Nginx 80 端口静态页 + `/api` 反代 + `/ws` 升级全通。
+- 验收与文档（M6 6.4~6.6）：**Mock 断网离线演练 13/13 项通过**（核心服务 internal 网络零外网出口，容器内实测外网 IP/DNS 不通；断网下完整走通 文字+语音面试 → 报告 → 历史/成长/推荐 → 管理端 → WebSocket，一键复跑 `bash ai-interview/qa/m6_offline_drill.sh`）；**验收自检 15/15 全过**并附实测证据（[`开发计划/AI模拟面试与能力提升平台_验收自检_M6.md`](开发计划/AI模拟面试与能力提升平台_验收自检_M6.md)）；新人 30 分钟启动文档（[`ai-interview/backend/README.md`](ai-interview/backend/README.md)）与 15 步答辩演示脚本（[`ai-interview/答辩演示脚本.md`](ai-interview/答辩演示脚本.md)）。
 
-**尚未实现**：Mock 断网离线演练、验收自检 15 条、答辩文档（M6 的 6.4~6.6）。
+**后续工作**：前后端联调阶段接入正式 Vue3 前端（替换 frontend 占位页）；其余后端开发计划任务已全部交付。
 
 ## 5. 快速开始
 
 前置：JDK 17、Maven 3.9、Docker（colima/Docker Desktop 均可）。
+**完整上手文档（30 分钟路径：环境 → 起服务 → 跑一场面试 → 测试 → 部署 → FAQ）见 [`ai-interview/backend/README.md`](ai-interview/backend/README.md)**；答辩现场走 [`ai-interview/答辩演示脚本.md`](ai-interview/答辩演示脚本.md)。以下为最短路径：
 
 ```bash
 # 1) 起开发依赖（MySQL 3306 + Redis 6380）
@@ -175,6 +185,8 @@ docker compose up -d --build  # mysql + redis + backend(多阶段构建) + front
 docker compose down           # 收栈（卷保留；正式栈与 dev 栈共用 mysql-data 卷，勿同时运行两个 mysql）
 ```
 
+> **离线（断网）演练（M6-6.4，答辩演示第 15 步）**：`bash ai-interview/qa/m6_offline_drill.sh` 一键完成 切栈 → 断网证明（核心服务零外网出口）→ 面试→报告→推荐全流程 → 恢复 dev 栈；结果留存 `ai-interview/qa/offline_drill_{env,result}.json`。
+>
 > AI 质量抽测（M6-6.2）：`python3 ai-interview/qa/m6_ai_quality_sampling.py http://127.0.0.1:8080`（需先起后端；结果与记录表见 `开发计划/AI质量抽测记录_M6.md`）。
 
 ## 6. 约定与说明
