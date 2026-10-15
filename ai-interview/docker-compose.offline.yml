@@ -1,0 +1,25 @@
+# M6-6.4 Mock 离线（断网）演练编排：叠加在 docker-compose.yml 之上使用
+#   docker compose -f docker-compose.yml -f docker-compose.offline.yml up -d
+#
+# 原理（模拟"演示机断网"，不真断宿主机网络）：
+#   - svc 网络标记 internal: true——mysql/redis/backend/frontend 全部隔离在内网，
+#     对外 TCP/DNS 一律不通（= 系统核心无任何外网依赖，AI 只能走 mock 规则引擎）；
+#   - nginx 额外挂 edge 普通网络作为唯一入口，宿主机仍经 80 端口访问系统
+#     （nginx 仅静态页 + 反代，自身不发起外部请求）。
+# 一键编排脚本见 qa/m6_offline_drill.sh（自动切栈 → 断网证明 → 全流程演练 → 恢复 dev 栈）。
+services:
+  mysql:
+    networks: [svc]
+  redis:
+    networks: [svc]
+  backend:
+    networks: [svc]
+  frontend:
+    networks: [svc]
+  nginx:
+    networks: [edge, svc]          # edge 在前：80 端口发布在边缘网，宿主机可达
+
+networks:
+  svc:
+    internal: true                 # 核心服务零外网出口
+  edge: {}                         # 仅 nginx 入口（发布 80 端口）

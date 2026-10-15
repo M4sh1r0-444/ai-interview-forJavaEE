@@ -1,0 +1,296 @@
+{
+ "base": "http://127.0.0.1",
+ "user": "offline_45025",
+ "passed": 13,
+ "total": 13,
+ "ok": true,
+ "checks": [
+  {
+   "name": "岗位列表返回 2 个岗位",
+   "pass": true,
+   "note": "Java 后端开发工程师(id=1) / Web 前端开发工程师(id=2)"
+  },
+  {
+   "name": "文字面试完整走完（FINISHED）",
+   "pass": true,
+   "note": "sessionId=27 status=FINISHED"
+  },
+  {
+   "name": "动态追问离线可用",
+   "pass": true,
+   "note": "追问 15 次"
+  },
+  {
+   "name": "六维评估报告生成",
+   "pass": true,
+   "note": "总分 75.66，维度 communication=83/depth=77/logic=76/match=73/technical=70，逐题证据 5 条"
+  },
+  {
+   "name": "语音面试完整走完（FINISHED）",
+   "pass": true,
+   "note": "sessionId=28 status=FINISHED，音频提交 20 次"
+  },
+  {
+   "name": "AUDIO 场报告含 voice 维度",
+   "pass": true,
+   "note": "voice=56"
+  },
+  {
+   "name": "历史记录 2 场",
+   "pass": true,
+   "note": "total=2 {'FINISHED': 2}"
+  },
+  {
+   "name": "成长曲线非空（报告自动折算掌握度）",
+   "pass": true,
+   "note": "技能曲线 5 条，最多 1 个点"
+  },
+  {
+   "name": "推荐 Top3（短板技能）非空",
+   "pass": true,
+   "note": "java_basics(优先级15.0)；communication(优先级10.0)；concurrency_jvm(优先级8.0)"
+  },
+  {
+   "name": "推荐含学习资源与理由",
+   "pass": true,
+   "note": "资源 5 条、错题重练 1 条、下场建议=建议下一场：Java 后端开发工程师 · 难度 2 · 重点覆盖 Java基础与面向对象、沟通表达"
+  },
+  {
+   "name": "管理端看板可用",
+   "pass": true,
+   "note": "用户 11 / 场次 28 / 题量 61 / 均分 72.52"
+  },
+  {
+   "name": "管理端新增知识片段",
+   "pass": true,
+   "note": "成功"
+  },
+  {
+   "name": "WebSocket 首题推送",
+   "pass": true,
+   "note": "WS_EVENT QUESTION"
+  }
+ ],
+ "envProofs": {
+  "stack": "docker-compose.yml + docker-compose.offline.yml",
+  "isolation": "svc 网络 internal=true（mysql/redis/backend/frontend 零外网出口）；nginx 另挂 edge 网络仅作 80 端口入口",
+  "aiProvider": "mock",
+  "backendEgressBlocked": true,
+  "backendDnsBlocked": true,
+  "internalMysqlOk": 1,
+  "internalRedisOk": 1,
+  "nginxToBackendOk": 1,
+  "hostViaNginxHttp": "200",
+  "verifiedAt": "2026-10-15 14:17:05"
+ },
+ "sessions": {
+  "text": {
+   "sessionId": 27,
+   "status": "FINISHED",
+   "totalScore": 75.66,
+   "dimensionScores": {
+    "depth": 77.4,
+    "logic": 76.4,
+    "match": 73.0,
+    "technical": 70.2,
+    "communication": 82.6
+   },
+   "followups": [
+    {
+     "roundNo": 0,
+     "tier": "good",
+     "question": "项目中你负责的模块与其他人如何协作？接口如何约定？",
+     "followup": "前后端对接口字段有分歧时怎么推进？"
+    },
+    {
+     "roundNo": 0,
+     "tier": "good",
+     "question": "项目中你负责的模块与其他人如何协作？接口如何约定？",
+     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+    },
+    {
+     "roundNo": 0,
+     "tier": "good",
+     "question": "项目中你负责的模块与其他人如何协作？接口如何约定？",
+     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "question": "消息队列消息积压了百万条，怎么办？",
+     "followup": "扩队列转发方案的实现细节是什么？"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "question": "消息队列消息积压了百万条，怎么办？",
+     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "question": "消息队列消息积压了百万条，怎么办？",
+     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+     "followup": "自调用导致事务失效，你项目里怎么规避？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+     "followup": "NESTED 和 REQUIRES_NEW 到底差在哪？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+     "followup": "自调用导致事务失效，你项目里怎么规避？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
+     "followup": "什么是回表？怎么减少回表？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
+     "followup": "为什么建议主键用自增整型？和页分裂有什么关系？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
+     "followup": "什么是回表？怎么减少回表？"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
+     "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+     "followup": "核心线程能被回收吗？allowCoreThreadTimeOut 了解吗？"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
+     "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+     "followup": "你项目里线程池参数怎么定的？出过什么问题？"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
+     "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+     "followup": "核心线程能被回收吗？allowCoreThreadTimeOut 了解吗？"
+    }
+   ]
+  },
+  "audio": {
+   "sessionId": 28,
+   "status": "FINISHED",
+   "totalScore": 75.59,
+   "dimensionScores": {
+    "depth": 77.2,
+    "logic": 76.4,
+    "match": 73.0,
+    "voice": 56.2,
+    "technical": 70.0,
+    "communication": 82.6
+   },
+   "audioUploads": 20,
+   "followups": [
+    {
+     "roundNo": 0,
+     "tier": "good",
+     "followup": "怎么设计白屏的自动检测与兜底？"
+    },
+    {
+     "roundNo": 0,
+     "tier": "good",
+     "followup": "错误上报要注意什么（采样/去重/源码映射）？"
+    },
+    {
+     "roundNo": 0,
+     "tier": "good",
+     "followup": "怎么设计白屏的自动检测与兜底？"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "followup": "防抖函数里闭包保存了什么？手写思路讲一下"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "followup": "LCP 慢一般查什么？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "followup": "路由懒加载为什么能提升首屏？代价是什么？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "followup": "LCP 慢一般查什么？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "followup": "为什么生产构建不直接用原生 ESM？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "followup": "预构建缓存什么时候会失效？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "followup": "为什么生产构建不直接用原生 ESM？"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
+     "followup": "作用域插槽解决什么问题？举个你的用例"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
+     "followup": "什么时候该拆组件、什么时候不该拆？"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
+     "followup": "作用域插槽解决什么问题？举个你的用例"
+    }
+   ]
+  }
+ },
+ "growth": {
+  "curves": 5,
+  "maxPoints": 1
+ },
+ "recommendations": {
+  "top": [
+   "java_basics",
+   "communication",
+   "concurrency_jvm"
+  ],
+  "resourceCount": 5,
+  "retryCount": 1
+ }
+}

@@ -1,0 +1,12 @@
+{
+  "stack": "docker-compose.yml + docker-compose.offline.yml",
+  "isolation": "svc 网络 internal=true（mysql/redis/backend/frontend 零外网出口）；nginx 另挂 edge 网络仅作 80 端口入口",
+  "aiProvider": "mock",
+  "backendEgressBlocked": true,
+  "backendDnsBlocked": true,
+  "internalMysqlOk": 1,
+  "internalRedisOk": 1,
+  "nginxToBackendOk": 1,
+  "hostViaNginxHttp": "200",
+  "verifiedAt": "2026-10-15 14:17:05"
+}
