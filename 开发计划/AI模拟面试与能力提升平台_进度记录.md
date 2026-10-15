@@ -170,6 +170,9 @@
 | 2026-10-15 | 偏差 | **D25：5.3 推荐契约扩展与规则落点**——RecommendationVO 增 `retryQuestions[{questionId,questionContent,missingPoints}]`（计划 §5.4 #19 未列，§6.7 明确要求错题重练输出）；规则④（communication/voice 维度连续两次<60）产生的理由挂靠能力模型的 `communication` 技能条目（维度短板无可独立输出的载体）；规则③/错题重练数据源 = 最近一场 FINISHED/TIMEOUT 会话的逐题证据，复用 ReportService.evidenceOf（评分快照已清则确定性重算，与报告读取同口径）；无任何规则命中时 weaknessReasons 输出兜底说明（未考察→摸底建议、已达标→相对提升），保证接口契约恒非空；全部候选无短板 → nextInterviewSuggested 切换通用计划文案（不点名重点覆盖、难度+1）。缓存：Redis 键 `rec:{uid}:{positionId}` TTL 10min，报告落库后经 ReportGeneratedEvent（Spring 事件，报告异步线程内同步消费）预生成；推荐缓存与报告解耦（事件失败仅 WARN） | 计划 §5.4 #19 / §6.6 / §6.7 |
 | 2026-10-15 | 决策 | **D26：管理端扩展接口语义**（计划 §5.5 #27~31★ 未细化部分）——dashboard：场次=started_at 非空（CREATED 草稿不计）、平均分=全部出分场次总分均值、近 7 日趋势 sessionCount 按 started_at 日期、avgScore 按 finished_at 日期，聚合走 MyBatis-Plus selectMaps 静态列名表达式；岗位 PUT=部分更新（非 null 生效，name 仅新增必填防破坏部分更新语义），岗位不提供删除（被题库/历史引用）；weights PUT=按组合并（提供的组须完整且组内和=1±0.01，未提供的组保留）；资源 DELETE=下架（enabled→0，与推荐匹配口径一致），skillCode 强校验对齐岗位能力模型；用户启停禁止管理员禁用自己（40001 防锁死）；审计切面（admin.controller 包切点）自动覆盖全部新接口 | 计划 §5.5 / §7 |
 | 2026-10-15 | 说明 | SecurityIT 落位 `common` 包（横切关注）：M1 期间以分散等价用例补验（D10），M5-5.4 补齐计划 §8.2 的独立 SecurityIT（无 token 401 / 学生 admin 403 / 跨用户 40401），403 覆盖面扩至 M5 全部新增管理端路径；另发现并修复共享测试库残留问题——AdminExtendedIT 中途失败会遗留启用岗位污染 PositionApiIT，已加 @AfterEach 自愈清理（tp% 岗位强制停用） | 计划 §8.2 |
+| 2026-10-15 | 决策 | **D27：6.1 覆盖率口径**——JaCoCo 0.8.12 接入 pom（prepare-agent + verify 阶段 report/check），BUNDLE 行覆盖 ≥60% 作为门禁固化；统计范围 = `com.example.interview.**` 业务实现代码，剔除 dto/entity/mapper/config/主类（纯数据与装配类不参与核心质量口径）。实测 89.0%（2943 行覆盖 2619），核心包最低 interview.websocket 69.3%、ai.prompt 72.9%，全部达标 | 计划 §9-M6-6.1 |
+| 2026-10-15 | 偏差 | **D28：6.2 抽测执行方式**——"人工作答"由脚本按三档标准构造（好=全 4 得分点+结构化分点+因果衔接；中=前 2 得分点+约 150 字；差=零要点模糊短答），人工评分基准 85/62/35 并逐条复核（覆盖 3/4 的中档复核 68 更贴切，仍按 62 保守记录）；每岗 4 场 × 5 轮 = 20 条（好 8/中 6/差 6），逐题对比报告 `questionEvidence[].contentScore`。抽测脚本发现并修正两处测试侧问题：轮次推进依赖"消息差集"而非新消息（D12 预写主问题，推进无新 AI 消息）、失分词清洗需排除得分点同名词。结果 **40/40 分差 ≤15（100%，达标线 80%）**，记录表见《AI质量抽测记录_M6.md》 | 计划 §8.3 / §9-M6-6.2 |
+| 2026-10-15 | 偏差 | **D29：6.3 部署落地细节**——①frontend 为占位静态页（alpine 拷贝式构建容器，真实 Vue3 前端联调阶段替换为 node:20 构建，计划 §8.3 已界定前端不在后端范围）；②nginx depends_on frontend `service_completed_successfully`（防 nginx 默认页先初始化 frontend-dist 卷）；③backend `mem_limit: 768m`（§11-R2 落地）+ 容器内构建走阿里云 settings；④正式栈与 dev 栈同项目名共用 `mysql-data` 卷（dev 数据延续，**两个 mysql 禁止同时运行**，切换用 `docker compose down` / `up -d`）；⑤nginx /ws/ 增 `proxy_read_timeout 3600s`。验证：`up -d` 一键起五服务，80 端口静态页 200、/api 全链路（登录→岗位→建会话→start→作答→finish→报告 64.46 分→推荐）、/ws 101 升级全通 | 计划 §10 / §9-M6-6.3 |
 
 ## 5. 问题与风险跟踪
 
@@ -189,15 +192,16 @@
 
 ## 6. 环境状态备忘
 
-| 组件 | 状态（2026-10-15 M5 完成时检测） | 备注 |
+| 组件 | 状态（2026-10-15 M6 6.1~6.3 完成时检测） | 备注 |
 |---|---|---|
 | JDK 17 | ✅ Temurin 17.0.20（`~/tools/jdk-17.0.20.1+1`，tarball 安装） | 运行/测试统一 `JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home` |
 | JDK 25 | 仍存在（系统默认） | 仅做兜底；编译由 `maven.compiler.release=17` 保证 |
 | Maven | 3.9.16（~/tools/apache-maven-3.9.16） | settings.xml 已配阿里云镜像 |
-| Docker | ✅ colima 运行中 | 镜像经 daocloud 源拉取（D7） |
-| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库已迁移至 V6（+28 条学习资源，ability_record 已有掌握度记录）；测试库 ai_interview_test 同步 V6 |
+| Docker | ✅ colima 运行中（实测可用内存 ~3.8G，非默认 2G） | 镜像经 daocloud 源拉取（D7）；M6 部署镜像已本地化（maven/temurin-jre/nginx/alpine） |
+| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库 V6 + 抽测/演示数据（21 场会话）；测试库 ai_interview_test 同步 V6 |
 | aiinterview-redis | ✅ healthy，宿主机端口 6380 | 6379 被其他项目占用（D6） |
 | 本机 8080 | ⚠ 被其他项目占用（P6） | dev 后端临时换 `--server.port=18080`；测试不受影响 |
+| 本机 80 | ✅ 空闲（M6-6.3 验证时正式栈 Nginx 使用后已撤） | 演示时 `docker compose up -d` 重新占用 |
 | Node | v22.23.3 / npm 10.9.9 | 仅前端用，超出本计划范围 |
 
 **日常启动（M1 之后继续开发时）：**
@@ -208,8 +212,10 @@ docker compose -f docker-compose.dev.yml up -d          # 容器已常驻可跳�
 export JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home
 cd backend && mvn spring-boot:run                        # dev profile，Redis 连 6380
 # 若 8080 被占（P6）：mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=18080
-# 测试：mvn test（用 ai_interview_test 库 + 6380 Redis）
+# 测试：mvn test（用 ai_interview_test 库 + 6380 Redis）；质量门禁：mvn verify（JaCoCo ≥60%）
 # 账号：admin / Admin@123456；demo01 / 123456
+# 正式演示栈（M6-6.3）：先 docker compose -f docker-compose.dev.yml stop（防双 mysql 共卷），
+#   再 docker compose up -d → Nginx http://127.0.0.1:80；用毕 docker compose down 后恢复 dev 栈
 ```
 
 > 每次环境变化（装 JDK 17、起容器、改 colima 资源等）更新此表并注明日期。
@@ -227,3 +233,4 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-14 | **M4 完成**：任务 4.1~4.6 全部 ✅（产物 #10 交付，api.http 增用例 22~25）；新增 knowledge（实体/FULLTEXT Mapper/KeywordExtractor/KnowledgeSearchService/KnowledgeAdminService）与 interview.storage（AudioStorageService）模块、VoiceMetricsCalculator、OpenAiCompatibleProvider + WebClientConfig + AiChatResponse，Flyway V5 种子 42 条知识片段，TurnEngine/InterviewService/ReportService 接入关键词提取、知识检索注入 Prompt 与 AUDIO 场 voice 维度，MessageVO 补 audioPath（D21）；`mvn test` 85 用例全绿（M4 新增 29：VoiceMetricsCalculatorTest 8、KeywordExtractorTest 8、OpenAiCompatibleProviderTest 5、AudioAnswerIT 3、KnowledgeSearchIT 5，测试类 19）；手工验证：SQL 手验 FULLTEXT 召回（utf8mb4 客户端）、curl 音频全流程（落盘/回放/报告含 voice）、新增知识片段即被检索、qwen 缺 key fail-fast 与不可达端点自动回 mock；登记决策 D19~D21、风险 R3 验证 | ZCode（M4 开发会话） |
 | 2026-10-15 | **M5 进行中（5.1/5.2 完成）**：任务 5.1、5.2 ✅（产物 #11 交付，api.http 增用例 26/27）；新增 growth 包 AbilityRecord/LearningResource 实体与 Mapper、MasteryUpdater（0.7/0.3 折算+难度加权+幂等）、RecommendationService、SkillGrowthVO/RecommendationVO，ReportService 挂接掌握度更新（报告事务后独立事务），GrowthService/GrowthController 补 growth 与 recommendations 接口，Flyway V6 种子学习资源 28 条（每岗 14）；`mvn test` 97 用例全绿（M5 新增 12：MasteryUpdaterTest 11、HistoryGrowthIT 增 1，测试类 20）；手工验证：curl（18080）两场面试→ability_record 两条（52.53→48.95 折算吻合）→growth 曲线/推荐 Top3 资源匹配；登记决策 D22~D24 | ZCode（M5 开发会话） |
 | 2026-10-15 | **M5 完成**：任务 5.3、5.4 ✅（产物 #12 交付，api.http 增用例 28~32 并修订 27）；5.3 新增 growth/engine 双引擎（WeaknessDetector 四规则纯逻辑 + RecommendationEngine 优先级/错题重练/通用计划），RecommendationVO 增 retryQuestions，ReportService 增 evidenceOf 与 ReportGeneratedEvent、新增 RecommendationCacheWarmer（Redis TTL 10min 预生成），RecommendationService 重写接入双引擎+维度历史+最近一场证据+缓存；5.4 新增 admin 包 DashboardService/AdminPositionService/AdminResourceService/AdminUserService 与四个 Controller、DashboardVO/PositionAdminVO/PositionUpsertRequest/ResourceUpsertRequest/WeightsUpdateRequest；`mvn test` 114 用例全绿（5.3/5.4 新增 17：WeaknessDetectorTest 5、RecommendationEngineTest 3、RecommendationIT 2、SecurityIT 3、AdminExtendedIT 4，测试类 25）；手工验证：curl（18080）dashboard（4 用户/8 场/61 题/均分 59.07）、权重写入回读、资源建删、禁用登录 10003→恢复、Redis rec:* 缓存键；登记决策/偏差 D25~D26 及 SecurityIT 落位说明 | ZCode（M5 开发会话） |
+| 2026-10-15 | **M6 进行中（6.1/6.2/6.3 完成）**：6.1 ✅ pom 接入 JaCoCo（≥60% 行覆盖门禁），`mvn verify` BUILD SUCCESS（114 用例 0 失败），覆盖率 89.0%、核心包全部 ≥60%；6.2 ✅ AI 质量抽测双岗各 20 条（好/中/差），**40/40 人工分差 ≤15（100%≥80% 达标）**，四项核对（分差/追问相关性/报告完整/建议对短板）全过，记录表产出《AI质量抽测记录_M6.md》，抽测脚本入库 qa/m6_ai_quality_sampling.py；6.3 ✅ backend/Dockerfile（多阶段+阿里云 settings）+ nginx/nginx.conf + frontend 占位页 + docker-compose.yml 五服务编排 + .env(.example)，`docker compose up -d` 一键起，Nginx 80 验证：静态页 200、/api 全链路（登录→岗位→会话→作答→finish→报告 64.46→推荐）、/ws 101 升级；验证后正式栈撤下、dev 栈已恢复（数据完好）；登记决策/偏差 D27~D29 | ZCode（M6 开发会话） |

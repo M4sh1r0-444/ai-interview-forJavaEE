@@ -84,7 +84,7 @@
 | M3 | 评分 + 报告 + 历史 | ✅ 2026-10-14 |
 | M4 | 语音回答 + 知识库 RAG + 真实大模型 Provider | ✅ 2026-10-14 |
 | M5 | 个性化（掌握度/成长/推荐）+ 管理端补全 | ✅ 2026-10-15 |
-| M6 | 全量测试 + Docker 部署 + 验收 | ⬜ 未开始 |
+| M6 | 全量测试 + Docker 部署 + 验收 | ◐ 进行中（6.1~6.3 ✅ 2026-10-15） |
 
 **当前已交付（M1~M5 全部）：**
 
@@ -96,8 +96,9 @@
 - 管理端补全（M5）：统计看板（用户数/面试场次/岗位题量/平均分/近 7 日趋势）、岗位与评分权重维护（组内和=1 校验）、学习资源 CRUD（技能对齐校验、下架逻辑删）、用户启停（禁用登录拦截、防自禁用）。
 - AI 双模式：mock 全流程离线可演示；qwen 真实调用含三级容错（重试 → Mock 降级 → 会话锁定），缺 API Key 启动即显式失败。
 - 测试：`mvn test` **114 个用例全绿**（25 个测试类：状态机、组卷、追问七规则、JSON 容错、评分公式、语音指标、关键词词典、真实 Provider 容错、掌握度折算、短板四规则、推荐引擎，及文字/报告/音频/知识库/认证/岗位/管理/安全边界/历史成长/推荐/管理端扩展等 15 个集成测试类）。
+- 质量与部署（M6 6.1~6.3）：`mvn verify` 全绿 + JaCoCo 行覆盖率 **89.0%**（核心包全部 ≥60%，check 门禁固化进 pom）；AI 质量抽测 **40/40 条人工分差 ≤15（100%，达标线 80%）**，记录见 [`开发计划/AI质量抽测记录_M6.md`](开发计划/AI质量抽测记录_M6.md)；五服务 Docker 编排（mysql/redis/backend/frontend/nginx）一键启动，Nginx 80 端口静态页 + `/api` 反代 + `/ws` 升级全通。
 
-**尚未实现**：全量 `mvn verify` 与覆盖率统计、Docker 化部署与离线演练、验收自检（M6）。
+**尚未实现**：Mock 断网离线演练、验收自检 15 条、答辩文档（M6 的 6.4~6.6）。
 
 ## 5. 快速开始
 
@@ -153,7 +154,7 @@ curl -s "$BASE/api/users/me/recommendations?positionId=1" -H "$AUTH"
 # node -e 'const ws=new WebSocket(`ws://127.0.0.1:8080/ws/interviews/'$SID'?token='$TOKEN'`);ws.onmessage=e=>console.log(e.data)'
 ```
 
-运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 114 用例全绿）。
+运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 114 用例全绿）。全量质量门禁：`mvn verify`（含 JaCoCo 行覆盖率检查，核心代码 ≥60% 门禁固化，当前 89.0%，报告见 `backend/target/site/jacoco/`）。
 
 **切换真实大模型**（可选，默认 mock 离线可演示）：
 
@@ -163,6 +164,18 @@ AI_API_KEY=<your-key> AI_MODEL=qwen-plus mvn spring-boot:run
 ```
 
 > 已接入三级容错（M4）：缺少 API Key/URL 时启动即失败（配置错误显式暴露）；运行期调用失败自动重试 1 次后降级 Mock，连续 3 次失败锁定该会话为 mock，面试流程不中断。
+
+**正式部署（M6-6.3，五服务一键启动）**：
+
+```bash
+cd ai-interview
+cp .env.example .env          # 按需改 MYSQL_PASSWORD / JWT_SECRET / AI_*（默认 mock）
+docker compose up -d --build  # mysql + redis + backend(多阶段构建) + frontend(构建期) + nginx
+# 演示入口：http://127.0.0.1:80（静态页 + /api 反代 + /ws 升级）
+docker compose down           # 收栈（卷保留；正式栈与 dev 栈共用 mysql-data 卷，勿同时运行两个 mysql）
+```
+
+> AI 质量抽测（M6-6.2）：`python3 ai-interview/qa/m6_ai_quality_sampling.py http://127.0.0.1:8080`（需先起后端；结果与记录表见 `开发计划/AI质量抽测记录_M6.md`）。
 
 ## 6. 约定与说明
 
