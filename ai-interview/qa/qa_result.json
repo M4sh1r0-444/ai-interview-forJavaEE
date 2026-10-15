@@ -1,0 +1,1816 @@
+{
+ "1": {
+  "position": "Java 后端开发工程师",
+  "user": "qa_java_43093",
+  "rounds": [
+   {
+    "sessionId": 13,
+    "roundNo": 0,
+    "questionId": 14,
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "tier": "good",
+    "answerExcerpt": "这道题我比较熟，我的理解是这样的。首先，列举 4 种以上失效场景。其次，用 EXPLAIN 关键列（type/key/rows/Extra）解读计划。然后，覆盖索引/深分页等优化手段。另外，有「先看计划再动手」的分析意识。这一整块属于 my",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 89.29,
+    "diff": 4.29,
+    "covered": [
+     "能列举 4 种以上失效场景",
+     "能用 EXPLAIN 关键列（type/key/rows/Extra）解读计划",
+     "能给出覆盖索引/深分页等优化手段",
+     "有「先看计划再动手」的分析意识"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 1 处，回答 455 字"
+   },
+   {
+    "sessionId": 13,
+    "roundNo": 1,
+    "questionId": 10,
+    "question": "Spring Bean 的生命周期和作用域",
+    "tier": "good",
+    "answerExcerpt": "这个问题我系统学过，我按层次来答。首先，按顺序说出实例化→注入→初始化→销毁各阶段。其次，@PostConstruct/@PreDestroy 与接口回调。然后，列举 singleton/prototype 等作用域及差异。另外，BeanP",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 85.41,
+    "diff": 0.41,
+    "covered": [
+     "能按顺序说出实例化→注入→初始化→销毁各阶段",
+     "能说出 @PostConstruct/@PreDestroy 与接口回调",
+     "能列举 singleton/prototype 等作用域及差异",
+     "能提到 BeanPostProcessor 与 AOP 代理的关系"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 2 处，回答 508 字"
+   },
+   {
+    "sessionId": 13,
+    "roundNo": 2,
+    "questionId": 16,
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "tier": "good",
+    "answerExcerpt": "这个考点我在项目里实际处理过，我展开说一下。首先，用简练语言讲清模块职责与边界。其次，指出真实复杂度来源（状态/并发/数据/集成）。然后，设计手段（状态机、分层、幂等、降级）。另外，主动谈权衡取舍与已知不足。这一整块属于 project 的",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能用简练语言讲清模块职责与边界",
+     "能指出真实复杂度来源（状态/并发/数据/集成）",
+     "能讲出具体设计手段（状态机、分层、幂等、降级）",
+     "能主动谈权衡取舍与已知不足"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 510 字"
+   },
+   {
+    "sessionId": 13,
+    "roundNo": 3,
+    "questionId": 27,
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。先查消费端慢的根因；扩实例/扩并发/批量消费手段。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 68.29,
+    "diff": 6.29,
+    "covered": [
+     "能先查消费端慢的根因",
+     "给出扩实例/扩并发/批量消费手段"
+    ],
+    "missing": [
+     "有业务分级与过期丢弃的取舍",
+     "能提到幂等与 lag 告警预防"
+    ],
+    "reason": "命中得分点 2/4，失分信号 0 处，回答 283 字"
+   },
+   {
+    "sessionId": 13,
+    "roundNo": 4,
+    "questionId": 3,
+    "question": "ArrayList 与 LinkedList 的区别？各自适合什么场景？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。从底层数据结构说出两者差异；各操作的时间复杂度对比。其他的细节我记不太准了，就先答到这里。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 68.29,
+    "diff": 6.29,
+    "covered": [
+     "能从底层数据结构说出两者差异",
+     "能给出各操作的时间复杂度对比"
+    ],
+    "missing": [
+     "能结合读写场景与 CPU 缓存友好性给出选型",
+     "能提到 ArrayList 扩容机制（1.5 倍）"
+    ],
+    "reason": "命中得分点 2/4，失分信号 0 处，回答 284 字"
+   },
+   {
+    "sessionId": 14,
+    "roundNo": 0,
+    "questionId": 27,
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "tier": "good",
+    "answerExcerpt": "这个问题我系统学过，我按层次来答。首先，先查消费端慢的根因。其次，扩实例/扩并发/批量消费手段。然后，有业务分级与过期丢弃的取舍。另外，幂等与 lag 告警预防。这一整块属于 redis 的核心考点，我平时也是这么用的。因为这几个机制是配套",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能先查消费端慢的根因",
+     "给出扩实例/扩并发/批量消费手段",
+     "有业务分级与过期丢弃的取舍",
+     "能提到幂等与 lag 告警预防"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 474 字"
+   },
+   {
+    "sessionId": 14,
+    "roundNo": 1,
+    "questionId": 17,
+    "question": "你的项目中遇到过最棘手的 bug 是什么？讲讲排查过程",
+    "tier": "good",
+    "answerExcerpt": "这个考点我在项目里实际处理过，我展开说一下。首先，现象与影响面。其次，排查过程有假设-验证结构而非瞎试。然后，讲到真正的根因而不是表层症状。另外，有复盘与预防措施（测试/监控/流程）。这一整块属于 project 的核心考点，我平时也是这么",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能清晰描述现象与影响面",
+     "排查过程有假设-验证结构而非瞎试",
+     "能讲到真正的根因而不是表层症状",
+     "有复盘与预防措施（测试/监控/流程）"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 474 字"
+   },
+   {
+    "sessionId": 14,
+    "roundNo": 2,
+    "questionId": 11,
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。列举常见传播行为并说明语义；REQUIRED 加入事务与 REQUIRES_NEW 独立事务的差异。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 72.82,
+    "diff": 10.82,
+    "covered": [
+     "能列举常见传播行为并说明语义",
+     "能说清 REQUIRED 加入事务与 REQUIRES_NEW 独立事务的差异",
+     "能举出 REQUIRES_NEW 的业务场景（日志/通知）"
+    ],
+    "missing": [
+     "能提到自调用失效这一陷阱"
+    ],
+    "reason": "命中得分点 3/4，失分信号 1 处，回答 290 字"
+   },
+   {
+    "sessionId": 14,
+    "roundNo": 3,
+    "questionId": 13,
+    "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
+    "tier": "poor",
+    "answerExcerpt": "啊这个……那个，我记得老师说过的，但是就是说具体怎么回事我忘了，反正差不多是那一类的概念吧。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 49.29,
+    "diff": 14.29,
+    "covered": [],
+    "missing": [
+     "能从磁盘 IO 与树高度角度分析",
+     "能说出非叶子节点不存数据/叶子链表两个关键设计",
+     "能对比哈希表的范围查询缺陷",
+     "能提到聚簇索引与回表"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 184 字"
+   },
+   {
+    "sessionId": 14,
+    "roundNo": 4,
+    "questionId": 4,
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "tier": "poor",
+    "answerExcerpt": "呃，这个东西我没怎么用过，就是说有个模糊印象，让我现在讲细节的话我讲不出来，不好意思。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 46.94,
+    "diff": 11.94,
+    "covered": [],
+    "missing": [
+     "能画出 Throwable/Error/Exception/RuntimeException 层级",
+     "能说出受检与非受检的区别及编译器行为",
+     "能给出项目中的选择原则（业务异常→自定义异常+全局处理）",
+     "能提到 try-with-resources 与资源关闭"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 181 字"
+   },
+   {
+    "sessionId": 15,
+    "roundNo": 0,
+    "questionId": 4,
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "tier": "good",
+    "answerExcerpt": "这个考点我在项目里实际处理过，我展开说一下。首先，Throwable/Error/Exception/RuntimeException 层级。其次，受检与非受检的区别及编译器行为。然后，的选择原则（业务异常→自定义异常+全局处理）。另外，t",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 89.29,
+    "diff": 4.29,
+    "covered": [
+     "能画出 Throwable/Error/Exception/RuntimeException 层级",
+     "能说出受检与非受检的区别及编译器行为",
+     "能给出项目中的选择原则（业务异常→自定义异常+全局处理）",
+     "能提到 try-with-resources 与资源关闭"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 1 处，回答 576 字"
+   },
+   {
+    "sessionId": 15,
+    "roundNo": 1,
+    "questionId": 6,
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "tier": "good",
+    "answerExcerpt": "这道题我比较熟，我的理解是这样的。首先，完整说出七个参数含义。其次，核心线程→队列→非核心线程→拒绝策略的顺序。然后，四种拒绝策略。另外，为何不推荐 Executors 快捷工厂（无界队列 OOM 风险）。这一整块属于 concurrenc",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能完整说出七个参数含义",
+     "能准确描述核心线程→队列→非核心线程→拒绝策略的顺序",
+     "能说出四种拒绝策略",
+     "能解释为何不推荐 Executors 快捷工厂（无界队列 OOM 风险）"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 447 字"
+   },
+   {
+    "sessionId": 15,
+    "roundNo": 2,
+    "questionId": 22,
+    "question": "线上接口响应从 50ms 变成 3s，说说你的排查思路",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。有明确的排查顺序（范围→应用→依赖→环境）；用慢查询日志/EXPLAIN/链路追踪等工具。其他的细节我记不太准了，就先答到这里。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 68.29,
+    "diff": 6.29,
+    "covered": [
+     "有明确的排查顺序（范围→应用→依赖→环境）",
+     "会用慢查询日志/EXPLAIN/链路追踪等工具"
+    ],
+    "missing": [
+     "区分应急止血与根因修复",
+     "能关联时间点与变更（发布/数据）"
+    ],
+    "reason": "命中得分点 2/4，失分信号 0 处，回答 285 字"
+   },
+   {
+    "sessionId": 15,
+    "roundNo": 3,
+    "questionId": 16,
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。用简练语言讲清模块职责与边界；指出真实复杂度来源（状态/并发/数据/集成）。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 68.29,
+    "diff": 6.29,
+    "covered": [
+     "能用简练语言讲清模块职责与边界",
+     "能指出真实复杂度来源（状态/并发/数据/集成）"
+    ],
+    "missing": [
+     "能讲出具体设计手段（状态机、分层、幂等、降级）",
+     "能主动谈权衡取舍与已知不足"
+    ],
+    "reason": "命中得分点 2/4，失分信号 0 处，回答 296 字"
+   },
+   {
+    "sessionId": 15,
+    "roundNo": 4,
+    "questionId": 10,
+    "question": "Spring Bean 的生命周期和作用域",
+    "tier": "poor",
+    "answerExcerpt": "嗯……这个我好像在哪见过，就是说大概是个什么东西吧，具体的我真说不上来，没深入研究过。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 46.94,
+    "diff": 11.94,
+    "covered": [],
+    "missing": [
+     "能按顺序说出实例化→注入→初始化→销毁各阶段",
+     "能说出 @PostConstruct/@PreDestroy 与接口回调",
+     "能列举 singleton/prototype 等作用域及差异",
+     "能提到 BeanPostProcessor 与 AOP 代理的关系"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 181 字"
+   },
+   {
+    "sessionId": 16,
+    "roundNo": 0,
+    "questionId": 6,
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "tier": "good",
+    "answerExcerpt": "这道题我比较熟，我的理解是这样的。首先，完整说出七个参数含义。其次，核心线程→队列→非核心线程→拒绝策略的顺序。然后，四种拒绝策略。另外，为何不推荐 Executors 快捷工厂（无界队列 OOM 风险）。这一整块属于 concurrenc",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能完整说出七个参数含义",
+     "能准确描述核心线程→队列→非核心线程→拒绝策略的顺序",
+     "能说出四种拒绝策略",
+     "能解释为何不推荐 Executors 快捷工厂（无界队列 OOM 风险）"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 447 字"
+   },
+   {
+    "sessionId": 16,
+    "roundNo": 1,
+    "questionId": 27,
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。先查消费端慢的根因；扩实例/扩并发/批量消费手段。其他的细节我记不太准了，就先答到这里。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 68.29,
+    "diff": 6.29,
+    "covered": [
+     "能先查消费端慢的根因",
+     "给出扩实例/扩并发/批量消费手段"
+    ],
+    "missing": [
+     "有业务分级与过期丢弃的取舍",
+     "能提到幂等与 lag 告警预防"
+    ],
+    "reason": "命中得分点 2/4，失分信号 0 处，回答 283 字"
+   },
+   {
+    "sessionId": 16,
+    "roundNo": 2,
+    "questionId": 11,
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。列举常见传播行为并说明语义；REQUIRED 加入事务与 REQUIRES_NEW 独立事务的差异。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 72.82,
+    "diff": 10.82,
+    "covered": [
+     "能列举常见传播行为并说明语义",
+     "能说清 REQUIRED 加入事务与 REQUIRES_NEW 独立事务的差异",
+     "能举出 REQUIRES_NEW 的业务场景（日志/通知）"
+    ],
+    "missing": [
+     "能提到自调用失效这一陷阱"
+    ],
+    "reason": "命中得分点 3/4，失分信号 1 处，回答 290 字"
+   },
+   {
+    "sessionId": 16,
+    "roundNo": 3,
+    "questionId": 14,
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "tier": "poor",
+    "answerExcerpt": "嗯……这个我好像在哪见过，就是说大概是个什么东西吧，具体的我真说不上来，没深入研究过。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 46.94,
+    "diff": 11.94,
+    "covered": [],
+    "missing": [
+     "能列举 4 种以上失效场景",
+     "能用 EXPLAIN 关键列（type/key/rows/Extra）解读计划",
+     "能给出覆盖索引/深分页等优化手段",
+     "有「先看计划再动手」的分析意识"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 181 字"
+   },
+   {
+    "sessionId": 16,
+    "roundNo": 4,
+    "questionId": 16,
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "tier": "poor",
+    "answerExcerpt": "啊这个……那个，我记得老师说过的，但是就是说具体怎么回事我忘了，反正差不多是那一类的概念吧。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 49.29,
+    "diff": 14.29,
+    "covered": [],
+    "missing": [
+     "能用简练语言讲清模块职责与边界",
+     "能指出真实复杂度来源（状态/并发/数据/集成）",
+     "能讲出具体设计手段（状态机、分层、幂等、降级）",
+     "能主动谈权衡取舍与已知不足"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 184 字"
+   }
+  ],
+  "sessions": [
+   {
+    "sessionId": 13,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "good",
+     "good",
+     "mid",
+     "mid"
+    ],
+    "reportProblems": [
+     "含中/差轮但 weaknesses 为空"
+    ],
+    "dimensionScores": {
+     "depth": 85.6,
+     "logic": 81.2,
+     "match": 82.0,
+     "technical": 76.4,
+     "communication": 88.0
+    },
+    "totalScore": 81.38,
+    "weaknesses": [],
+    "evidenceCount": 5
+   },
+   {
+    "sessionId": 14,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "good",
+     "mid",
+     "poor",
+     "poor"
+    ],
+    "reportProblems": [],
+    "dimensionScores": {
+     "depth": 73.6,
+     "logic": 74.0,
+     "match": 73.0,
+     "technical": 66.4,
+     "communication": 77.2
+    },
+    "totalScore": 72.6,
+    "weaknesses": [
+     "「技术正确性」有待加强（66.4 分）",
+     "「岗位匹配度」有待加强（73 分）"
+    ],
+    "evidenceCount": 5
+   },
+   {
+    "sessionId": 15,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "good",
+     "mid",
+     "mid",
+     "poor"
+    ],
+    "reportProblems": [],
+    "dimensionScores": {
+     "depth": 76.0,
+     "logic": 76.4,
+     "match": 73.0,
+     "technical": 68.8,
+     "communication": 82.6
+    },
+    "totalScore": 75.17,
+    "weaknesses": [
+     "「技术正确性」有待加强（68.8 分）",
+     "「岗位匹配度」有待加强（73 分）"
+    ],
+    "evidenceCount": 5
+   },
+   {
+    "sessionId": 16,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "mid",
+     "mid",
+     "poor",
+     "poor"
+    ],
+    "reportProblems": [],
+    "dimensionScores": {
+     "depth": 68.2,
+     "logic": 71.6,
+     "match": 64.0,
+     "technical": 61.4,
+     "communication": 77.2
+    },
+    "totalScore": 69.39,
+    "weaknesses": [
+     "「技术正确性」有待加强（61.4 分）",
+     "「岗位匹配度」有待加强（64 分）"
+    ],
+    "evidenceCount": 5
+   }
+  ],
+  "followups": [
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "followup": "EXPLAIN 里 type 有哪些级别？什么级别就该警惕了？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "followup": "EXPLAIN 里 type 有哪些级别？什么级别就该警惕了？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "Spring Bean 的生命周期和作用域",
+    "followup": "AOP 代理是在生命周期哪个环节生成的？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "Spring Bean 的生命周期和作用域",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "Spring Bean 的生命周期和作用域",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "good",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "这个模块如果流量翻十倍，最先撑不住哪里？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "good",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "good",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "扩队列转发方案的实现细节是什么？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "怎么保证重复消费不出问题？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "扩队列转发方案的实现细节是什么？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "mid",
+    "question": "ArrayList 与 LinkedList 的区别？各自适合什么场景？",
+    "followup": "如果要实现一个 LRU 缓存的底层容器，你会怎么选？为什么？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "mid",
+    "question": "ArrayList 与 LinkedList 的区别？各自适合什么场景？",
+    "followup": "ArrayDeque 为什么常被推荐替代 LinkedList 做栈和队列？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "mid",
+    "question": "ArrayList 与 LinkedList 的区别？各自适合什么场景？",
+    "followup": "如果要实现一个 LRU 缓存的底层容器，你会怎么选？为什么？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "扩队列转发方案的实现细节是什么？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "你的项目中遇到过最棘手的 bug 是什么？讲讲排查过程",
+    "followup": "如果日志不足以定位，你还有什么手段？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "你的项目中遇到过最棘手的 bug 是什么？讲讲排查过程",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "你的项目中遇到过最棘手的 bug 是什么？讲讲排查过程",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "followup": "自调用导致事务失效，你项目里怎么规避？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "followup": "NESTED 和 REQUIRES_NEW 到底差在哪？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "followup": "自调用导致事务失效，你项目里怎么规避？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
+    "followup": "什么是回表？怎么减少回表？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
+    "followup": "为什么建议主键用自增整型？和页分裂有什么关系？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
+    "followup": "什么是回表？怎么减少回表？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "followup": "你们项目里全局异常处理是怎么做的？错误码怎么设计？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "followup": "什么情况下你会把受检异常包装成运行时异常？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "followup": "你们项目里全局异常处理是怎么做的？错误码怎么设计？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "followup": "你们项目里全局异常处理是怎么做的？错误码怎么设计？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "followup": "什么情况下你会把受检异常包装成运行时异常？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "Java 异常体系分为哪几类？受检异常和非受检异常如何选择？",
+    "followup": "你们项目里全局异常处理是怎么做的？错误码怎么设计？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "followup": "核心线程能被回收吗？allowCoreThreadTimeOut 了解吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "线上接口响应从 50ms 变成 3s，说说你的排查思路",
+    "followup": "如果是数据库慢 SQL 导致，你会怎么进一步定位？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "线上接口响应从 50ms 变成 3s，说说你的排查思路",
+    "followup": "排查发现是缓存命中率下降，接下来查什么？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "线上接口响应从 50ms 变成 3s，说说你的排查思路",
+    "followup": "如果是数据库慢 SQL 导致，你会怎么进一步定位？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "这个模块如果流量翻十倍，最先撑不住哪里？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "当时有没有备选方案？为什么选了现在这个？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "这个模块如果流量翻十倍，最先撑不住哪里？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "Spring Bean 的生命周期和作用域",
+    "followup": "AOP 代理是在生命周期哪个环节生成的？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "Spring Bean 的生命周期和作用域",
+    "followup": "singleton Bean 里注入 prototype Bean 会发生什么？怎么解决？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "Spring Bean 的生命周期和作用域",
+    "followup": "AOP 代理是在生命周期哪个环节生成的？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "followup": "核心线程能被回收吗？allowCoreThreadTimeOut 了解吗？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "mid",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "扩队列转发方案的实现细节是什么？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "mid",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "怎么保证重复消费不出问题？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "mid",
+    "question": "消息队列消息积压了百万条，怎么办？",
+    "followup": "扩队列转发方案的实现细节是什么？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "followup": "自调用导致事务失效，你项目里怎么规避？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "followup": "NESTED 和 REQUIRES_NEW 到底差在哪？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
+    "followup": "自调用导致事务失效，你项目里怎么规避？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "followup": "EXPLAIN 里 type 有哪些级别？什么级别就该警惕了？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "followup": "Using filesort 是什么意思？怎么消除？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "什么情况下索引会失效？如何分析一条慢 SQL？",
+    "followup": "EXPLAIN 里 type 有哪些级别？什么级别就该警惕了？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "这个模块如果流量翻十倍，最先撑不住哪里？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "当时有没有备选方案？为什么选了现在这个？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "介绍你项目中最复杂的模块，复杂在哪里、你是如何设计的",
+    "followup": "这个模块如果流量翻十倍，最先撑不住哪里？"
+   }
+  ],
+  "recommendations": {
+   "code": 0,
+   "skillCount": 3,
+   "top3": [
+    {
+     "skillCode": "concurrency_jvm",
+     "weaknessReasons": [
+      "尚无该技能的面试考察记录，建议先安排一场摸底面试"
+     ],
+     "retryCount": 0,
+     "resourceCount": 1
+    },
+    {
+     "skillCode": "communication",
+     "weaknessReasons": [
+      "尚无该技能的面试考察记录，建议先安排一场摸底面试"
+     ],
+     "retryCount": 0,
+     "resourceCount": 2
+    },
+    {
+     "skillCode": "java_basics",
+     "weaknessReasons": [
+      "最新掌握度 68.3 低于岗位要求 70"
+     ],
+     "retryCount": 1,
+     "resourceCount": 2
+    }
+   ],
+   "next": "建议下一场：Java 后端开发工程师 · 难度 2 · 重点覆盖 并发编程与JVM、沟通表达"
+  }
+ },
+ "2": {
+  "position": "Web 前端开发工程师",
+  "user": "qa_front_43138",
+  "rounds": [
+   {
+    "sessionId": 17,
+    "roundNo": 0,
+    "questionId": 43,
+    "question": "Vite 为什么比 Webpack 快？ESM 和打包构建的区别",
+    "tier": "good",
+    "answerExcerpt": "这道题我比较熟，我的理解是这样的。首先，开发期不打包、按需编译的核心机制。其次，esbuild 预构建及其缓存。然后，HMR 模块级失效的优势。另外，生产构建仍用 Rollup 及原因。这一整块属于 engineering 的核心考点，我平",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能说清开发期不打包、按需编译的核心机制",
+     "知道 esbuild 预构建及其缓存",
+     "理解 HMR 模块级失效的优势",
+     "知道生产构建仍用 Rollup 及原因"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 455 字"
+   },
+   {
+    "sessionId": 17,
+    "roundNo": 1,
+    "questionId": 46,
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "tier": "good",
+    "answerExcerpt": "这个问题我系统学过，我按层次来答。首先，定位复杂度来源（状态/数据/交互至少两类）。其次，设计与复杂度对应（拆分/状态管理/副作用收拢）。然后，讲到 undo/虚拟滚动等具体技术点。另外，有踩坑与权衡的复盘。这一整块属于 project 的",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能定位复杂度来源（状态/数据/交互至少两类）",
+     "设计与复杂度对应（拆分/状态管理/副作用收拢）",
+     "能讲到 undo/虚拟滚动等具体技术点",
+     "有踩坑与权衡的复盘"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 471 字"
+   },
+   {
+    "sessionId": 17,
+    "roundNo": 2,
+    "questionId": 56,
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "tier": "good",
+    "answerExcerpt": "这个考点我在项目里实际处理过，我展开说一下。首先，localStorage 与 Cookie 的风险面（XSS vs CSRF）。其次，有 HttpOnly/SameSite/Secure 属性组合认知。然后，access+refresh ",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 89.29,
+    "diff": 4.29,
+    "covered": [
+     "能对比 localStorage 与 Cookie 的风险面（XSS vs CSRF）",
+     "有 HttpOnly/SameSite/Secure 属性组合认知",
+     "给出 access+refresh 双令牌方案",
+     "有吊销与二次验证等加固项"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 1 处，回答 560 字"
+   },
+   {
+    "sessionId": 17,
+    "roundNo": 3,
+    "questionId": 45,
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。LCP/INP/CLS 指标与工具链；网络/资源/渲染三层各有具体手段。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 68.29,
+    "diff": 6.29,
+    "covered": [
+     "能说出 LCP/INP/CLS 指标与工具链",
+     "网络/资源/渲染三层各有具体手段"
+    ],
+    "missing": [
+     "有先测量定位再优化的方法论",
+     "能提到懒加载/code splitting 的落地细节"
+    ],
+    "reason": "命中得分点 2/4，失分信号 0 处，回答 294 字"
+   },
+   {
+    "sessionId": 17,
+    "roundNo": 4,
+    "questionId": 32,
+    "question": "JS 事件循环（Event Loop）机制；宏任务和微任务的执行顺序",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。执行栈→微任务→宏任务的循环顺序；列举宏/微任务各 3 种以上。其他的细节我记不太准了，就先答到这里。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 76.71,
+    "diff": 14.71,
+    "covered": [
+     "能描述执行栈→微任务→宏任务的循环顺序",
+     "能列举宏/微任务各 3 种以上",
+     "能说出 await 与微任务的关系"
+    ],
+    "missing": [
+     "能推演 setTimeout 与 Promise 的输出顺序"
+    ],
+    "reason": "命中得分点 3/4，失分信号 0 处，回答 290 字"
+   },
+   {
+    "sessionId": 18,
+    "roundNo": 0,
+    "questionId": 56,
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "tier": "good",
+    "answerExcerpt": "这个问题我系统学过，我按层次来答。首先，localStorage 与 Cookie 的风险面（XSS vs CSRF）。其次，有 HttpOnly/SameSite/Secure 属性组合认知。然后，access+refresh 双令牌方案",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 89.29,
+    "diff": 4.29,
+    "covered": [
+     "能对比 localStorage 与 Cookie 的风险面（XSS vs CSRF）",
+     "有 HttpOnly/SameSite/Secure 属性组合认知",
+     "给出 access+refresh 双令牌方案",
+     "有吊销与二次验证等加固项"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 1 处，回答 559 字"
+   },
+   {
+    "sessionId": 18,
+    "roundNo": 1,
+    "questionId": 46,
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "tier": "good",
+    "answerExcerpt": "这个考点我在项目里实际处理过，我展开说一下。首先，定位复杂度来源（状态/数据/交互至少两类）。其次，设计与复杂度对应（拆分/状态管理/副作用收拢）。然后，讲到 undo/虚拟滚动等具体技术点。另外，有踩坑与权衡的复盘。这一整块属于 proj",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能定位复杂度来源（状态/数据/交互至少两类）",
+     "设计与复杂度对应（拆分/状态管理/副作用收拢）",
+     "能讲到 undo/虚拟滚动等具体技术点",
+     "有踩坑与权衡的复盘"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 472 字"
+   },
+   {
+    "sessionId": 18,
+    "roundNo": 2,
+    "questionId": 37,
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。同源三要素；请求/预检请求的分流与相关响应头。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 76.71,
+    "diff": 14.71,
+    "covered": [
+     "能准确说出同源三要素",
+     "能讲清简单请求/预检请求的分流与相关响应头",
+     "带 Cookie 的 CORS 细节（不可 *）"
+    ],
+    "missing": [
+     "能对比代理/JSONP/postMessage 等方案适用面"
+    ],
+    "reason": "命中得分点 3/4，失分信号 0 处，回答 281 字"
+   },
+   {
+    "sessionId": 18,
+    "roundNo": 3,
+    "questionId": 45,
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "tier": "poor",
+    "answerExcerpt": "啊这个……那个，我记得老师说过的，但是就是说具体怎么回事我忘了，反正差不多是那一类的概念吧。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 46.94,
+    "diff": 11.94,
+    "covered": [],
+    "missing": [
+     "能说出 LCP/INP/CLS 指标与工具链",
+     "网络/资源/渲染三层各有具体手段",
+     "有先测量定位再优化的方法论",
+     "能提到懒加载/code splitting 的落地细节"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 184 字"
+   },
+   {
+    "sessionId": 18,
+    "roundNo": 4,
+    "questionId": 34,
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "tier": "poor",
+    "answerExcerpt": "呃，这个东西我没怎么用过，就是说有个模糊印象，让我现在讲细节的话我讲不出来，不好意思。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 49.29,
+    "diff": 14.29,
+    "covered": [],
+    "missing": [
+     "能说清闭包的形成条件（函数+词法作用域引用）",
+     "能举出数据私有/防抖节流等实际应用",
+     "有内存泄漏的警觉与排查意识",
+     "能解释变量为何在外层返回后仍存活"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 181 字"
+   },
+   {
+    "sessionId": 19,
+    "roundNo": 0,
+    "questionId": 56,
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "tier": "good",
+    "answerExcerpt": "这个考点我在项目里实际处理过，我展开说一下。首先，localStorage 与 Cookie 的风险面（XSS vs CSRF）。其次，有 HttpOnly/SameSite/Secure 属性组合认知。然后，access+refresh ",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 89.29,
+    "diff": 4.29,
+    "covered": [
+     "能对比 localStorage 与 Cookie 的风险面（XSS vs CSRF）",
+     "有 HttpOnly/SameSite/Secure 属性组合认知",
+     "给出 access+refresh 双令牌方案",
+     "有吊销与二次验证等加固项"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 1 处，回答 560 字"
+   },
+   {
+    "sessionId": 19,
+    "roundNo": 1,
+    "questionId": 49,
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "tier": "good",
+    "answerExcerpt": "这道题我比较熟，我的理解是这样的。首先，.env 分层与前缀暴露机制。其次，有敏感信息不入前端的安全意识。然后，构建发布流程成链（lint→build→部署）。另外，history 路由回退与缓存配置。这一整块属于 engineering ",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能说清 .env 分层与前缀暴露机制",
+     "有敏感信息不入前端的安全意识",
+     "构建发布流程成链（lint→build→部署）",
+     "知道 history 路由回退与缓存配置"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 521 字"
+   },
+   {
+    "sessionId": 19,
+    "roundNo": 2,
+    "questionId": 36,
+    "question": "从输入 URL 到页面渲染经历了什么？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。网络阶段完整（DNS/TCP/TLS/请求响应）；渲染流程成链（DOM→CSSOM→渲染树→布局→绘制→合成）。其他的细节我记不太准了，就先答到这里。其余的细节印象不深了，就不展开说了。其余的细节印象不深了",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 64.41,
+    "diff": 2.41,
+    "covered": [
+     "网络阶段完整（DNS/TCP/TLS/请求响应）",
+     "渲染流程成链（DOM→CSSOM→渲染树→布局→绘制→合成）"
+    ],
+    "missing": [
+     "能说清 script 阻塞与 defer/async 差异",
+     "能关联性能优化点（关键路径/CDN/缓存）"
+    ],
+    "reason": "命中得分点 2/4，失分信号 1 处，回答 296 字"
+   },
+   {
+    "sessionId": 19,
+    "roundNo": 3,
+    "questionId": 40,
+    "question": "ref 和 reactive 的区别与使用选择",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。ref 的 value 机制与模板解包差异；reactive 的类型限制与解构陷阱。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 56.65,
+    "diff": 5.35,
+    "covered": [
+     "能说清 ref 的 value 机制与模板解包差异",
+     "知道 reactive 的类型限制与解构陷阱"
+    ],
+    "missing": [
+     "能给出团队化的使用约定",
+     "了解 toRefs 保持响应的原理"
+    ],
+    "reason": "命中得分点 2/4，失分信号 3 处，回答 282 字"
+   },
+   {
+    "sessionId": 19,
+    "roundNo": 4,
+    "questionId": 34,
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "tier": "poor",
+    "answerExcerpt": "嗯……这个我好像在哪见过，就是说大概是个什么东西吧，具体的我真说不上来，没深入研究过。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 49.29,
+    "diff": 14.29,
+    "covered": [],
+    "missing": [
+     "能说清闭包的形成条件（函数+词法作用域引用）",
+     "能举出数据私有/防抖节流等实际应用",
+     "有内存泄漏的警觉与排查意识",
+     "能解释变量为何在外层返回后仍存活"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 181 字"
+   },
+   {
+    "sessionId": 20,
+    "roundNo": 0,
+    "questionId": 45,
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "tier": "good",
+    "answerExcerpt": "这道题我比较熟，我的理解是这样的。首先，LCP/INP/CLS 指标与工具链。其次，网络/资源/渲染三层各有具体手段。然后，有先测量定位再优化的方法论。另外，懒加载/code splitting 的落地细节。这一整块属于 performan",
+    "followupCount": 3,
+    "manualScore": 85,
+    "aiScore": 93.18,
+    "diff": 8.18,
+    "covered": [
+     "能说出 LCP/INP/CLS 指标与工具链",
+     "网络/资源/渲染三层各有具体手段",
+     "有先测量定位再优化的方法论",
+     "能提到懒加载/code splitting 的落地细节"
+    ],
+    "missing": [],
+    "reason": "命中得分点 4/4，失分信号 0 处，回答 536 字"
+   },
+   {
+    "sessionId": 20,
+    "roundNo": 1,
+    "questionId": 49,
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。.env 分层与前缀暴露机制；有敏感信息不入前端的安全意识。其他的细节我记不太准了，就先答到这里。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 68.29,
+    "diff": 6.29,
+    "covered": [
+     "能说清 .env 分层与前缀暴露机制",
+     "有敏感信息不入前端的安全意识"
+    ],
+    "missing": [
+     "构建发布流程成链（lint→build→部署）",
+     "知道 history 路由回退与缓存配置"
+    ],
+    "reason": "命中得分点 2/4，失分信号 0 处，回答 288 字"
+   },
+   {
+    "sessionId": 20,
+    "roundNo": 2,
+    "questionId": 37,
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "tier": "mid",
+    "answerExcerpt": "这个我知道一部分，说一下我记得的。同源三要素；请求/预检请求的分流与相关响应头。大概就是这些，更深入的我需要再查一下。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象不深了，就不展开说了。其余的细节印象",
+    "followupCount": 3,
+    "manualScore": 62,
+    "aiScore": 76.71,
+    "diff": 14.71,
+    "covered": [
+     "能准确说出同源三要素",
+     "能讲清简单请求/预检请求的分流与相关响应头",
+     "带 Cookie 的 CORS 细节（不可 *）"
+    ],
+    "missing": [
+     "能对比代理/JSONP/postMessage 等方案适用面"
+    ],
+    "reason": "命中得分点 3/4，失分信号 0 处，回答 281 字"
+   },
+   {
+    "sessionId": 20,
+    "roundNo": 3,
+    "questionId": 56,
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "tier": "poor",
+    "answerExcerpt": "嗯……这个我好像在哪见过，就是说大概是个什么东西吧，具体的我真说不上来，没深入研究过。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 46.94,
+    "diff": 11.94,
+    "covered": [],
+    "missing": [
+     "能对比 localStorage 与 Cookie 的风险面（XSS vs CSRF）",
+     "有 HttpOnly/SameSite/Secure 属性组合认知",
+     "给出 access+refresh 双令牌方案",
+     "有吊销与二次验证等加固项"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 181 字"
+   },
+   {
+    "sessionId": 20,
+    "roundNo": 4,
+    "questionId": 41,
+    "question": "computed 和 watch 的区别？watchEffect 适合什么场景？",
+    "tier": "poor",
+    "answerExcerpt": "啊这个……那个，我记得老师说过的，但是就是说具体怎么回事我忘了，反正差不多是那一类的概念吧。",
+    "followupCount": 3,
+    "manualScore": 35,
+    "aiScore": 46.94,
+    "diff": 11.94,
+    "covered": [],
+    "missing": [
+     "能说出缓存性是 computed 的核心差异",
+     "watch 的 immediate/deep 使用时机明确",
+     "能举 watchEffect 的适用场景",
+     "知道副作用不应放进 computed"
+    ],
+    "reason": "命中得分点 0/4，失分信号 0 处，回答 184 字"
+   }
+  ],
+  "sessions": [
+   {
+    "sessionId": 17,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "good",
+     "good",
+     "mid",
+     "mid"
+    ],
+    "reportProblems": [
+     "含中/差轮但 weaknesses 为空"
+    ],
+    "dimensionScores": {
+     "depth": 90.6,
+     "logic": 81.2,
+     "match": 82.0,
+     "technical": 81.4,
+     "communication": 88.0
+    },
+    "totalScore": 83.02,
+    "weaknesses": [],
+    "evidenceCount": 5
+   },
+   {
+    "sessionId": 18,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "good",
+     "mid",
+     "poor",
+     "poor"
+    ],
+    "reportProblems": [],
+    "dimensionScores": {
+     "depth": 73.6,
+     "logic": 74.0,
+     "match": 73.0,
+     "technical": 66.4,
+     "communication": 77.2
+    },
+    "totalScore": 72.7,
+    "weaknesses": [
+     "「技术正确性」有待加强（66.4 分）",
+     "「岗位匹配度」有待加强（73 分）"
+    ],
+    "evidenceCount": 5
+   },
+   {
+    "sessionId": 19,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "good",
+     "mid",
+     "mid",
+     "poor"
+    ],
+    "reportProblems": [],
+    "dimensionScores": {
+     "depth": 72.8,
+     "logic": 76.4,
+     "match": 73.0,
+     "technical": 64.0,
+     "communication": 82.6
+    },
+    "totalScore": 73.94,
+    "weaknesses": [
+     "「技术正确性」有待加强（64 分）",
+     "「知识深度」有待加强（72.8 分）"
+    ],
+    "evidenceCount": 5
+   },
+   {
+    "sessionId": 20,
+    "status": "FINISHED",
+    "tiers": [
+     "good",
+     "mid",
+     "mid",
+     "poor",
+     "poor"
+    ],
+    "reportProblems": [],
+    "dimensionScores": {
+     "depth": 67.8,
+     "logic": 71.6,
+     "match": 64.0,
+     "technical": 62.6,
+     "communication": 77.2
+    },
+    "totalScore": 69.55,
+    "weaknesses": [
+     "「技术正确性」有待加强（62.6 分）",
+     "「岗位匹配度」有待加强（64 分）"
+    ],
+    "evidenceCount": 5
+   }
+  ],
+  "followups": [
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "Vite 为什么比 Webpack 快？ESM 和打包构建的区别",
+    "followup": "为什么生产构建不直接用原生 ESM？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "Vite 为什么比 Webpack 快？ESM 和打包构建的区别",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "Vite 为什么比 Webpack 快？ESM 和打包构建的区别",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "followup": "这个组件的状态如果不用全局管理会怎样？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "access token 放内存，刷新页面怎么办？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "LCP 慢一般查什么？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "路由懒加载为什么能提升首屏？代价是什么？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "LCP 慢一般查什么？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "mid",
+    "question": "JS 事件循环（Event Loop）机制；宏任务和微任务的执行顺序",
+    "followup": "requestAnimationFrame 属于宏任务还是微任务？执行时机？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "mid",
+    "question": "JS 事件循环（Event Loop）机制；宏任务和微任务的执行顺序",
+    "followup": "为什么长任务会掉帧？怎么用事件循环知识优化？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "mid",
+    "question": "JS 事件循环（Event Loop）机制；宏任务和微任务的执行顺序",
+    "followup": "requestAnimationFrame 属于宏任务还是微任务？执行时机？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "access token 放内存，刷新页面怎么办？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "followup": "这个组件的状态如果不用全局管理会怎样？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "介绍你做过的前端项目中最复杂的页面/组件，复杂在哪",
+    "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "followup": "为什么带 Cookie 时 Allow-Origin 不能是 *？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "followup": "预检请求可以被缓存吗？怎么配置？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "followup": "为什么带 Cookie 时 Allow-Origin 不能是 *？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "LCP 慢一般查什么？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "路由懒加载为什么能提升首屏？代价是什么？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "LCP 慢一般查什么？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "followup": "防抖函数里闭包保存了什么？手写思路讲一下"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "followup": "Vue/React 里你遇到过闭包导致的旧值问题吗？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "followup": "防抖函数里闭包保存了什么？手写思路讲一下"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "access token 放内存，刷新页面怎么办？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "followup": "前端怎么区分测试/生产接口地址？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "followup": "怎么让发布出问题能快速回滚？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "good",
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "followup": "前端怎么区分测试/生产接口地址？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "从输入 URL 到页面渲染经历了什么？",
+    "followup": "回流和重绘的区别？怎么减少回流？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "从输入 URL 到页面渲染经历了什么？",
+    "followup": "defer 和 async 的具体执行时机差别？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "从输入 URL 到页面渲染经历了什么？",
+    "followup": "回流和重绘的区别？怎么减少回流？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "ref 和 reactive 的区别与使用选择",
+    "followup": "为什么 ref 里放对象后访问不需要 .value.x 的额外处理？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "ref 和 reactive 的区别与使用选择",
+    "followup": "composable 返回 reactive 对象有什么问题？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "mid",
+    "question": "ref 和 reactive 的区别与使用选择",
+    "followup": "为什么 ref 里放对象后访问不需要 .value.x 的额外处理？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "followup": "防抖函数里闭包保存了什么？手写思路讲一下"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "followup": "Vue/React 里你遇到过闭包导致的旧值问题吗？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "闭包是什么？有哪些实际应用和内存注意事项？",
+    "followup": "防抖函数里闭包保存了什么？手写思路讲一下"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "LCP 慢一般查什么？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "路由懒加载为什么能提升首屏？代价是什么？"
+   },
+   {
+    "roundNo": 0,
+    "tier": "good",
+    "question": "首屏加载慢，有哪些测量与优化手段？",
+    "followup": "LCP 慢一般查什么？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "mid",
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "followup": "前端怎么区分测试/生产接口地址？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "mid",
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "followup": "怎么让发布出问题能快速回滚？"
+   },
+   {
+    "roundNo": 1,
+    "tier": "mid",
+    "question": "你的项目如何管理环境变量、构建与发布流程？",
+    "followup": "前端怎么区分测试/生产接口地址？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "followup": "为什么带 Cookie 时 Allow-Origin 不能是 *？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "followup": "预检请求可以被缓存吗？怎么配置？"
+   },
+   {
+    "roundNo": 2,
+    "tier": "mid",
+    "question": "浏览器同源策略与 CORS 的原理；跨域解决方案对比",
+    "followup": "为什么带 Cookie 时 Allow-Origin 不能是 *？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "access token 放内存，刷新页面怎么办？"
+   },
+   {
+    "roundNo": 3,
+    "tier": "poor",
+    "question": "需要在前端保存登录态，如何权衡安全和体验？",
+    "followup": "refresh token 放 Cookie 后 CSRF 怎么防？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "computed 和 watch 的区别？watchEffect 适合什么场景？",
+    "followup": "watch 一个 getter 与直接 watch reactive 对象有什么差别？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "computed 和 watch 的区别？watchEffect 适合什么场景？",
+    "followup": "怎么停止一个 watchEffect？"
+   },
+   {
+    "roundNo": 4,
+    "tier": "poor",
+    "question": "computed 和 watch 的区别？watchEffect 适合什么场景？",
+    "followup": "watch 一个 getter 与直接 watch reactive 对象有什么差别？"
+   }
+  ],
+  "recommendations": {
+   "code": 0,
+   "skillCount": 3,
+   "top3": [
+    {
+     "skillCode": "browser_network",
+     "weaknessReasons": [
+      "尚无该技能的面试考察记录，建议先安排一场摸底面试"
+     ],
+     "retryCount": 0,
+     "resourceCount": 1
+    },
+    {
+     "skillCode": "vue3",
+     "weaknessReasons": [
+      "尚无该技能的面试考察记录，建议先安排一场摸底面试"
+     ],
+     "retryCount": 0,
+     "resourceCount": 1
+    },
+    {
+     "skillCode": "performance",
+     "weaknessReasons": [
+      "最新掌握度 68.3 低于岗位要求 70"
+     ],
+     "retryCount": 1,
+     "resourceCount": 1
+    }
+   ],
+   "next": "建议下一场：Web 前端开发工程师 · 难度 2 · 重点覆盖 浏览器与网络、Vue3框架"
+  }
+ }
+}

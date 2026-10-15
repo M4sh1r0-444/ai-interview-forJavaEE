@@ -1,0 +1,66 @@
+# 正式部署：五服务编排（计划 §10.1）—— mysql / redis / backend / frontend(构建期) / nginx
+# 一键启动：docker compose up -d --build   （需先在同级目录准备 .env，参见 .env.example）
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ai_interview
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --ngram-token-size=2              # 中文全文检索最小粒度（知识库 RAG 用）
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ai_interview?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      AI_API_URL: ${AI_API_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-qwen-plus}
+      TZ: Asia/Shanghai
+    volumes:
+      - uploads:/app/uploads               # 音频持久化（风险 R10）
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_started }
+    mem_limit: 768m                        # colima 2C/2G 约束（计划 §11-R2 应对）
+
+  frontend:
+    build: ./frontend                      # 构建期服务：产物写入 frontend-dist 卷
+    restart: "no"
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - frontend-dist:/usr/share/nginx/html:ro
+    depends_on:
+      backend: { condition: service_started }
+      # 等 frontend 容器退出（产物已写入卷）再挂载，避免 nginx 默认页先初始化卷
+      frontend: { condition: service_completed_successfully }
+
+volumes:
+  mysql-data: {}
+  redis-data: {}
+  uploads: {}
+  frontend-dist: {}
