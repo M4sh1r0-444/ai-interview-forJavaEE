@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | M4 开发完成（待进入 M5） |
-| 当前里程碑 | M4 ✅（2026-10-14 完成） |
-| 整体进度 | 计划阶段 100%；开发阶段 4/6 里程碑（M1 ✅、M2 ✅、M3 ✅、M4 ✅） |
-| 上次更新 | 2026-10-14 |
-| 上次更新人 | ZCode（M4 开发会话） |
+| 当前阶段 | M5 ✅ 完成（5.1~5.4 全部 ✅），下一步 M6 测试+部署+验收 |
+| 当前里程碑 | M5 ✅（2026-10-15 完成） |
+| 整体进度 | 计划阶段 100%；开发阶段 5/6 里程碑完成（M1~M5 ✅），M6 未开始 |
+| 上次更新 | 2026-10-15 |
+| 上次更新人 | ZCode（M5 开发会话） |
 
 ### 里程碑状态
 
@@ -30,7 +30,7 @@
 | M2 | 文字面试闭环 | ✅ 已完成 | 2026-10-13 | 2026-10-13 |
 | M3 | 评分 + 报告 + 历史 | ✅ 已完成 | 2026-10-14 | 2026-10-14 |
 | M4 | 语音 + 知识库 RAG | ✅ 已完成 | 2026-10-14 | 2026-10-14 |
-| M5 | 个性化 + 管理端补全 | ⬜ 未开始 | | |
+| M5 | 个性化 + 管理端补全 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 | M6 | 测试 + 部署 + 验收 | ⬜ 未开始 | | |
 
 ---
@@ -45,10 +45,12 @@
 | 4 | 开发期容器编排（M1-1.1） | `ai-interview/docker-compose.dev.yml` | 2026-10-13 | ✅ 已交付 | MySQL 8.0（3306）+ Redis 7（宿主机 6380），两容器 healthy |
 | 5 | 后端 Maven 工程（M1-1.2~1.7） | `ai-interview/backend/` | 2026-10-13 | ✅ 已交付 | Spring Boot 3.3.12 单体；common/auth/position/question/admin 五包；`mvn test` 全绿（10 用例） |
 | 6 | Flyway 脚本 V1~V4（M1-1.3/1.8/1.9） | `backend/src/main/resources/db/migration/` | 2026-10-13 | ✅ 已交付 | V1 建 9 表；V2 账号+2 岗位+能力模型；V3/V4 两岗位各 30 题种子（已迁移验证） |
-| 7 | 接口调试脚本（M1 起） | `backend/api.http` | 2026-10-13 | 🔧 持续维护 | IDEA HTTP Client，与计划附录 C 同步；M2 追加用例 12~18（面试闭环 + WS），M3 追加 19~21（finish/report/history），M4 追加 22~25（音频回答/回放 + 管理端知识库 + Provider 观测） |
+| 7 | 接口调试脚本（M1 起） | `backend/api.http` | 2026-10-13 | 🔧 持续维护 | IDEA HTTP Client，与计划附录 C 同步；M2 追加用例 12~18（面试闭环 + WS），M3 追加 19~21（finish/report/history），M4 追加 22~25（音频回答/回放 + 管理端知识库 + Provider 观测），M5 追加 26~32（成长曲线 + 个性化推荐 + 管理端扩展五组） |
 | 8 | 文字面试闭环模块（M2-2.1~2.7） | `backend/` interview/ai 包等 | 2026-10-13 | ✅ 已交付 | interview（实体/状态机/服务/TurnEngine/规则引擎/WS/定时器）+ ai（Mock/Prompt/解析容错）；`mvn test` 38 用例全绿 |
 | 9 | 评分+报告+历史模块（M3-3.1~3.5） | `backend/` assessment/growth 包等 | 2026-10-14 | ✅ 已交付 | assessment（ScoreCalculator/ReportService/EvaluationReport/TurnEvaluationStore）+ growth（history 接口）+ Mock 评分引擎与报告拼装 + finish/重试/TIMEOUT 收卷；`mvn test` 56 用例全绿（M3 新增 18） |
 | 10 | 语音+知识库RAG+真实Provider模块（M4-4.1~4.6） | `backend/` knowledge/interview.storage/ai 包等 | 2026-10-14 | ✅ 已交付 | knowledge（实体/FULLTEXT检索/KeywordExtractor/管理服务）+ AudioStorageService + 音频回答/回放接口 + VoiceMetricsCalculator（AUDIO 场 voice 维度）+ V5 种子 42 条 + OpenAiCompatibleProvider（三级容错/会话熔断）+ WebClientConfig；`mvn test` 85 用例全绿（M4 新增 29） |
+| 11 | 掌握度+成长曲线+推荐模块（M5-5.1~5.2） | `backend/` growth 包 + V6 种子 | 2026-10-15 | ✅ 已交付 | AbilityRecord/LearningResource 实体与 Mapper、MasteryUpdater（0.7/0.3 折算+难度加权+幂等）、ReportService 挂接掌握度更新、growth 曲线接口、RecommendationService（优先级公式+资源匹配+下场建议）、V6 学习资源种子 28 条（每岗 14）；`mvn test` 97 用例全绿（M5 新增 12） |
+| 12 | 短板识别+推荐引擎+管理端扩展模块（M5-5.3~5.4） | `backend/` growth/engine + admin 包等 | 2026-10-15 | ✅ 已交付 | WeaknessDetector 四规则 + RecommendationEngine（优先级/错题重练/通用计划）、RecommendationVO 增 retryQuestions、Redis 推荐缓存（TTL 10min + 报告事件预生成）、管理端 dashboard/positions(+weights)/resources/users 五组接口 + DashboardVO/PositionAdminVO 等 DTO；`mvn test` 114 用例全绿（5.3/5.4 新增 17） |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。
 
@@ -109,14 +111,16 @@
 | 4.5 | admin knowledge 接口 + rebuild | ✅ | 2026-10-14 | POST /api/admin/knowledge（校验 title/content≤8000/keywords/skillTags、岗位存在性，落库 sourceType=MANUAL）+ 词典即时刷新；POST /api/admin/knowledge/rebuild（OPTIMIZE TABLE）。curl 实测新增片段（id=43）后提交事务类回答立即召回 2 条（含新片段）；学生 403（HTTP 403/code 40301）；参数缺失 40001、岗位不存在 40002 |
 | 4.6 | 真实 Provider（OpenAiCompatible） | ✅ | 2026-10-14 | OpenAiCompatibleProvider：WebClient POST {api-url}/chat/completions（system 限定只输出 JSON + response_format=json_object + temperature 0.3，超时 ai.timeout）；三级容错=失败重试 1 次（退避 1s）→ Mock 降级 → 连续 3 次失败锁会话（sessionId 熔断）。OpenAiCompatibleProviderTest 5 用例（JDK HttpServer 模拟）：正常解析/围栏剥壳/5xx 重试降级/坏 JSON 连续 3 次锁定（第 4 次不再打服务端）/报告降级。实测：qwen 缺 AI_API_URL/KEY 启动即失败（信息明确，D20）；不可达端点跑完一场（真实调用失败→WARN 降级 mock→面试照常出追问）；AiConfig 移除 D14 的 mock 回退 |
 
-### M5 个性化 + 管理端补全
+### M5 个性化 + 管理端补全 ✅（2026-10-15 完成）
 
 | 任务 | 内容 | 状态 | 完成日期 | 验证记录/备注 |
 |---|---|---|---|---|
-| 5.1 | 掌握度更新 MasteryUpdater | ⬜ | | 验证：MasteryUpdaterTest |
-| 5.2 | growth / recommendations 接口 | ⬜ | | 验证：HistoryGrowthIT 全绿 |
-| 5.3 | 短板识别 + 推荐引擎 | ⬜ | | 验证：对应单测 |
-| 5.4 | 管理端扩展接口 ★ | ⬜ | | 验证：SecurityIT 403 拦截 |
+| 5.1 | 掌握度更新 MasteryUpdater | ✅ | 2026-10-15 | MasteryUpdaterTest 11 用例通过（首次直取、旧70本次90→76、clamp、难度加权聚合 1.2/0.8→72、多技能标签、幂等/空输入/当前掌握度查询）。挂接 ReportService：报告事务提交后独立事务追加 ability_record（按 source_session_id 幂等，报告重试/并发/重启恢复路径均不重复折算）。curl（18080）实测两场面试（round0 恰同为 spring 题）→ ability_record 同技能两条 52.53→48.95（0.7×52.53+0.3×40.59 折算吻合）；dev/test 库均验证 |
+| 5.2 | growth / recommendations 接口 | ✅ | 2026-10-15 | HistoryGrowthIT 2 用例全绿（新增 growthAndRecommendationsAfterTwoInterviews：两场后曲线点数=场数、records 升序、current=最新、技能名来自能力模型；recommendations 非空 ≤Top3 且优先级降序、资源/练习来自 V6、建议非空；未登录 401、新用户 growth 空/推荐走默认岗位）。curl 实测 growth 返回 spring 两点曲线、recommendations Top3=java_basics/concurrency_jvm/mysql（未考察技能按 0 参与 15.0 优先级居首）资源匹配 V6；V6 迁移 dev/test 库（每岗 14 条，类型 ARTICLE7/QUESTION4/PRACTICE2/PROJECT1） |
+| 5.3 | 短板识别 + 推荐引擎 | ✅ | 2026-10-15 | WeaknessDetectorTest 5 用例通过（四规则各一 + 不误报：单次 55 不触发①、一次低分不触发④）；RecommendationEngineTest 3 用例通过（优先级排序含未考察按 0、短板技能资源/错题必现且理由挂靠、无短板输出通用计划不点名重点覆盖）。RecommendationIT 2 用例全链路：规则①注入 7 技能两条 <60 记录后接口可见"均低于 60"、Redis 键 rec:{uid}:{positionId} TTL∈(0,600s]、删键重算一致；糟糕回答一场 → 顶级推荐=答题技能（规则②"低于岗位要求"）+ retryQuestions 来自最近一场 missingPoints 命中题目。ReportService 增 evidenceOf 公共证据查询 + ReportGeneratedEvent → RecommendationCacheWarmer 报告落库后预生成缓存（异步线程内执行，失败不影响报告）；curl 实测 recommendations 含 retryQuestions 字段、Redis 出现 rec:* 键、权重为空时 fallback 理由恒非空 |
+| 5.4 | 管理端扩展接口 ★ | ✅ | 2026-10-15 | SecurityIT 3 用例（新增，补齐计划 §8.2 清单）：无 token 401（9 路径）、学生访问全部管理端（含 M5 新增 dashboard/positions/weights/resources/users）403/code=40301、跨用户读面试 40401/ADMIN 放行。AdminExtendedIT 4 用例：dashboard 对照 SQL 实算（userCount/sessionCount/questionCount/avgScore 与 AVG 全等、近 7 日 7 条升序含今日、注册+开考后计数+1）；岗位维护（新增学生侧立即可见、权重调整持久化回读、组和≠1→40001、重复编码/技能权重和≠1→40001、停用后学生不可见且建面试 40401）；资源 CRUD（新增/列表过滤/修改/下架 enabled=0、类型·技能未对齐→40001、岗位不存在→40401）；用户启停（禁用登录 10003、恢复可登录、非法 status→40001、不存在→40401、自禁用→40001）。curl（18080）实测 dashboard（4 用户/8 场/61 题/均分 59.07/7 日趋势）、weights 0.35 写入回读、资源建删、禁用→10003→恢复 |
+
+> M5 测试汇总：`mvn test` = **114 用例全绿**（M4 85 + M5-5.1/5.2 新增 12 + M5-5.3/5.4 新增 17：WeaknessDetectorTest 5、RecommendationEngineTest 3、RecommendationIT 2、SecurityIT 3、AdminExtendedIT 4）；测试类 25 个。
 
 ### M6 测试 + 部署 + 验收
 
@@ -160,6 +164,12 @@
 | 2026-10-14 | 偏差 | **D20：D14 于 M4 落地**——ai.provider=qwen 真实启用 OpenAiCompatibleProvider（WebClient），缺 AI_API_URL/AI_API_KEY 启动即抛错（配置错误显式暴露，优于静默降级）；运行期三级容错：重试 1 次（1s 退避）→ Mock 降级 → 连续 3 次失败会话锁定 mock。NextQuestionContext/TurnEvaluationContext/ReportContext 增 sessionId 字段支撑会话级熔断；PromptBuilder 补 evaluateTurn/generateReport 两套 Prompt | 计划 §6.8 / §9-M4-4.6 |
 | 2026-10-14 | 偏差 | **D21：MessageVO 补 audioPath 字段**（计划 §4.3 MessageVO 未列，音频回答验证/前端展示需要）；计划 §6.9 的"可选回放接口"交付：GET /api/interviews/{id}/messages/{mid}/audio（归属本人/ADMIN，FileSystemResource 流式 + Content-Type 按扩展名） | 计划 §4.3 / §6.9 |
 | 2026-10-14 | 说明 | KeywordExtractor 检索/匹配用字符串列名 QueryWrapper（非 lambda），脱离 Spring 容器可运行，纯单测无需起 MyBatis-Plus 上下文；词典为 volatile 快照整体替换（refresh 由管理端新增触发 + 首次使用懒加载） | 计划 §6.5 |
+| 2026-10-15 | 决策 | **D22：掌握度口径与幂等**——命中技能 = 已作答轮题目 skill_tags（种子题均单标签，一题一技能）；技能本次得分 = 该技能相关轮"最新一次内容分"的难度加权均分（权重复用 ScoreCalculator.difficultyWeight）；applyForSession 以 source_session_id 存在性幂等（9 表无唯一约束兜底），报告重试/并发生成/重启恢复收卷均不重复折算；掌握度更新在报告事务提交后独立 @Transactional（计划 §4.4 原文口径） | 计划 §3.8 / §6.7 |
+| 2026-10-15 | 偏差 | **D23：5.2 交付推荐基础版**——RecommendationService 按 §6.7 优先级公式 (100-掌握度)×技能权重 取 Top3 + learning_resource 匹配（resources=ARTICLE/QUESTION、practices=PRACTICE/PROJECT）+ 下一次面试配置建议；weaknessReasons 初版仅两条简单规则（未考察/低于 requiredLevel），四规则 WeaknessDetector + 错题重练 + Redis 推荐缓存（TTL 10min）随 5.3 交付；未考察技能按掌握度 0 参与优先级（完全未覆盖视为最需补齐）。V6 学习资源种子（每岗 14 条）随 5.2 交付——recommendations 资源匹配的数据依赖 | 计划 §6.6 / §6.7 / §9-M5 |
+| 2026-10-15 | 说明 | **D24：growth/recommendations 的 positionId 参数语义**（计划 §5.4 只写 `?positionId=` 可选）——growth：可选过滤，缺省按 skillCode 跨岗位合并（技能序 = 涉及岗位能力模型序，技能名取先出现岗位）；recommendations：显式指定（不存在→40401）> 最近一条能力记录的岗位 > 首个启用岗位（新用户也有默认推荐） | 计划 §5.4 #18/#19 |
+| 2026-10-15 | 偏差 | **D25：5.3 推荐契约扩展与规则落点**——RecommendationVO 增 `retryQuestions[{questionId,questionContent,missingPoints}]`（计划 §5.4 #19 未列，§6.7 明确要求错题重练输出）；规则④（communication/voice 维度连续两次<60）产生的理由挂靠能力模型的 `communication` 技能条目（维度短板无可独立输出的载体）；规则③/错题重练数据源 = 最近一场 FINISHED/TIMEOUT 会话的逐题证据，复用 ReportService.evidenceOf（评分快照已清则确定性重算，与报告读取同口径）；无任何规则命中时 weaknessReasons 输出兜底说明（未考察→摸底建议、已达标→相对提升），保证接口契约恒非空；全部候选无短板 → nextInterviewSuggested 切换通用计划文案（不点名重点覆盖、难度+1）。缓存：Redis 键 `rec:{uid}:{positionId}` TTL 10min，报告落库后经 ReportGeneratedEvent（Spring 事件，报告异步线程内同步消费）预生成；推荐缓存与报告解耦（事件失败仅 WARN） | 计划 §5.4 #19 / §6.6 / §6.7 |
+| 2026-10-15 | 决策 | **D26：管理端扩展接口语义**（计划 §5.5 #27~31★ 未细化部分）——dashboard：场次=started_at 非空（CREATED 草稿不计）、平均分=全部出分场次总分均值、近 7 日趋势 sessionCount 按 started_at 日期、avgScore 按 finished_at 日期，聚合走 MyBatis-Plus selectMaps 静态列名表达式；岗位 PUT=部分更新（非 null 生效，name 仅新增必填防破坏部分更新语义），岗位不提供删除（被题库/历史引用）；weights PUT=按组合并（提供的组须完整且组内和=1±0.01，未提供的组保留）；资源 DELETE=下架（enabled→0，与推荐匹配口径一致），skillCode 强校验对齐岗位能力模型；用户启停禁止管理员禁用自己（40001 防锁死）；审计切面（admin.controller 包切点）自动覆盖全部新接口 | 计划 §5.5 / §7 |
+| 2026-10-15 | 说明 | SecurityIT 落位 `common` 包（横切关注）：M1 期间以分散等价用例补验（D10），M5-5.4 补齐计划 §8.2 的独立 SecurityIT（无 token 401 / 学生 admin 403 / 跨用户 40401），403 覆盖面扩至 M5 全部新增管理端路径；另发现并修复共享测试库残留问题——AdminExtendedIT 中途失败会遗留启用岗位污染 PositionApiIT，已加 @AfterEach 自愈清理（tp% 岗位强制停用） | 计划 §8.2 |
 
 ## 5. 问题与风险跟踪
 
@@ -179,13 +189,13 @@
 
 ## 6. 环境状态备忘
 
-| 组件 | 状态（2026-10-14 M4 完成时检测） | 备注 |
+| 组件 | 状态（2026-10-15 M5 完成时检测） | 备注 |
 |---|---|---|
 | JDK 17 | ✅ Temurin 17.0.20（`~/tools/jdk-17.0.20.1+1`，tarball 安装） | 运行/测试统一 `JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home` |
 | JDK 25 | 仍存在（系统默认） | 仅做兜底；编译由 `maven.compiler.release=17` 保证 |
 | Maven | 3.9.16（~/tools/apache-maven-3.9.16） | settings.xml 已配阿里云镜像 |
 | Docker | ✅ colima 运行中 | 镜像经 daocloud 源拉取（D7） |
-| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库已迁移至 V5（42 条知识片段）；测试库 ai_interview_test 同步 V5 |
+| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库已迁移至 V6（+28 条学习资源，ability_record 已有掌握度记录）；测试库 ai_interview_test 同步 V6 |
 | aiinterview-redis | ✅ healthy，宿主机端口 6380 | 6379 被其他项目占用（D6） |
 | 本机 8080 | ⚠ 被其他项目占用（P6） | dev 后端临时换 `--server.port=18080`；测试不受影响 |
 | Node | v22.23.3 / npm 10.9.9 | 仅前端用，超出本计划范围 |
@@ -215,3 +225,5 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-13 | **M2 完成**：任务 2.1~2.7 全部 ✅（产物 #8 交付，api.http 增用例 12~18）；新增 interview（实体/状态机/TurnEngine/规则引擎/WS/定时器）与 ai（Mock/Prompt/解析容错）模块，无新增 Flyway 脚本；`mvn test` 38 用例全绿（M2 新增 28）；手工验证：curl 建会话→start 首题→文字回答追问落库→abort 终态、Node WS 实测 QUESTION/FOLLOW_UP/TIMER；登记决策 D11~D15、问题 P5 | ZCode（M2 开发会话） |
 | 2026-10-14 | **M3 完成**：任务 3.1~3.5 全部 ✅（产物 #9 交付，api.http 增用例 19~21）；新增 assessment（ScoreCalculator/ReportService/EvaluationReport/TurnEvaluationStore/ReportVO）与 growth（history）模块，MockAiProvider 补全 evaluateTurn 规则评分引擎与 generateReport 报告拼装，TurnEngine 接入评分输入（D15 唤醒）、finish/轮次用尽/TIMEOUT 三处触发报告生成，无新增 Flyway 脚本；`mvn test` 56 用例全绿（M3 新增 18，测试类 14）；手工验证：curl（18080，P6）finish→report 完整 ReportVO（63.77 分）→history、启动恢复自动收卷昨日遗留会话并出报告；登记决策 D16~D18、问题 P6 | ZCode（M3 开发会话） |
 | 2026-10-14 | **M4 完成**：任务 4.1~4.6 全部 ✅（产物 #10 交付，api.http 增用例 22~25）；新增 knowledge（实体/FULLTEXT Mapper/KeywordExtractor/KnowledgeSearchService/KnowledgeAdminService）与 interview.storage（AudioStorageService）模块、VoiceMetricsCalculator、OpenAiCompatibleProvider + WebClientConfig + AiChatResponse，Flyway V5 种子 42 条知识片段，TurnEngine/InterviewService/ReportService 接入关键词提取、知识检索注入 Prompt 与 AUDIO 场 voice 维度，MessageVO 补 audioPath（D21）；`mvn test` 85 用例全绿（M4 新增 29：VoiceMetricsCalculatorTest 8、KeywordExtractorTest 8、OpenAiCompatibleProviderTest 5、AudioAnswerIT 3、KnowledgeSearchIT 5，测试类 19）；手工验证：SQL 手验 FULLTEXT 召回（utf8mb4 客户端）、curl 音频全流程（落盘/回放/报告含 voice）、新增知识片段即被检索、qwen 缺 key fail-fast 与不可达端点自动回 mock；登记决策 D19~D21、风险 R3 验证 | ZCode（M4 开发会话） |
+| 2026-10-15 | **M5 进行中（5.1/5.2 完成）**：任务 5.1、5.2 ✅（产物 #11 交付，api.http 增用例 26/27）；新增 growth 包 AbilityRecord/LearningResource 实体与 Mapper、MasteryUpdater（0.7/0.3 折算+难度加权+幂等）、RecommendationService、SkillGrowthVO/RecommendationVO，ReportService 挂接掌握度更新（报告事务后独立事务），GrowthService/GrowthController 补 growth 与 recommendations 接口，Flyway V6 种子学习资源 28 条（每岗 14）；`mvn test` 97 用例全绿（M5 新增 12：MasteryUpdaterTest 11、HistoryGrowthIT 增 1，测试类 20）；手工验证：curl（18080）两场面试→ability_record 两条（52.53→48.95 折算吻合）→growth 曲线/推荐 Top3 资源匹配；登记决策 D22~D24 | ZCode（M5 开发会话） |
+| 2026-10-15 | **M5 完成**：任务 5.3、5.4 ✅（产物 #12 交付，api.http 增用例 28~32 并修订 27）；5.3 新增 growth/engine 双引擎（WeaknessDetector 四规则纯逻辑 + RecommendationEngine 优先级/错题重练/通用计划），RecommendationVO 增 retryQuestions，ReportService 增 evidenceOf 与 ReportGeneratedEvent、新增 RecommendationCacheWarmer（Redis TTL 10min 预生成），RecommendationService 重写接入双引擎+维度历史+最近一场证据+缓存；5.4 新增 admin 包 DashboardService/AdminPositionService/AdminResourceService/AdminUserService 与四个 Controller、DashboardVO/PositionAdminVO/PositionUpsertRequest/ResourceUpsertRequest/WeightsUpdateRequest；`mvn test` 114 用例全绿（5.3/5.4 新增 17：WeaknessDetectorTest 5、RecommendationEngineTest 3、RecommendationIT 2、SecurityIT 3、AdminExtendedIT 4，测试类 25）；手工验证：curl（18080）dashboard（4 用户/8 场/61 题/均分 59.07）、权重写入回读、资源建删、禁用登录 10003→恢复、Redis rec:* 缓存键；登记决策/偏差 D25~D26 及 SecurityIT 落位说明 | ZCode（M5 开发会话） |

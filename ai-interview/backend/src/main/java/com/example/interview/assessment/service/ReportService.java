@@ -16,6 +16,7 @@ import com.example.interview.auth.security.CurrentUser;
 import com.example.interview.common.exception.BizException;
 import com.example.interview.common.result.ResultCode;
 import com.example.interview.common.util.JsonUtils;
+import com.example.interview.growth.engine.MasteryUpdater;
 import com.example.interview.interview.entity.InterviewMessage;
 import com.example.interview.interview.entity.InterviewSession;
 import com.example.interview.interview.mapper.InterviewMessageMapper;
@@ -30,6 +31,7 @@ import com.example.interview.question.entity.Question;
 import com.example.interview.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -46,9 +48,9 @@ import java.util.TreeMap;
  * 报告生成与读取（计划 §6.6 / 方案 §13.2 finish 编排）：
  * 逐题评分（暂存缺漏轮次确定性重算）→ ScoreCalculator 六维聚合与总分 →
  * AiProvider.generateReport（真实 Provider 三级容错 M4 接入）→ evaluation_report
- * 落库 → 回填 session.total_score → WS 推 REPORT_READY。
+ * 落库 → 回填 session.total_score → MasteryUpdater 写 ability_record（M5-5.1）→
+ * WS 推 REPORT_READY。
  * 触发点：finish 接口（含失败重试入口）、TurnEngine 轮次用尽、定时器 TIMEOUT。
- * 掌握度更新（MasteryUpdater）与推荐缓存排期 M5。
  */
 @Slf4j
 @Service
@@ -66,6 +68,8 @@ public class ReportService {
     private final TurnEvaluationStore evaluationStore;
     private final InterviewWebSocketHandler wsHandler;
     private final TransactionTemplate transactionTemplate;
+    private final MasteryUpdater masteryUpdater;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** 异步入口（计划 §4.4：报告生成不阻塞请求/定时器线程）。 */
     @Async("aiExecutor")
@@ -134,6 +138,10 @@ public class ReportService {
             // 并发生成（如轮次用尽与 finish 重试同时触发）：以先落库者为准
             log.info("报告并发写入，取已有报告 session={}", sessionId);
         }
+        // 掌握度更新：报告事务提交后独立事务追加 ability_record（计划 §4.4/§6.6；
+        // 以 source_session_id 幂等，并发生成路径不会重复折算）
+        masteryUpdater.applyForSession(s.getUserId(), s.getPositionId(), sessionId,
+                masteryUpdater.sessionSkillScores(agg.skillTurns));
         evaluationStore.clear(sessionId);
         EvaluationReport saved = findBySessionId(sessionId);
         if (saved != null) {
@@ -141,6 +149,8 @@ public class ReportService {
             log.info("报告生成完成 session={} reportId={} total={} rounds={}",
                     sessionId, saved.getId(), saved.getTotalScore(), agg.rounds.size());
         }
+        // 推荐缓存预生成（计划 §6.6/§6.7：Redis TTL 10min）；监听器在当前异步线程执行
+        eventPublisher.publishEvent(new ReportGeneratedEvent(sessionId, s.getUserId(), s.getPositionId()));
     }
 
     /** 报告读取（计划 §5.3 #17）：未生成 10004；归属本人或 ADMIN。 */
@@ -182,6 +192,19 @@ public class ReportService {
         return report != null ? report.getId() : null;
     }
 
+    /**
+     * 会话逐题证据（含 missingPoints/技能标签）：报告读取与推荐引擎共用
+     * （M5-5.3 规则③与错题重练的数据源，评分快照缺漏时确定性重算同 getReport）。
+     */
+    public List<QuestionEvidenceVO> evidenceOf(Long sessionId) {
+        InterviewSession s = sessionMapper.selectById(sessionId);
+        if (s == null) {
+            return List.of();
+        }
+        Position position = positionMapper.selectById(s.getPositionId());
+        return aggregate(s, position, parseModel(position)).evidenceList();
+    }
+
     // ==================== 聚合 ====================
 
     /** 一轮评分的归组结果。 */
@@ -192,6 +215,7 @@ public class ReportService {
     /** 逐题评分 + 六维聚合 + 总分的一次性计算结果（生成与读取共用）。 */
     private record Aggregation(Map<Integer, RoundData> rounds, List<AiTurnEvaluation> latestPerRound,
                                List<QuestionEvidenceVO> evidenceList, Map<String, Double> dimensions,
+                               List<MasteryUpdater.SkillTurn> skillTurns,
                                double content, double expression, double adaptability, double total) {
     }
 
@@ -212,6 +236,7 @@ public class ReportService {
         List<List<Double>> contentSequences = new ArrayList<>();
         List<QuestionEvidenceVO> evidenceList = new ArrayList<>();
         List<AiTurnEvaluation> latestPerRound = new ArrayList<>();
+        List<MasteryUpdater.SkillTurn> skillTurns = new ArrayList<>();
 
         for (Map.Entry<Integer, List<InterviewMessage>> e : byRound.entrySet()) {
             List<InterviewMessage> roundMsgs = e.getValue();
@@ -232,6 +257,9 @@ public class ReportService {
                 seq.add(calculator.contentScore(eval.getScores(), contentW));
             }
             contentSequences.add(seq);
+            // 掌握度输入：该轮最新内容分 + 题目技能标签与难度权重（计划 §6.7）
+            skillTurns.add(new MasteryUpdater.SkillTurn(round.skillTags(), turnScores.get(turnScores.size() - 1).weight(),
+                    seq.get(seq.size() - 1)));
             evidenceList.add(QuestionEvidenceVO.builder()
                     .roundNo(e.getKey())
                     .questionId(round.questionId())
@@ -258,7 +286,7 @@ public class ReportService {
                 ? model.getScoreWeights().getTotal() : null;
         double total = rounds.isEmpty() ? 0.0
                 : calculator.totalScore(content, expression, adaptability, match, totalW);
-        return new Aggregation(rounds, latestPerRound, evidenceList, dimensions,
+        return new Aggregation(rounds, latestPerRound, evidenceList, dimensions, skillTurns,
                 content, expression, adaptability, total);
     }
 

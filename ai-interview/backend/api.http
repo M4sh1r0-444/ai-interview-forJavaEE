@@ -217,3 +217,109 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 #   AI_PROVIDER=qwen AI_API_URL=https://dashscope.aliyuncs.com/compatible-mode/v1 \
 #   AI_API_KEY=sk-xxx AI_MODEL=qwen-plus mvn spring-boot:run
 #   —— 缺 key 启动即失败（配置错误显式暴露）；运行期故障自动重试 1 次后降级 mock，连续 3 次失败锁会话
+
+### ==================== M5 个性化（5.1 掌握度 + 5.2 成长/推荐） ====================
+### 说明：掌握度在报告落库时自动更新（ability_record 只追加；同会话幂等）；
+###       V6 迁移后 learning_resource 两岗位各 14 条，推荐按 (position, skill, enabled) 匹配
+
+### 26. 成长曲线（附录C-8；?positionId= 可选过滤；records 按 evaluatedAt 升序，
+###      current = 最新一条掌握度；技能顺序 = 岗位能力模型序）
+GET {{BASE}}/api/users/me/growth?positionId=1
+Authorization: Bearer {{TOKEN}}
+
+### 26b. 成长曲线（全岗位合并视角，按 skillCode 分组）
+GET {{BASE}}/api/users/me/growth
+Authorization: Bearer {{TOKEN}}
+
+### 27. 个性化推荐（附录C-9；短板技能 Top3 按优先级 (100-掌握度)×权重 降序；
+###      resources=ARTICLE/QUESTION、practices=PRACTICE/PROJECT、retryQuestions=错题重练
+###      （最近一场 missingPoints 命中题目，M5-5.3）、nextInterviewSuggested=建议下一场配置；
+###      weaknessReasons 由短板四规则引擎产出（①最近两次<60 ②低于 requiredLevel
+###      ③最近一场≥2题失分点 ④communication/voice 维度连续两次<60）；
+###      结果落 Redis 缓存 rec:{uid}:{positionId}（TTL 10min，报告落库后自动预生成）
+GET {{BASE}}/api/users/me/recommendations?positionId=1
+Authorization: Bearer {{TOKEN}}
+
+### ==================== M5 管理端扩展（5.3 推荐引擎 + 5.4 管理端补全） ====================
+
+### 28. 管理端仪表盘（用户数/已开考场次/题量/平均分/近 7 日趋势，日期升序含今日）
+GET {{BASE}}/api/admin/dashboard
+Authorization: Bearer {{ADMIN_TOKEN}}
+
+### 29. 岗位维护：列表（含停用）/ 详情（含能力模型与评分权重）
+GET {{BASE}}/api/admin/positions?page=1&size=10
+Authorization: Bearer {{ADMIN_TOKEN}}
+
+###
+GET {{BASE}}/api/admin/positions/1
+Authorization: Bearer {{ADMIN_TOKEN}}
+
+### 29b. 新增岗位（code 唯一；技能权重和=1；新增后学生侧立即可见）
+POST {{BASE}}/api/admin/positions
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "code": "dev_ops",
+  "name": "DevOps 工程师",
+  "description": "CI/CD、容器与可观测性",
+  "defaultRounds": 5,
+  "skills": [
+    {"skillCode": "linux_shell", "skillName": "Linux 与 Shell", "description": "常用命令与脚本", "weight": 0.5, "requiredLevel": 70},
+    {"skillCode": "cicd", "skillName": "CI/CD 流水线", "description": "Jenkins/GitHub Actions", "weight": 0.5, "requiredLevel": 70}
+  ]
+}
+
+### 29c. 修改岗位（部分更新：非 null 字段生效；enabled=0 停用后学生侧不可见且不能再建面试）
+PUT {{BASE}}/api/admin/positions/3
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"name": "DevOps 工程师（改名）", "defaultRounds": 6}
+
+### 30. 评分权重调整（写 competency_model_json.scoreWeights，方案 §7.2 按岗位调整；
+###      提供的组须完整且组内和=1，未提供的组保留原值；权重变更影响后续评分聚合）
+PUT {{BASE}}/api/admin/positions/1/weights
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{
+  "scoreWeights": {
+    "content": {"technical": 0.35, "depth": 0.25, "logic": 0.20, "evidence": 0.10, "match": 0.10},
+    "total": {"content": 0.55, "expression": 0.25, "adaptability": 0.10, "match": 0.10}
+  }
+}
+
+### 31. 学习资源 CRUD（skillCode 须对齐岗位能力模型；DELETE=下架 enabled→0，推荐匹配即刻排除）
+GET {{BASE}}/api/admin/resources?positionId=1&skillCode=spring&resourceType=ARTICLE
+Authorization: Bearer {{ADMIN_TOKEN}}
+
+###
+POST {{BASE}}/api/admin/resources
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"positionId": 1, "skillCode": "spring", "title": "Spring 事务传播行为专题练习", "resourceType": "QUESTION", "difficulty": 3}
+
+###
+PUT {{BASE}}/api/admin/resources/1
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"positionId": 1, "skillCode": "spring", "title": "Spring 事务传播行为专题练习（修订）", "resourceType": "QUESTION", "difficulty": 4, "enabled": 1}
+
+###
+DELETE {{BASE}}/api/admin/resources/1
+Authorization: Bearer {{ADMIN_TOKEN}}
+
+### 32. 用户管理：列表（?keyword= 模糊 username/realName）/ 启停
+###      status=0 禁用后登录 10003；管理员不能禁用自己（40001）
+GET {{BASE}}/api/admin/users?keyword=demo&page=1&size=10
+Authorization: Bearer {{ADMIN_TOKEN}}
+
+###
+PUT {{BASE}}/api/admin/users/2/status
+Authorization: Bearer {{ADMIN_TOKEN}}
+Content-Type: application/json
+
+{"status": 0}

@@ -3,16 +3,21 @@ package com.example.interview.growth.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.interview.common.result.Result;
 import com.example.interview.growth.dto.HistoryItemVO;
+import com.example.interview.growth.dto.RecommendationVO;
+import com.example.interview.growth.dto.SkillGrowthVO;
 import com.example.interview.growth.service.GrowthService;
+import com.example.interview.growth.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
- * 成长域接口（计划 §5.4）。M3 交付 #20 history；
- * #18 growth 与 #19 recommendations 排期 M5。
+ * 成长域接口（计划 §5.4）。M3 交付 #20 history；M5-5.2 交付
+ * #18 growth 与 #19 recommendations。
  */
 @RestController
 @RequestMapping("/api/users/me")
@@ -20,6 +25,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class GrowthController {
 
     private final GrowthService growthService;
+    private final RecommendationService recommendationService;
+
+    /** 用例 18：按技能的成长曲线（?positionId= 可选过滤，records 升序）。 */
+    @GetMapping("/growth")
+    public Result<List<SkillGrowthVO>> growth(@RequestParam(required = false) Long positionId) {
+        return Result.ok(growthService.growth(positionId));
+    }
+
+    /** 用例 19：个性化推荐（短板技能 Top3，按优先级降序；?positionId= 缺省取最近岗位）。 */
+    @GetMapping("/recommendations")
+    public Result<List<RecommendationVO>> recommendations(@RequestParam(required = false) Long positionId) {
+        return Result.ok(recommendationService.recommendations(positionId));
+    }
 
     /** 用例 20：我的面试历史（分页，时间倒序）。 */
     @GetMapping("/history")

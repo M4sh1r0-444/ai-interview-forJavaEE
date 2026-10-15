@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -21,9 +22,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * 计划 §8.2 HistoryGrowthIT 的 history 断言（M3-3.4 完成标准）：
- * 同用户多场面试 → history 条数/排序/字段；分页 total；未开始会话不入历史。
- * growth 曲线与 recommendations 断言随 M5 补齐。
+ * 计划 §8.2 HistoryGrowthIT（M3-3.4 history 断言 + M5-5.1/5.2 完成标准）：
+ * 同用户多场面试 → history 条数/排序/字段；两场后 ability_record 有记录（growth
+ * 曲线非空、点数=场数）；recommendations 非空且按优先级降序。
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -109,6 +110,69 @@ class HistoryGrowthIT {
         assertThat(((Number) history(fresh, null, null).get("total")).intValue()).isZero();
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void growthAndRecommendationsAfterTwoInterviews() throws Exception {
+        String token = registerAndLogin();
+
+        // 两场各答一轮（round0 + 追问）后 finish → 报告落库触发掌握度更新，
+        // 每场为 round0 题目技能写一条 ability_record（M5-5.1 完成标准：两场后有记录）
+        finishOneRoundInterview(token);
+        finishOneRoundInterview(token);
+        awaitUntil("两场各写一条能力记录", () -> {
+            try {
+                return totalGrowthPoints(growth(token, null)) >= 2;
+            } catch (Exception e) {
+                return false;
+            }
+        });
+
+        // growth：曲线非空、records 升序、current=最新一条、技能名来自能力模型
+        List<Map<String, Object>> growth = growth(token, null);
+        assertThat(growth).isNotEmpty();
+        int totalPoints = 0;
+        for (Map<String, Object> skill : growth) {
+            assertThat(skill.get("skillCode")).isNotNull();
+            assertThat(skill.get("skillName")).isNotNull();
+            List<Map<String, Object>> records = (List<Map<String, Object>>) skill.get("records");
+            assertThat(records).isNotEmpty();
+            assertThat(skill.get("current")).isNotNull();
+            assertThat(((Number) skill.get("current")).doubleValue())
+                    .isEqualTo(((Number) records.get(records.size() - 1).get("score")).doubleValue());
+            List<String> evaluatedAt = records.stream()
+                    .map(r -> String.valueOf(r.get("evaluatedAt"))).toList();
+            assertThat(evaluatedAt).isSorted();
+            totalPoints += records.size();
+        }
+        // 每场恰好命中 1 个技能（种子题均为单技能标签）→ 两场两条记录
+        assertThat(totalPoints).isEqualTo(2);
+        // positionId 过滤等价（该用户只有岗位 1 的记录）
+        assertThat(growth(token, 1L)).hasSameSizeAs(growth);
+
+        // recommendations：非空、≤Top3、优先级降序、资源/练习来自 V6 种子、建议非空
+        List<Map<String, Object>> recs = recommendations(token, null);
+        assertThat(recs).isNotEmpty();
+        assertThat(recs).hasSizeLessThanOrEqualTo(3);
+        List<Double> priorities = recs.stream()
+                .map(r -> ((Number) r.get("priority")).doubleValue()).toList();
+        assertThat(priorities).isSortedAccordingTo(Comparator.reverseOrder());
+        for (Map<String, Object> rec : recs) {
+            assertThat(rec.get("skillCode")).isNotNull();
+            assertThat((List<?>) rec.get("weaknessReasons")).isNotEmpty();
+            int resources = ((List<?>) rec.get("resources")).size();
+            int practices = ((List<?>) rec.get("practices")).size();
+            assertThat(resources + practices).isPositive();
+            assertThat((String) rec.get("nextInterviewSuggested")).isNotBlank();
+        }
+
+        // 未登录 401；新用户 growth 为空、recommendations 走默认岗位（首个启用岗位）
+        mockMvc.perform(get("/api/users/me/growth")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/users/me/recommendations")).andExpect(status().isUnauthorized());
+        String fresh = registerAndLogin();
+        assertThat(growth(fresh, null)).isEmpty();
+        assertThat(recommendations(fresh, null)).isNotEmpty();
+    }
+
     // ==================== 工具 ====================
 
     private String registerAndLogin() throws Exception {
@@ -145,6 +209,58 @@ class HistoryGrowthIT {
         @SuppressWarnings("unchecked")
         Map<String, Object> data = (Map<String, Object>) body(res).get("data");
         return data.get("totalScore");
+    }
+
+    /** 完成一场"答一轮（round0 + 追问）即 finish"的面试，等待报告回填总分。 */
+    private void finishOneRoundInterview(String token) throws Exception {
+        long id = createAndStart(token);
+        MvcResult answer = mockMvc.perform(post("/api/interviews/" + id + "/messages/text")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(JsonUtils.toJson(Map.of("roundNo", 0, "content", GOOD_ANSWER))))
+                .andReturn();
+        assertThat(code(body(answer))).isZero();
+        awaitUntil("追问产出", () -> {
+            try {
+                return messages(token, id).stream()
+                        .filter(m -> "AI".equals(m.get("speaker"))).count() >= 2;
+            } catch (Exception e) {
+                return false;
+            }
+        });
+        mockMvc.perform(post("/api/interviews/" + id + "/finish")
+                .header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+        awaitUntil("报告回填总分", () -> {
+            try {
+                return totalScoreOf(token, id) != null;
+            } catch (Exception e) {
+                return false;
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> growth(String token, Long positionId) throws Exception {
+        String query = positionId != null ? "?positionId=" + positionId : "";
+        MvcResult res = mockMvc.perform(get("/api/users/me/growth" + query)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+        return (List<Map<String, Object>>) body(res).get("data");
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> recommendations(String token, Long positionId) throws Exception {
+        String query = positionId != null ? "?positionId=" + positionId : "";
+        MvcResult res = mockMvc.perform(get("/api/users/me/recommendations" + query)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andReturn();
+        return (List<Map<String, Object>>) body(res).get("data");
+    }
+
+    private static int totalGrowthPoints(List<Map<String, Object>> growth) {
+        return growth.stream()
+                .mapToInt(s -> ((List<?>) s.get("records")).size())
+                .sum();
     }
 
     @SuppressWarnings("unchecked")
