@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | **后端 M6 ✅ 完成；前端 F1 ✅ 完成，F2 待开始** |
-| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F1 ✅（2026-10-17）；下一里程碑 **F2 面试主流程（文字）** |
-| 整体进度 | 后端 6/6；前端 1/6（F1 ✅，F2~F6 ⬜） |
+| 当前阶段 | **后端 M6 ✅ 完成；前端 F2 ✅ 完成，F3 待开始** |
+| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F2 ✅（2026-10-17）；下一里程碑 **F3 报告 + 历史** |
+| 整体进度 | 后端 6/6；前端 2/6（F1 ✅、F2 ✅，F3~F6 ⬜） |
 | 上次更新 | 2026-10-17 |
-| 上次更新人 | ZCode（F1 视觉升级会话） |
+| 上次更新人 | ZCode（F2 面试主流程会话） |
 
 ### 里程碑状态
 
@@ -33,14 +33,14 @@
 | M5 | 个性化 + 管理端补全 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 | M6 | 测试 + 部署 + 验收 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 
-### 前端里程碑状态（F1~F6，F1 已完成、F2~F6 待开始）
+### 前端里程碑状态（F1~F6，F1/F2 已完成、F3~F6 待开始）
 
 > 任务明细与验收标准见 [《AI模拟面试与能力提升平台_前端开发计划.md》](AI模拟面试与能力提升平台_前端开发计划.md) §11；F1 任务粒度已回填，F2 起逐里程碑回填。
 
 | 里程碑 | 内容 | 状态 | 开始日期 | 完成日期 |
 |---|---|---|---|---|
 | F1 | 工程基座 + 认证 + 应用外壳 | ✅ 已完成 | 2026-10-17 | 2026-10-17 |
-| F2 | 面试主流程（文字 + WS + 倒计时） | ⬜ 未开始 | — | — |
+| F2 | 面试主流程（文字 + WS + 倒计时） | ✅ 已完成 | 2026-10-17 | 2026-10-17 |
 | F3 | 报告 + 历史 | ⬜ 未开始 | — | — |
 | F4 | 语音 + 成长 + 推荐 + 个人中心 | ⬜ 未开始 | — | — |
 | F5 | 管理端 7 页 | ⬜ 未开始 | — | — |
@@ -73,6 +73,7 @@
 | 16 | 后端 README + 答辩演示脚本（M6-6.6） | `ai-interview/backend/README.md` + `ai-interview/答辩演示脚本.md` | 2026-10-15 | ✅ 已交付 | README 按新人 30 分钟路径组织（环境/快速开始/一场面试/测试/配置/模块/接口/联调契约/部署/FAQ）；演示脚本将方案 §19 15 步逐条映射为可执行命令（含故障预案） |
 | 17 | **前端开发计划 v1.1（F1~F6 + 液态玻璃）** | `开发计划/AI模拟面试与能力提升平台_前端开发计划.md` | 2026-10-17 | ✅ 已交付（计划 v1.1） | 2750+ 行；v1.1 新增液态玻璃视觉规范（§6.7/§8.3.1/F1-3/R-F18/D38）；基于后端 39 REST + 1 WS 实测契约；19 页规格 + 架构/状态机/测试/部署/验收 + 12 项契约差异；F1~F6 预估 26.5 人日；同时登记 P9（产物卷缺陷）、P10（答辩脚本权重 payload 错误）、P11（开发库测试残留） |
 | 18 | **前端 Vue3 工程（F1-1~F1-8）** | `ai-interview/frontend/` + `frontend/docs/F1-验收记录.md` + `frontend/docs/screenshots/f1/` | 2026-10-17 | ✅ 已交付（F1） | Vite 5 + Vue 3 + TS + Element Plus + Pinia + Vue Router + Axios；设计令牌 + 液态玻璃视觉基座（AppBackdrop/GlassPanel/Element 覆盖/降级）/三种布局/Auth store/路由守卫/登录注册/403/404/离线条/traceId；39 REST + 1 WS API/类型骨架；`lint/type-check/test:unit/build` 全绿（34 用例）；Vite `/api` 登录与 `/ws` 101 代理实测通过；功能冒烟 16 项 + 液态玻璃视觉/降级检查 + 4 档视口无横向滚动；11 张截图；原占位页备份 `docs/legacy-placeholder-index.html` |
+| 19 | **前端 F2 面试主流程（F2-1~F2-8，文字）** | `frontend/src/{views/student,views/interview,components/interview,composables,stores,utils}` + `frontend/e2e/` + `frontend/docs/F2-验收记录.md` + `frontend/docs/screenshots/f2/` | 2026-10-17 | ✅ 已交付（F2） | 首页/岗位列表/详情/设置/房间 5 页替换占位；`stores/interview` 唯一事实源 + `useInterviewRoom` 编排 + 原生 WS 客户端（退避重连/4401/断线 2s 轮询）+ 倒计时校准 + 文字作答（IME/Ctrl+Enter/乐观气泡/草稿/10005 刷新）+ finish/abort 二次确认与终态；`lint/type-check` 0/0，单测 **91/91**（F2 新增 57，`round/draft` 100%、interview store 80.31%），coverage 59.32%，build 成功，Playwright E2E **6/6**（首页导航/首页接口降级/文字闭环+刷新/中止+终态刷新/跨标签页结束/WS 断线轮询）；1440/1024/768/390 无横向滚动，0 pageerror；12 张截图；测试数据已清理（demo01 历史 7 场） |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。前端产物的任务编号使用 F1~F6（见前端开发计划 §11），不占用 M 编号。
 
@@ -155,20 +156,20 @@
 | 6.5 | 验收自检（对照表 15 条） | ✅ | 2026-10-15 | 计划 §12 逐条 ✅ 并附验证方式与实测证据（双岗/题量/题型比例 SQL、追问消息表实录、知识检索 DEBUG 日志、报告六维与五要素实录、两场后成长曲线 5 条全 2 点、推荐 Top3 实录、管理端 IT、双模式、compose 一键+15 步映射），产出《AI模拟面试与能力提升平台_验收自检_M6.md》 |
 | 6.6 | README + 答辩演示脚本 | ✅ | 2026-10-15 | backend/README.md（环境→快速开始→一场面试→测试门禁→配置→模块→接口与联调契约→部署→FAQ，新人 30 分钟启动路径）；ai-interview/答辩演示脚本.md（方案 §19 15 步逐条映射可执行命令 + 演示前准备清单 + 故障预案） |
 
-### F1~F6 前端阶段（F1 ✅，F2~F6 待开始）
+### F1~F6 前端阶段（F1/F2 ✅，F3~F6 待开始）
 
-> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。F1 已按任务粒度回填，详见下方 F1 任务表与《F1-验收记录》。
+> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。F1/F2 已按任务粒度回填，详见下方任务表与《F1-验收记录》《F2-验收记录》。
 
 | 里程碑 | 任务数 | 状态 | 开工条件 | 备注 |
 |---|---|---|---|---|
 | F1 工程基座 + 认证 | 8（F1-1~F1-8） | ✅ 已完成（2026-10-17） | 本文交付即可开工 | 脚手架/规范/API/类型/守卫/登录注册 |
-| F2 面试主流程（文字） | 8（F2-1~F2-8） | ⬜ 未开始 | F1 完成 | 首页/岗位/设置/房间/WS/倒计时/finish |
+| F2 面试主流程（文字） | 8（F2-1~F2-8） | ✅ 已完成（2026-10-17） | F1 完成 | 首页/岗位/设置/房间/WS/倒计时/finish |
 | F3 报告 + 历史 | 6（F3-1~F3-6） | ⬜ 未开始 | F2 完成 | 报告轮询/雷达/证据/历史 |
 | F4 语音 + 成长 + 推荐 + 个人中心 | 7（F4-1~F4-7） | ⬜ 未开始 | F2、F3 完成 | 录音/ASR/回放/成长/推荐/资料 |
 | F5 管理端 | 8（F5-1~F5-8） | ⬜ 未开始 | F1 完成；F3 可并行 | 看板/题库/岗位/权重/知识库/资源/用户 |
 | F6 质量 + 部署 + 验收 | 6（F6-1~F6-6） | ⬜ 未开始 | F1~F5 完成 | 单测/E2E/契约/产物卷修复/文档/验收 |
 
-> **前置阻塞**：F6-4 依赖 P9 修复（frontend 产物写入 `frontend-dist` 卷）；F6-6 依赖 P11（清理 `ACC_*` 测试岗位/数据）与 P10（修正答辩脚本权重 payload）。F1 本身不依赖上述修复，已开工并完成。
+> **前置阻塞**：F6-4 依赖 P9 修复（frontend 产物写入 `frontend-dist` 卷）；F6-6 依赖 P11（清理 `ACC_*` 测试岗位/数据）与 P10（修正答辩脚本权重 payload）。F1/F2 本身不依赖上述修复，已完成；F3 起继续。
 
 #### F1 任务明细（2026-10-17 ✅）
 
@@ -184,6 +185,21 @@
 | F1-8 | API 联调冒烟（Vite 代理） | ✅ | 2026-10-17 | 5173 `/api/positions` 返回 40101、登录 code=0、`/api/users/me` code=0（Bearer 透传）；`/ws/interviews/21?token=…` open（101）；UI 冒烟 16 项通过、0 pageerror |
 
 > F1 验收细节、截图与复现命令见 [`frontend/docs/F1-验收记录.md`](../ai-interview/frontend/docs/F1-验收记录.md)。
+
+#### F2 任务明细（2026-10-17 ✅）
+
+| 任务 | 内容 | 状态 | 完成日期 | 验证记录 |
+|---|---|---|---|---|
+| F2-1 | 首页仪表盘 | ✅ | 2026-10-17 | 欢迎区 + 4 快捷入口 + 最近面试 + 岗位入口 + 推荐预览；`Promise.allSettled` 分区降级；最近面试按状态给继续/报告/重开按钮；截图 01 |
+| F2-2 | 岗位列表/详情 | ✅ | 2026-10-17 | `/positions` 2 个启用岗位；`/positions/1` 7 技能权重条、要求等级、权重和 100%、评分口径；`/positions/999` 40401 空态；CTA 到设置；截图 02/03 |
+| F2-3 | 面试设置 + 能力检测 | ✅ | 2026-10-17 | TEXT/AUDIO 卡片；`useInterviewCapabilities` 检测 MediaRecorder/getUserMedia/Web Speech/webm MIME；难度 1~5；轮次 clamp 5~8（默认 6）；时长 15/30/45/60；防重复提交；E2E #2 |
+| F2-4 | 房间骨架 + 数据加载 + 轮次算法 | ✅ | 2026-10-17 | `stores/interview` 唯一事实源；`utils/round.ts` 可作答算法（0-based/追问不推进/AI>USER/最后一条 AI）；CREATED 自动 start；WAITING/PROCESSING/TERMINAL 渲染；刷新恢复；E2E #2 |
+| F2-5 | WS 客户端 + 重连 + 对账 | ✅ | 2026-10-17 | 原生 WS；1/2/4/8/15s × 8；4401 不重连；非法 JSON/未知 type 容错；事件后统一 refresh；断线 2s 轮询；E2E #4/#5 |
+| F2-6 | 文字作答 + 乐观气泡 + 轮询 | ✅ | 2026-10-17 | Ctrl/Cmd+Enter + IME 保护；负 id 乐观气泡；服务端 ID/内容对账；失败保留文本不重发；10005/40002 自动刷新；草稿按轮次恢复；单测 + E2E #2 |
+| F2-7 | 倒计时、状态徽标、finish/abort | ✅ | 2026-10-17 | TimerBadge（≤60s 警示）、WsStatusBadge（重连按钮）、RoundProgress（追问 n/3）、StatusTag；FinishConfirmDialog 展示已答题数/轮次/剩余；FINISHED/TIMEOUT/ABORTED 终态；截图 07~11 |
+| F2-8 | 房间边界与 E2E 冒烟 | ✅ | 2026-10-17 | 刷新（E2E #2/#3）、WS 断线（E2E #5）、双击（store 单测只调 1 次 API）、他端结束（E2E #4）、超时（手工 session 6 + 后端 IT）、40401（手工）、首页接口降级（E2E #6）；Playwright **6/6** 全绿；4 档视口无横向滚动 |
+
+> F2 验收细节、截图与复现命令见 [`frontend/docs/F2-验收记录.md`](../ai-interview/frontend/docs/F2-验收记录.md)。
 
 ---
 
@@ -234,6 +250,8 @@
 | 2026-10-17 | 决策 | **D36：F1 启动与角色跳转落地**——`main.ts` 在挂载前 await `auth.restore()` + `router.isReady()`，避免无权页面闪现；`GET /me` 网络失败保留 token 并标记“服务暂不可达”，仅 40101/10003 清空；管理员访问学生区回 `/admin/dashboard`（个人中心例外），学生访问管理区跳 `/403`；`/` 同时用 redirect 与守卫按角色纠正 | F1-5 |
 | 2026-10-17 | 决策 | **D37：难度自适应口径（修复计划 D1，选 B 方案）**——R5/R6（连续低/高分）明确定义为「**追问难度/提示强度自适应**」：规则引擎产出的 difficultyDelta 只进入追问 Prompt 指令，主问题在 start 组卷时按目标难度一次性锁定、回答期间不漂移（原实现即如此；核实确认 difficultyDelta 从不影响选题）。README 首屏表述已由「难度自适应」改为「追问难度/提示强度自适应；主问题组卷时锁定」。若课程验收明确要求主问题动态换难度，另立 A 方案任务（预组多难度候选），不并入本轮 | FIX-13（Phase 3 文档收尾复核） |
 | 2026-10-17 | 决策 | **D38：液态玻璃视觉体系（计划 v1.1）**——纯 CSS 三层结构：`AppBackdrop`（渐变 + 4 光斑 + 网格 + 颗粒）+ `GlassPanel`/`.card`/`.glass-surface`（backdrop-filter + 高光 + 多层阴影）+ Element Plus 浮层玻璃化；认证页品牌区/卡片、Shell 侧栏顶栏、403/404、公共状态组件全部接入；强制 `@supports`、`prefers-reduced-transparency`、`prefers-reduced-motion`、打印白底降级；不新增依赖/外部图片；F2~F5 新页面复用 | 计划 §6.7/§8.3.1/F1-3 |
+| 2026-10-17 | 决策 | **D39：F2 房间交互口径**——房间以 `stores/interview` 为唯一事实源，`useInterviewRoom` 统一编排 WS/轮询/倒计时/终态；CREATED 进入房间即自动 start（先连 WS 再 start，start 返回首题兜底）；提交/finish 只当受理，AI 产出以 WS 通知 + REST 对账；FINISHED/TIMEOUT/ABORTED 停留在房间展示结果与报告/历史 CTA，不自动跳转（报告页归 F3，F3 落地后再接 10004 轮询与自动跳转）；AUDIO 会话在 F4 录音 UI 交付前以文字作答兜底并明确提示，不伪造 voice 维度；移动端不自动聚焦输入框，避免把题面顶出屏幕 | F2-4~F2-7 / 计划 §5.7/§7.5/§7.8 |
+| 2026-10-17 | 决策 | **D40：F2 测试与数据口径**——单元/组件测试覆盖 round/draft/countdown/WS/capabilities/store 与 6 个关键组件；E2E 用 Playwright + 系统 Chrome，`globalSetup` 只登录一次 demo01 写 storageState（规避 5 次/分钟登录限流），用例内用 API 准备会话；F2 验收产生的 16+ 场测试会话通过 abort + SQL 删除 message/report/ability/session 清理，demo01 历史恢复 7 场；覆盖率阈值（70%）与 API 模块补齐留 F6-1 | F2-8 / 计划 §9.4/§14.2 |
 
 
 
@@ -259,6 +277,8 @@
 | P13 | 2026-10-17 | 方案 §10.5 只列 7 个管理接口，实际后端 18 个（新增岗位/权重/资源/用户/看板） | ✅ 已按实际契约记录（D31） | 前端按 39 REST 开发；管理端菜单覆盖 18 个接口对应能力；差异见前端计划 §2.5 |
 | P14 | 2026-10-17 | jsdom 25 的 `Blob` 没有 `text()`，导致受保护音频的“HTTP 200 + JSON 业务错误”检测在单测中失效（真实 Chrome 具备该方法） | ✅ 已解决 | `fetchBlob` 增加 FileReader 兜底；单测覆盖成功 blob 与 40401 JSON 两条路径 |
 | P15 | 2026-10-17 | F1 联调时登录限流（5 次/60s/IP）被密集 UI 用例触发；429 尝试同样计入 Redis INCR，但 TTL 只在首次计数设置，窗口结束后自动恢复 | ✅ 已确认（非缺陷） | 429 页面已实现 60s 倒计时并留证；联调脚本后续避免同一分钟密集登录，或等待窗口重置（同 P5） |
+| P16 | 2026-10-17 | F1 的 `element-overrides.scss` 把 `.el-button--primary` 蓝色渐变无条件套到 `is-text/is-plain`，导致蓝字叠蓝底、按钮文字不可见（F2 首页/岗位/房间的“查看能力模型/查看全部历史/查看完整推荐”等按钮暴露） | ✅ 已修复（F2） | 增加 `.el-button--primary.is-plain/is-text/is-link` 的透明/浅色底与 hover 规则；F2 截图复验文字可见；后续 Element Plus 变体需同时检查 `element-overrides.scss` |
+| P17 | 2026-10-17 | F2 E2E/手工验收在 demo01 名下累积 16+ 场测试会话，首页统计与截图出现 19 场、最近记录为 ABORTED，污染演示数据 | ✅ 已清理（F2） | 先 abort 活跃会话，再按 id 段删除 `interview_message/evaluation_report/ability_record/interview_session`；`demo01` 历史恢复 7 场；F6 交付 `qa/cleanup_e2e_data.sh` 并建议 E2E 使用独立测试用户 |
 
 
 > 开发中新遇到的问题在此追加；已解决的把状态改为 ✅ 并填解决方式。计划 §11 的 R1~R12 作为预置风险清单，触发时在此登记。
@@ -277,7 +297,7 @@
 | 本机 18080 | ✅ 本项目 dev 后端（health 200） | 前端联调临时用；正式演示用 compose 80 |
 | 本机 5173 | ✅ F1 起由 Vite dev 占用（`npm run dev`） | 固定端口 + `strictPort: true`；后端 18080 通过 `.env.development.local` 代理 |
 | 本机 80 | ⚠ 2026-10-17 核对时由临时验收栈占用并返回 nginx 默认页，现已释放 | 前端 F6-4 修复产物卷后由本项目 compose 的 nginx 占用；修复前不可作为演示入口 |
-| frontend 工程 | ✅ Vue3 + Vite + TS 工程（F1 完成，2026-10-17） | `npm install && npm run dev`；F2~F5 页面为占位页；Dockerfile 仍为占位版，F6-4 替换并修复卷（P9） |
+| frontend 工程 | ✅ Vue3 + Vite + TS 工程（F2 完成，2026-10-17） | `npm install && npm run dev`；首页/岗位列表/详情/设置/房间已替换占位页；F3~F5 其余页面仍为占位页；Dockerfile 仍为占位版，F6-4 替换并修复卷（P9） |
 | Node / npm | v22.23.3 / npm 10.9.9（pnpm 12.11.2 可用） | F1 实测 412 packages 安装成功；计划按 Node 20 LTS 兼容写法，Docker 用 node:20-alpine |
 
 **日常启动（M1 之后继续开发时）：**
@@ -318,4 +338,5 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-17 | **前端开发计划交付（F1~F6 立项，未开工）**：产物 #17《AI模拟面试与能力提升平台_前端开发计划.md》（2700+ 行）；按后端实际 39 REST + 1 WS 重写契约基线，覆盖 19 个页面/路由、架构/类型/状态机/测试/部署/验收；预估 26.5 人日。**本次实测发现并登记**：P9 frontend-dist 卷未接产物（80 端口实际为 nginx 默认页，M6-6.3 只验证 200）、P10 答辩脚本 §14 权重 payload 与后端不一致、P11 dev 库 `ACC_*` 测试残留；新增 D31~D34（前端范围/异步对账模型/知识库与权重页降级/产物卷修复与离线构建），F1~F6 全部 ⬜ | ZCode（前端计划会话） |
 | 2026-10-17 | **F1 完成（工程基座 + 认证 + 应用外壳）**：F1-1~F1-8 全部 ✅（产物 #18 交付）；Vite 5 + Vue 3 + TS + Element Plus + Pinia + Vue Router + Axios；设计令牌/三种布局/403/404、39 REST + 1 WS 类型与 API 骨架、auth store + 21 视图路由/3 重定向 + 角色守卫、登录注册（10001/10002/10003/42901 UI）、离线条/traceId/错误边界/懒加载兜底；`lint` 0/0、`type-check` 0 error、`test:unit` 34/34、`test:coverage` 通过、`vite build` 成功；5173 `/api` 登录与 `/ws` 101 代理实测通过；功能冒烟 16 项 + 4 档视口无横向滚动；证据留存 `frontend/docs/F1-验收记录.md` + 10 张截图；登记 D35/D36、P14/P15；F1 状态 ✅，下一里程碑 F2 | ZCode（F1 开发会话） |
 | 2026-10-17 | **后端验收修复 Phase 0~2 完成（FIX-01~08，分支 fix/backend-acceptance-20261017）**：依据《后端验收检查报告_20261017》（P0×2/P1×6）与《后端修复计划_20261017》执行。**FIX-01**（0610eb1）真实 Provider 补发 Authorization Bearer 头 + stub 断言头/401 降级两用例；**FIX-02**（16b6c51）frontend 初始化容器强制覆盖 frontend-dist 卷（P9 关闭，新卷/旧卷双验证页面含产品名）；**FIX-03**（116a1a8）WS 心跳发 PingMessage、超时 4408 与鉴权 4401 区分、pong-timeout/heartbeat-interval 配置化（3 单测对旧码红灯 + WebSocketLifecycleIT 9s 存活）；**FIX-04**（0f32b24）WS/HTTP Origin 白名单配置化（prod 含 80 两源），并发现 HTTP CORS 全局拦截 WS 握手 → CORS 收窄 /api/**（WebSocketOriginIT 同源 101/5173 回归/外部 403）；**FIX-05**（bf616f2）TurnEngine applyFollowup/applyAdvance 先 CAS 后写入、失败回滚（TurnEngineTerminalRaceIT 4 用例对旧码红灯：finish/abort/timeout 交叉无终态后消息/轮次漂移/重复报告）；**FIX-06**（26ff069）Prompt 历史过滤未来主问题（PromptHistoryIT 红转绿）；**FIX-07**（e24caef）V7 迁移 + 报告逐题证据落库，getReport/evidenceOf 不再调 AI（ReportEvidenceIT 3 用例含旧报告回填一次）；**FIX-08**（1e9a9b8）时长落库 + recoverOnStartup 按真实时长 + InterviewRecoveryService 重投 PROCESSING_AI（SessionDurationRestartIT @DirtiesContext 真实重启 / ProcessingRecoveryIT 双投幂等）。V7（question_evidence_json、planned_duration_minutes、ability_record 去重+uk_ability_source_skill）先测试库后 dev 库，迁移前双库 mysqldump 备份至仓库外。Gate 2：JDK17 `mvn -B verify` **134/134 全绿**（基线 114 + 新增 20），JaCoCo 89.36%；compose 栈端到端：同源 WS 101 + 95.4s 存活（4×PING 回 PONG 不关闭）+ 外部 Origin 403 + 页面内容 + /api 401。登记 D37（难度口径 B 方案）；P9 关闭，P10/P11 转 Phase 3（FIX-19）；#6/#14 按 D5 改判"协议级通过、真实 key 待环境验证"（不宣称 15/15）。Phase 3/4（FIX-09~20）待确认后继续 | ZCode（后端验收修复会话） |
+| 2026-10-17 | **F2 完成（面试主流程：文字 + WS + 倒计时）**：F2-1~F2-8 全部 ✅（产物 #19 交付）；新增首页/岗位列表/岗位详情/面试设置/面试房间 5 页，`stores/interview` + `useInterviewRoom` + 原生 `useWebSocket`（1/2/4/8/15s × 8 重连、4401 不重连、断线 2s 轮询）+ `useCountdown` + `useInterviewCapabilities` + `utils/round/draft` + 7 个 interview 组件；文字作答支持 IME、Ctrl/Cmd+Enter、乐观气泡、失败保留、10005 刷新、草稿恢复；finish/abort 二次确认与 FINISHED/TIMEOUT/ABORTED 终态；`lint/type-check` 0/0、单测 **91/91**（19 文件，F2 新增 57）、coverage 59.32%、build 成功、Playwright E2E **6/6**（首页导航/首页接口降级/文字闭环+刷新/中止+终态刷新/跨标签页结束/WS 断线轮询）；1440/1024/768/390 无横向滚动、0 pageerror；12 张截图；登记 D39/D40、P16（按钮样式修复）/P17（测试数据清理）；demo01 历史恢复 7 场；F2 ✅，下一里程碑 F3 报告+历史 | ZCode（F2 开发会话） |
 | 2026-10-17 | **F1 视觉升级（计划 v1.1 液态玻璃）**：新增 `AppBackdrop`（渐变 + 4 光斑 + 网格 + 颗粒）与 `GlassPanel`（blur/saturate/高光/多层阴影）；改造认证页品牌区/表单卡片、Student/Admin Shell 侧栏顶栏、403/404、ErrorState/TraceIdText/LoadingSkeleton、Element Plus 输入/按钮/下拉/弹窗/MessageBox/离线提示条；新增玻璃设计令牌（§6.7）与视觉规范（§8.3.1）、F1-3 交付与验收项 26、R-F18、D38；提供 `@supports`/`prefers-reduced-transparency`/`prefers-reduced-motion`/打印白底降级，零新增依赖；11 张液态玻璃截图；`lint/type-check/test:unit/build` 复跑全绿 | ZCode（F1 视觉升级会话） |

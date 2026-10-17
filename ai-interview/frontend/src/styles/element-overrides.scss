@@ -84,6 +84,46 @@
     0 1px 0 rgba(255, 255, 255, 0.4) inset;
 }
 
+/* text/plain 变体必须保留透明/浅色底，否则蓝字叠在蓝色渐变上不可读（F2 修复）。 */
+.el-button--primary.is-plain {
+  border-color: rgba(37, 99, 235, 0.32);
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: none;
+  color: var(--color-primary);
+}
+
+.el-button--primary.is-plain:hover,
+.el-button--primary.is-plain:focus-visible {
+  border-color: rgba(37, 99, 235, 0.48);
+  background: rgba(37, 99, 235, 0.14);
+  box-shadow: none;
+  color: var(--color-primary);
+}
+
+.el-button--primary.is-text,
+.el-button--primary.is-link {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-primary);
+}
+
+.el-button--primary.is-text:hover,
+.el-button--primary.is-text:focus-visible,
+.el-button--primary.is-link:hover,
+.el-button--primary.is-link:focus-visible {
+  border-color: transparent;
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: none;
+  color: var(--color-primary-hover);
+}
+
+/* 状态标签不需要 el-zoom-in-center 入场动画：数据刷新/截图时会短暂变透明。 */
+.el-tag.el-zoom-in-center-enter-active,
+.el-tag.el-zoom-in-center-leave-active {
+  transition: none !important;
+}
+
 /* ===== 卡片 / 输入 ===== */
 .el-card {
   --el-card-border-color: var(--glass-border);

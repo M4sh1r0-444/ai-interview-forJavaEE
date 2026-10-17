@@ -7,6 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AnswerComposer: typeof import('./components/interview/AnswerComposer.vue')['default']
     AppBackdrop: typeof import('./components/common/AppBackdrop.vue')['default']
     AppErrorBoundary: typeof import('./components/common/AppErrorBoundary.vue')['default']
     AppPageHeader: typeof import('./components/common/AppPageHeader.vue')['default']
@@ -15,6 +16,7 @@ declare module 'vue' {
     ElButton: typeof import('element-plus/es')['ElButton']
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
+    ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
@@ -24,14 +26,25 @@ declare module 'vue' {
     ElInput: typeof import('element-plus/es')['ElInput']
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
+    ElOption: typeof import('element-plus/es')['ElOption']
+    ElRadioButton: typeof import('element-plus/es')['ElRadioButton']
+    ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
+    ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElSlider: typeof import('element-plus/es')['ElSlider']
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     EmptyState: typeof import('./components/common/EmptyState.vue')['default']
     ErrorState: typeof import('./components/common/ErrorState.vue')['default']
+    FinishConfirmDialog: typeof import('./components/interview/FinishConfirmDialog.vue')['default']
     GlassPanel: typeof import('./components/common/GlassPanel.vue')['default']
     LoadingSkeleton: typeof import('./components/common/LoadingSkeleton.vue')['default']
+    MessageBubble: typeof import('./components/interview/MessageBubble.vue')['default']
+    RoundProgress: typeof import('./components/interview/RoundProgress.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StatusTag: typeof import('./components/interview/StatusTag.vue')['default']
+    TimerBadge: typeof import('./components/interview/TimerBadge.vue')['default']
     TraceIdText: typeof import('./components/common/TraceIdText.vue')['default']
+    WsStatusBadge: typeof import('./components/interview/WsStatusBadge.vue')['default']
   }
 }

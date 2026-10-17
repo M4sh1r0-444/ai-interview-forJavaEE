@@ -7,7 +7,7 @@
 
 ## 1. 项目简介
 
-面向学生求职场景的 **AI 模拟面试与能力提升平台**（当前交付后端）。学生选择目标岗位后，系统自动组卷并驱动大模型进行**多轮模拟面试**（支持动态追问、追问难度/提示强度自适应；主问题在组卷时按目标难度一次锁定、回答期间不漂移），面试结束后产出**六维评估报告**，并基于能力短板给出**学习资源推荐与成长曲线**。
+面向学生求职场景的 **AI 模拟面试与能力提升平台**（当前交付后端 M1~M6 + 前端 F2）。学生选择目标岗位后，系统自动组卷并驱动大模型进行**多轮模拟面试**（支持动态追问、追问难度/提示强度自适应；主问题在组卷时按目标难度一次锁定、回答期间不漂移），面试结束后产出**六维评估报告**，并基于能力短板给出**学习资源推荐与成长曲线**。
 
 业务闭环：
 
@@ -41,7 +41,7 @@
 | 实时 | Spring WebSocket | 面试过程推送 |
 | AI | OpenAI 兼容 Chat API / Mock | 默认 `ai.provider=mock` 离线可演示；qwen 模式含三级容错 |
 | HTTP 客户端 | Spring WebClient | 调用大模型（30s 超时、API Key 日志脱敏） |
-| 前端 | Vue 3.5 + TypeScript + Vite 5 + Element Plus + Pinia + Vue Router + Axios | F1 基座/认证/布局 + 液态玻璃视觉体系已交付；F2~F6 业务页面按计划推进 |
+| 前端 | Vue 3.5 + TypeScript + Vite 5 + Element Plus + Pinia + Vue Router + Axios | F1 基座/认证/布局 + F2 面试主流程（首页/岗位/设置/文字房间/WS/倒计时）已交付；F3~F6 按计划推进 |
 | 迁移 | Flyway | V1 建表 + V2~V6 种子数据 |
 | 构建 | Maven 3.9 | |
 
@@ -60,7 +60,7 @@
     ├── docker-compose.offline.yml   # 离线（断网）演练叠加编排（M6-6.4）
     ├── .env(.example)               # 部署环境变量（AI_PROVIDER/AI_API_KEY 等）
     ├── nginx/nginx.conf             # 静态页 + /api 反代 + /ws 升级
-    ├── frontend/                    # Vue3 工程（F1 已完成）：Vite + TS + Element Plus；F2~F6 按计划推进
+    ├── frontend/                    # Vue3 工程（F2 已完成）：Vite + TS + Element Plus；F3~F6 按计划推进
     ├── 答辩演示脚本.md              # 方案 §19 15 步逐条映射（M6-6.6）
     ├── qa/                          # 质量与演练脚本（AI 抽测 / 离线演练 + 结果留存）
     └── backend/                     # Spring Boot 后端（10 个业务包 + common）
@@ -83,7 +83,7 @@
             └── main/resources/db/migration/  # Flyway V1~V6
 ```
 
-## 4. 当前进度（后端 6/6；前端 F1 已完成）
+## 4. 当前进度（后端 6/6；前端 F2 已完成）
 
 > 实时进度以 [`开发计划/AI模拟面试与能力提升平台_进度记录.md`](开发计划/AI模拟面试与能力提升平台_进度记录.md) 为准。
 > 前端执行计划见 [`开发计划/AI模拟面试与能力提升平台_前端开发计划.md`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md)。
@@ -97,7 +97,8 @@
 | M5 | 个性化（掌握度/成长/推荐）+ 管理端补全 | ✅ 2026-10-15 |
 | M6 | 全量测试 + Docker 部署 + 验收 | ✅ 2026-10-15 |
 | F1 | 前端工程基座 + 认证 + 应用外壳（含液态玻璃） | ✅ 2026-10-17 |
-| F2~F6 | Vue3 业务页面（学生端 12 页 + 管理端 7 页） | 🔧 F2 待开始 |
+| F2 | 前端面试主流程（首页/岗位/设置/文字房间/WS/倒计时/finish-abort） | ✅ 2026-10-17 |
+| F3~F6 | Vue3 业务页面（报告/历史/语音/成长/推荐/个人中心/管理端/质量部署） | 🔧 F3 待开始 |
 
 **当前已交付（M1~M6 全部）：**
 
@@ -115,7 +116,9 @@
 
 **前端 F1（2026-10-17）**：Vue3 工程 + 认证/守卫 + Student/Admin/Auth 三布局 + 403/404 + 液态玻璃视觉基座（`AppBackdrop`/`GlassPanel`/Element Plus 玻璃化/打印与无障碍降级）；`lint/type-check/34 单测/build` 全绿，验收记录见 [`frontend/docs/F1-验收记录.md`](ai-interview/frontend/docs/F1-验收记录.md)。
 
-**后续工作**：在已交付的 F1 工程基座上，按 [`前端开发计划`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md) 继续 F2（首页/岗位/设置/房间/WS/倒计时）→ F3（报告/历史）→ F4/F5 → F6；F6-4 修复前端产物卷（P9）、F6-5 修正演示脚本（P10）、F6-6 清理开发库测试残留（P11）；其余后端开发计划任务已全部交付。
+**前端 F2（2026-10-17）**：首页/岗位列表/岗位详情/面试设置/文字面试房间 5 页替换占位；`stores/interview` 唯一事实源 + `useInterviewRoom` 编排 + 原生 WS（指数退避、4401、断线轮询）+ 倒计时校准 + 文字作答（IME/Ctrl+Enter/乐观气泡/草稿/10005 刷新）+ finish/abort 二次确认与终态；`lint/type-check/91 单测/coverage/build` 全绿，Playwright E2E **6/6**（含首页接口降级、跨标签页结束与 WS 断线轮询），验收记录与 12 张截图见 [`frontend/docs/F2-验收记录.md`](ai-interview/frontend/docs/F2-验收记录.md)。
+
+**后续工作**：按 [`前端开发计划`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md) 继续 F3（报告/历史）→ F4（语音/成长/推荐/个人中心）→ F5（管理端）→ F6（质量/部署/验收）；F6-4 修复前端产物卷（P9）、F6-5 修正演示脚本（P10）、F6-6 清理开发库测试残留（P11）；其余后端开发计划任务已全部交付。
 
 ## 5. 快速开始
 
@@ -137,14 +140,16 @@ curl http://127.0.0.1:8080/actuator/health
 
 种子账号：`admin / Admin@123456`（管理员）、`demo01 / 123456`（演示学生）。
 
-前端（F1 已交付，v1.1 液态玻璃；详见 [`ai-interview/frontend/docs/F1-验收记录.md`](ai-interview/frontend/docs/F1-验收记录.md)）：
+前端（F2 已交付，v1.1 液态玻璃；详见 [`ai-interview/frontend/docs/F2-验收记录.md`](ai-interview/frontend/docs/F2-验收记录.md)）：
 
 ```bash
 cd ai-interview/frontend
 npm install
 npm run dev       # http://127.0.0.1:5173；/api 与 /ws 代理到 127.0.0.1:8080
 # 若后端跑在 18080：echo 'VITE_PROXY_TARGET=http://127.0.0.1:18080' > .env.development.local
-# 质量门禁：npm run lint && npm run type-check && npm run test:unit && npm run build
+# 质量门禁：npm run lint && npm run type-check && npm run test:coverage && npm run build
+# F2 E2E（需后端可达；globalSetup 会校验 health 并单次登录 demo01）：
+npm run test:e2e
 ```
 
 核心流程演示（详见 `ai-interview/backend/api.http`，用例 1~32）：

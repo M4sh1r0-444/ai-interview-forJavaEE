@@ -17,3 +17,4 @@ blob-report/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+e2e/.auth/
