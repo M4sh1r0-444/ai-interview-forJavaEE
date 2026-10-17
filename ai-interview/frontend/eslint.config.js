@@ -58,6 +58,18 @@ export default tseslint.config(
     },
   },
   {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+  {
     files: ['**/*.spec.ts', 'src/test/**/*.ts', 'e2e/**/*.ts'],
     languageOptions: {
       globals: {

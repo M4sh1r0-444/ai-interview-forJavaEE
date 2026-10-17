@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import * as interviewApi from '@/api/interview'
 import { BizError, isBizError } from '@/api/http'
 import type {
+  AudioAnswerPayload,
   FinishAccepted,
   InterviewDetailVO,
   MessageVO,
@@ -17,6 +18,7 @@ import type {
   TranscriptPayload,
   WsEnvelope,
 } from '@/types/ws'
+import { validateAudioAnswer } from '@/utils/audio'
 import {
   computeAwaitingAnswer,
   computeDisplayRound,
@@ -299,6 +301,87 @@ export const useInterviewStore = defineStore('interview', () => {
     }
   }
 
+  /**
+   * 音频回答（F4-3）：先做与后端同口径的本地校验，再 multipart 提交。
+   * 成功后与文字回答共用"PROCESSING_AI → WS/轮询对账"路径；失败保留 blob 与转写由页面重试。
+   */
+  async function submitAudio(
+    payload: Omit<AudioAnswerPayload, 'roundNo'>,
+  ): Promise<SubmitAccepted> {
+    const id = requireSessionId()
+    const current = detail.value
+    if (!current || !canSubmit.value) {
+      throw new BizError(10005, '当前状态不可作答，请等待最新状态')
+    }
+    const problem = validateAudioAnswer({
+      blob: payload.file,
+      durationMs: payload.durationMs,
+      asrText: payload.asrText,
+    })
+    if (problem) {
+      throw new BizError(40001, problem)
+    }
+
+    const roundNo = current.currentRound
+    const asrText = payload.asrText.trim()
+    submitting.value = true
+    submitError.value = null
+    optimistic.value = {
+      message: {
+        id: -Date.now(),
+        sessionId: id,
+        roundNo,
+        speaker: 'USER',
+        inputType: 'AUDIO',
+        contentText: asrText,
+        asrText,
+        audioDurationMs: payload.durationMs,
+        createdAt: new Date().toISOString(),
+      },
+      state: 'pending',
+    }
+
+    try {
+      const accepted = await interviewApi.submitAudioAnswer(id, {
+        ...payload,
+        asrText,
+        roundNo,
+      })
+      if (optimistic.value) optimistic.value.state = 'sent'
+      if (detail.value) {
+        detail.value = { ...detail.value, status: 'PROCESSING_AI' }
+      }
+      aiThinking.value = true
+      invalidateInFlight()
+      try {
+        await refresh({ silent: true })
+      } catch {
+        // 受理成功但刷新失败：轮询会继续对账并带出服务端音频消息
+      }
+      return accepted
+    } catch (error) {
+      if (optimistic.value) optimistic.value.state = 'failed'
+      submitError.value = error
+      if (
+        isBizError(error) &&
+        (error.code === 10005 || error.code === 40002 || error.code === -1)
+      ) {
+        invalidateInFlight()
+        try {
+          await refresh({ silent: true })
+        } catch {
+          // 网络仍不可用，保留失败气泡与录音
+        }
+      }
+      if (detail.value?.status !== 'PROCESSING_AI') {
+        aiThinking.value = false
+      }
+      throw error
+    } finally {
+      submitting.value = false
+    }
+  }
+
   async function finish(): Promise<FinishAccepted> {
     const id = requireSessionId()
     if (finishing.value) {
@@ -459,6 +542,7 @@ export const useInterviewStore = defineStore('interview', () => {
     refresh,
     start,
     submitText,
+    submitAudio,
     finish,
     abort,
     applyWsEvent,

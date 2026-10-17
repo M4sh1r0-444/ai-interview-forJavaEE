@@ -12,6 +12,7 @@ vi.mock('@/api/interview', () => ({
   getMessages: vi.fn(),
   startInterview: vi.fn(),
   submitTextAnswer: vi.fn(),
+  submitAudioAnswer: vi.fn(),
   finishInterview: vi.fn(),
   abortInterview: vi.fn(),
 }))
@@ -151,6 +152,91 @@ describe('interview store', () => {
     expect(mocked.submitTextAnswer).toHaveBeenCalledTimes(1)
   })
 
+  it('音频提交：本地校验 → multipart 受理 → 乐观气泡对账', async () => {
+    const store = useInterviewStore()
+    store.sessionId = 1
+    store.detail = detail({ mode: 'AUDIO' })
+    store.messages = [message('AI', 0, '请用语音回答')]
+
+    mocked.submitAudioAnswer.mockResolvedValue({ accepted: true, roundNo: 0 })
+    mocked.getInterview.mockResolvedValue(detail({ mode: 'AUDIO', status: 'PROCESSING_AI' }))
+    const audioMessage = {
+      ...message('USER', 0, '我的语音回答'),
+      inputType: 'AUDIO' as const,
+      asrText: '我的语音回答',
+    }
+    mocked.getMessages.mockResolvedValue([message('AI', 0, '请用语音回答'), audioMessage])
+
+    const file = new Blob([new Uint8Array(1024)], { type: 'audio/webm' })
+    const accepted = await store.submitAudio({
+      file,
+      asrText: '  我的语音回答  ',
+      durationMs: 30_000,
+      pauseCount: 1,
+    })
+    await flushPromises()
+
+    expect(accepted.accepted).toBe(true)
+    expect(mocked.submitAudioAnswer).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        roundNo: 0,
+        asrText: '我的语音回答',
+        durationMs: 30_000,
+        pauseCount: 1,
+      }),
+    )
+    expect(store.submitting).toBe(false)
+    expect(store.optimistic).toBeNull()
+    expect(store.aiThinking).toBe(true)
+    expect(store.detail?.status).toBe('PROCESSING_AI')
+  })
+
+  it('音频提交前校验：转写为空/录音超限不发请求', async () => {
+    const store = useInterviewStore()
+    store.sessionId = 1
+    store.detail = detail({ mode: 'AUDIO' })
+    store.messages = [message('AI', 0)]
+
+    await expect(
+      store.submitAudio({
+        file: new Blob([new Uint8Array(10)]),
+        asrText: '   ',
+        durationMs: 1000,
+      }),
+    ).rejects.toMatchObject({ code: 40001 })
+
+    await expect(
+      store.submitAudio({
+        file: new Blob([new Uint8Array(10)]),
+        asrText: '回答',
+        durationMs: 600_001,
+      }),
+    ).rejects.toMatchObject({ code: 40001 })
+    expect(mocked.submitAudioAnswer).not.toHaveBeenCalled()
+  })
+
+  it('音频提交失败保留失败气泡与录音，不自动重发', async () => {
+    const store = useInterviewStore()
+    store.sessionId = 1
+    store.detail = detail({ mode: 'AUDIO' })
+    store.messages = [message('AI', 0)]
+
+    mocked.submitAudioAnswer.mockRejectedValue(new BizError(50001, '上传失败', 'trace-audio'))
+    await expect(
+      store.submitAudio({
+        file: new Blob([new Uint8Array(10)]),
+        asrText: '回答',
+        durationMs: 2000,
+      }),
+    ).rejects.toMatchObject({ code: 50001 })
+
+    expect(store.optimistic?.state).toBe('failed')
+    expect(store.optimistic?.message.inputType).toBe('AUDIO')
+    expect(store.submitError).toMatchObject({ code: 50001 })
+    expect(mocked.submitAudioAnswer).toHaveBeenCalledTimes(1)
+  })
+
   it('applyWsEvent 更新状态、轮次、剩余时间与错误', () => {
     const store = useInterviewStore()
     store.detail = detail()
@@ -193,6 +279,20 @@ describe('interview store', () => {
     })
     expect(store.lastWsError?.message).toBe('AI 繁忙')
     expect(store.lastWsEventAt).toBeGreaterThan(0)
+  })
+
+  it('TRANSCRIPT 事件按 messageId 回填转写文本', () => {
+    const store = useInterviewStore()
+    const audioMessage = { ...message('USER', 0, '初始转写'), inputType: 'AUDIO' as const }
+    store.messages = [message('AI', 0), audioMessage]
+
+    store.applyWsEvent({
+      type: 'TRANSCRIPT',
+      payload: { messageId: audioMessage.id, asrText: '服务端校正后的转写' },
+      ts: 5,
+    })
+    expect(store.messages[1].asrText).toBe('服务端校正后的转写')
+    expect(store.messages[0].asrText).toBeUndefined()
   })
 
   it('finish 后将状态推进到终态并刷新', async () => {

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useInterviewStore } from '@/stores/interview'
 import { useCountdown } from '@/composables/useCountdown'
 import { useWebSocket } from '@/composables/useWebSocket'
+import type { AudioAnswerPayload } from '@/types/interview'
 import type { ErrorPayload, TimerPayload, WsEnvelope } from '@/types/ws'
 import { notifyAuthExpired } from '@/utils/authSession'
 import { ERROR_CODE_MESSAGES } from '@/utils/constants'
@@ -403,6 +404,25 @@ export function useInterviewRoom(sessionId: Ref<number>) {
     }
   }
 
+  /** 音频回答（F4-3）：与文字共用受理/对账/轮询；失败保留录音与转写。 */
+  async function submitAudio(payload: Omit<AudioAnswerPayload, 'roundNo'>): Promise<boolean> {
+    if (!canAnswer.value) return false
+    submitError.value = ''
+    actionError.value = ''
+    try {
+      await store.submitAudio(payload)
+      if (store.detail?.status === 'PROCESSING_AI') startAiPolling()
+      if (wsState.value !== 'open') startFallbackPolling()
+      return true
+    } catch (error) {
+      submitError.value = errorText(error)
+      if (isBizError(error) && (error.code === 10005 || error.code === 40002)) {
+        await syncAndResume()
+      }
+      return false
+    }
+  }
+
   async function finishRoom(): Promise<void> {
     actionError.value = ''
     try {
@@ -568,6 +588,7 @@ export function useInterviewRoom(sessionId: Ref<number>) {
     retryLoad,
     retryStart,
     submitAnswer,
+    submitAudio,
     finishRoom,
     abortRoom,
     leaveRoom,

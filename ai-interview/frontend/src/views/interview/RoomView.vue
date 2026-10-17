@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import {
   ArrowDown,
   CircleCheck,
@@ -8,18 +8,21 @@ import {
   SwitchButton,
   WarningFilled,
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { errorMessage, isBizError } from '@/api/http'
 import ErrorState from '@/components/common/ErrorState.vue'
 import GlassPanel from '@/components/common/GlassPanel.vue'
 import AnswerComposer from '@/components/interview/AnswerComposer.vue'
+import AudioAnswerPanel from '@/components/interview/AudioAnswerPanel.vue'
 import FinishConfirmDialog from '@/components/interview/FinishConfirmDialog.vue'
 import MessageBubble from '@/components/interview/MessageBubble.vue'
 import RoundProgress from '@/components/interview/RoundProgress.vue'
 import StatusTag from '@/components/interview/StatusTag.vue'
 import TimerBadge from '@/components/interview/TimerBadge.vue'
 import WsStatusBadge from '@/components/interview/WsStatusBadge.vue'
+import { useAudioReplay } from '@/composables/useAudioReplay'
+import { useInterviewCapabilities } from '@/composables/useInterviewCapabilities'
 import { useInterviewRoom } from '@/composables/useInterviewRoom'
 import { useInterviewStore } from '@/stores/interview'
 import { INTERVIEW_MODE_LABELS } from '@/utils/constants'
@@ -54,6 +57,7 @@ const {
   retryLoad,
   retryStart,
   submitAnswer,
+  submitAudio,
   finishRoom,
   abortRoom,
   leaveRoom,
@@ -64,6 +68,8 @@ const finishDialogOpen = ref(false)
 const abortDialogOpen = ref(false)
 const chatList = ref<HTMLElement | null>(null)
 const composerRef = ref<{ focus?: () => void } | null>(null)
+const audioPanelRef = ref<InstanceType<typeof AudioAnswerPanel> | null>(null)
+const capabilities = useInterviewCapabilities()
 const nearBottom = ref(true)
 const hasNewMessages = ref(false)
 
@@ -81,7 +87,8 @@ const showReportEntry = computed(
   () => store.isTerminal && (detailStatus.value === 'FINISHED' || detailStatus.value === 'TIMEOUT'),
 )
 const showRestartEntry = computed(() => detailStatus.value === 'ABORTED')
-const modeNotice = computed(() => store.detail?.mode === 'AUDIO')
+const isAudioMode = computed(() => store.detail?.mode === 'AUDIO')
+const audioReady = computed(() => capabilities.audioSupported)
 
 function updateNearBottom(): void {
   const el = chatList.value
@@ -99,9 +106,26 @@ function scrollToBottom(behavior: ScrollBehavior = 'smooth'): void {
 }
 
 function focusComposer(): void {
-  // 移动端不自动聚焦，避免键盘/滚动把首题顶出屏幕；桌面端聚焦提升连续作答效率。
+  // 语音模式不自动聚焦输入框；移动端不自动聚焦，避免键盘把首题顶出屏幕。
+  if (isAudioMode.value) return
   if (window.innerWidth < 900) return
   void nextTick(() => composerRef.value?.focus?.())
+}
+
+const {
+  playingRound,
+  loadingRound,
+  error: replayError,
+  replay: replayAudio,
+  stop: stopAudioReplay,
+} = useAudioReplay(sessionId)
+
+function handleReplay(messageId: number, roundNo: number): void {
+  void replayAudio(roundNo, messageId)
+}
+
+function isReplayable(messageId: number, audioPath?: string | null): boolean {
+  return Boolean(audioPath) && messageId > 0
 }
 
 async function confirmFinish(): Promise<void> {
@@ -116,11 +140,14 @@ async function confirmAbort(): Promise<void> {
 
 function openFinish(): void {
   actionError.value = ''
+  // 录音中结束面试：先停止录音，避免 MediaStream 与提交竞态；未提交录音保留在面板中
+  audioPanelRef.value?.stopRecording()
   finishDialogOpen.value = true
 }
 
 function openAbort(): void {
   actionError.value = ''
+  audioPanelRef.value?.stopRecording()
   abortDialogOpen.value = true
 }
 
@@ -147,6 +174,67 @@ function goHistory(): void {
 function handleAnswerSubmit(): void {
   void submitAnswer()
 }
+
+async function handleAudioSubmit(payload: {
+  file: Blob
+  asrText: string
+  durationMs: number
+  pauseCount?: number
+}): Promise<void> {
+  const ok = await submitAudio(payload)
+  if (ok) {
+    audioPanelRef.value?.reset()
+    await nextTick()
+    if (nearBottom.value) scrollToBottom('smooth')
+  }
+}
+
+function switchToTextSetup(): void {
+  if (!store.detail) return
+  void router.push({
+    name: 'interview-setup',
+    query: { positionId: String(store.detail.positionId) },
+  })
+}
+
+async function handleLeave(): Promise<void> {
+  if (audioPanelRef.value?.isRecording()) {
+    try {
+      await ElMessageBox.confirm(
+        '正在录音；离开将停止录音，且这一段语音不会提交。',
+        '离开面试房间',
+        {
+          type: 'warning',
+          confirmButtonText: '停止并离开',
+          cancelButtonText: '继续录音',
+        },
+      )
+    } catch {
+      return
+    }
+    audioPanelRef.value.stopRecording()
+  }
+  await leaveRoom()
+}
+
+onBeforeRouteLeave(async () => {
+  if (!audioPanelRef.value?.isRecording()) return true
+  try {
+    await ElMessageBox.confirm(
+      '正在录音；离开将停止录音，且这一段语音不会提交。',
+      '确认离开面试房间',
+      {
+        type: 'warning',
+        confirmButtonText: '停止并离开',
+        cancelButtonText: '继续录音',
+      },
+    )
+  } catch {
+    return false
+  }
+  audioPanelRef.value.stopRecording()
+  return true
+})
 
 watch(
   sessionId,
@@ -181,6 +269,7 @@ watch(
     finishDialogOpen.value = false
     abortDialogOpen.value = false
     hasNewMessages.value = false
+    stopAudioReplay()
     void nextTick(() => scrollToBottom('auto'))
   },
 )
@@ -195,6 +284,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  stopAudioReplay()
   store.reset()
 })
 </script>
@@ -265,7 +355,7 @@ onBeforeUnmount(() => {
             :attempt="wsAttempt"
             @reconnect="reconnect"
           />
-          <el-button text class="room-header__leave" data-testid="room-leave" @click="leaveRoom">
+          <el-button text class="room-header__leave" data-testid="room-leave" @click="handleLeave">
             <el-icon><SwitchButton /></el-icon>
             退出
           </el-button>
@@ -281,6 +371,11 @@ onBeforeUnmount(() => {
             </div>
             <span class="chat__count">{{ store.messages.length }} 条</span>
           </header>
+
+          <p v-if="replayError" class="chat__replay-error" role="alert">
+            <el-icon><WarningFilled /></el-icon>
+            {{ replayError }}
+          </p>
 
           <div
             ref="chatList"
@@ -300,6 +395,10 @@ onBeforeUnmount(() => {
               :key="message.id"
               :message="message"
               :optimistic-state="message.id < 0 ? store.optimistic?.state : null"
+              :replayable="isReplayable(message.id, message.audioPath)"
+              :playing="playingRound === message.roundNo"
+              :loading="loadingRound === message.roundNo"
+              @replay="handleReplay(message.id, message.roundNo)"
             />
 
             <div v-if="store.aiThinking" class="typing" aria-label="AI 正在分析回答">
@@ -394,16 +493,34 @@ onBeforeUnmount(() => {
           </div>
 
           <div v-else class="answer-panel__body">
-            <p v-if="modeNotice" class="mode-notice">
-              本场为语音面试。录音与转写界面将在 F4 接入，当前可先用文字完成本场；报告不会伪造 voice
-              维度。
+            <p v-if="wsState !== 'open'" class="sync-notice">
+              实时连接不可用，正在用轮询同步状态；你仍然可以正常{{
+                isAudioMode ? '录音并提交语音' : '提交文字'
+              }}回答。
             </p>
 
-            <p v-if="wsState !== 'open'" class="sync-notice">
-              实时连接不可用，正在用轮询同步状态；你仍然可以正常提交文字回答。
-            </p>
+            <template v-if="isAudioMode">
+              <div v-if="!audioReady" class="mode-notice" data-testid="audio-unsupported-room">
+                <p>
+                  <el-icon><WarningFilled /></el-icon>
+                  当前浏览器不支持录音（{{ capabilities.audioDisabledReason }}）。语音面试需要
+                  MediaRecorder 与麦克风权限，请改用 Chrome / Edge，或新建一场文字面试。
+                </p>
+                <el-button size="small" type="primary" plain @click="switchToTextSetup">
+                  去设置页新建文字面试
+                </el-button>
+              </div>
+              <AudioAnswerPanel
+                v-else
+                ref="audioPanelRef"
+                :disabled="!canAnswer"
+                :submitting="store.submitting"
+                @submit="handleAudioSubmit"
+              />
+            </template>
 
             <AnswerComposer
+              v-else
               ref="composerRef"
               v-model="answerDraft"
               :disabled="!canAnswer"
@@ -633,6 +750,18 @@ onBeforeUnmount(() => {
   font-size: var(--font-size-xs);
 }
 
+.chat__replay-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: var(--space-2) var(--space-5);
+  border-bottom: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(254, 242, 242, 0.68);
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+}
+
 .chat__list {
   display: flex;
   flex: 1;
@@ -812,6 +941,22 @@ onBeforeUnmount(() => {
   color: var(--color-warning);
   font-size: var(--font-size-xs);
   line-height: 1.6;
+}
+
+.mode-notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mode-notice p {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.mode-notice :deep(.el-button) {
+  align-self: flex-start;
 }
 
 .sync-notice {

@@ -85,6 +85,13 @@ const queryPositionId = computed(() => {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null
 })
 
+/** 推荐页"按建议开始下一场"带过来的建议难度（1~5）；非法值忽略。 */
+const queryDifficulty = computed(() => {
+  const raw = route.query.difficulty
+  const parsed = typeof raw === 'string' ? Number(raw) : Number.NaN
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 5 ? parsed : null
+})
+
 function clampRounds(value: number): number {
   const safe = Number.isFinite(value) ? Math.round(value) : INTERVIEW_LIMITS.minRounds
   return Math.min(INTERVIEW_LIMITS.maxRounds, Math.max(INTERVIEW_LIMITS.minRounds, safe))
@@ -109,6 +116,7 @@ async function loadPosition(id: number, options: { syncRoute?: boolean } = {}): 
     const clamped = clampRounds(nextPosition.defaultRounds)
     form.rounds = clamped
     roundsAdjusted.value = clamped !== nextPosition.defaultRounds
+    if (queryDifficulty.value != null) form.difficulty = queryDifficulty.value
 
     if (form.mode === 'AUDIO' && audioDisabled.value) {
       form.mode = 'TEXT'

@@ -47,6 +47,27 @@ describe('MessageBubble', () => {
     expect(wrapper.text()).toContain('发送失败，内容已保留')
   })
 
+  it('AUDIO 消息展示回放按钮并可派发 replay', async () => {
+    const wrapper = mount(MessageBubble, {
+      props: {
+        message: message({
+          speaker: 'USER',
+          inputType: 'AUDIO',
+          contentText: '语音回答',
+          audioPath: 'audio/202610/abc.webm',
+          audioDurationMs: 30_000,
+        }),
+        replayable: true,
+      },
+    })
+    expect(wrapper.get('[data-testid="message-replay-1"]').text()).toContain('回放录音')
+    await wrapper.get('[data-testid="message-replay-1"]').trigger('click')
+    expect(wrapper.emitted('replay')).toHaveLength(1)
+
+    await wrapper.setProps({ playing: true })
+    expect(wrapper.get('[data-testid="message-replay-1"]').text()).toContain('回放中')
+  })
+
   it('AUDIO 消息展示语音标记、转写与录音时长', () => {
     const wrapper = mount(MessageBubble, {
       props: {

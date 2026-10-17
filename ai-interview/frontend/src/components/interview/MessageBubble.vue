@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Microphone, UserFilled } from '@element-plus/icons-vue'
+import { Headset, Microphone, UserFilled } from '@element-plus/icons-vue'
 
 import type { OptimisticState } from '@/stores/interview'
 import type { MessageVO } from '@/types/interview'
@@ -10,9 +10,17 @@ const props = withDefaults(
   defineProps<{
     message: MessageVO
     optimisticState?: OptimisticState | null
+    /** AUDIO 且服务端已有 audioPath 时可回放（F4-3） */
+    replayable?: boolean
+    playing?: boolean
+    loading?: boolean
   }>(),
-  { optimisticState: null },
+  { optimisticState: null, replayable: false, playing: false, loading: false },
 )
+
+defineEmits<{
+  replay: []
+}>()
 
 const isAi = computed(() => props.message.speaker === 'AI')
 const isAudio = computed(() => props.message.inputType === 'AUDIO')
@@ -69,6 +77,19 @@ const statusText = computed(() => {
       <p v-if="isAudio && message.audioDurationMs" class="bubble__audio-duration">
         录音时长 {{ formatDurationMs(message.audioDurationMs) }}
       </p>
+
+      <div v-if="isAudio && replayable" class="bubble__replay">
+        <el-button
+          text
+          size="small"
+          :loading="loading"
+          :data-testid="`message-replay-${message.id}`"
+          @click="$emit('replay')"
+        >
+          <el-icon><Headset /></el-icon>
+          {{ playing ? '回放中…' : '回放录音' }}
+        </el-button>
+      </div>
 
       <p v-if="statusText" class="bubble__status" :class="`bubble__status--${optimisticState}`">
         {{ statusText }}
@@ -185,6 +206,16 @@ const statusText = computed(() => {
 .bubble__audio-duration {
   margin-top: 8px;
   color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.bubble__replay {
+  margin-top: 4px;
+}
+
+.bubble__replay :deep(.el-button) {
+  padding-left: 0;
+  color: var(--color-primary);
   font-size: var(--font-size-xs);
 }
 

@@ -12,6 +12,8 @@ declare module 'vue' {
     AppErrorBoundary: typeof import('./components/common/AppErrorBoundary.vue')['default']
     AppPageHeader: typeof import('./components/common/AppPageHeader.vue')['default']
     AppShell: typeof import('./components/layout/AppShell.vue')['default']
+    AudioAnswerPanel: typeof import('./components/interview/AudioAnswerPanel.vue')['default']
+    AudioRecorder: typeof import('./components/interview/AudioRecorder.vue')['default']
     DimensionBars: typeof import('./components/report/DimensionBars.vue')['default']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -44,6 +46,7 @@ declare module 'vue' {
     EvidenceAccordion: typeof import('./components/report/EvidenceAccordion.vue')['default']
     FinishConfirmDialog: typeof import('./components/interview/FinishConfirmDialog.vue')['default']
     GlassPanel: typeof import('./components/common/GlassPanel.vue')['default']
+    GrowthLineChart: typeof import('./components/charts/GrowthLineChart.vue')['default']
     LoadingSkeleton: typeof import('./components/common/LoadingSkeleton.vue')['default']
     MessageBubble: typeof import('./components/interview/MessageBubble.vue')['default']
     PaginationBar: typeof import('./components/common/PaginationBar.vue')['default']
@@ -55,6 +58,7 @@ declare module 'vue' {
     StatusTag: typeof import('./components/interview/StatusTag.vue')['default']
     TimerBadge: typeof import('./components/interview/TimerBadge.vue')['default']
     TraceIdText: typeof import('./components/common/TraceIdText.vue')['default']
+    TranscriptPanel: typeof import('./components/interview/TranscriptPanel.vue')['default']
     WsStatusBadge: typeof import('./components/interview/WsStatusBadge.vue')['default']
   }
 }

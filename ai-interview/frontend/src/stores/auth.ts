@@ -83,12 +83,17 @@ export const useAuthStore = defineStore('auth', () => {
     return res.user
   }
 
+  /** 用服务端返回的最新 UserVO 更新内存态与持久化（资料修改后避免整页刷新）。 */
+  function applyUser(next: UserVO): void {
+    user.value = next
+    if (token.value) {
+      setSession({ token: token.value, expiresAt: expiresAt.value, user: next })
+    }
+  }
+
   async function fetchMe(): Promise<UserVO> {
     const me = await authApi.getMe()
-    user.value = me
-    if (token.value) {
-      setSession({ token: token.value, expiresAt: expiresAt.value, user: me })
-    }
+    applyUser(me)
     return me
   }
 
@@ -154,6 +159,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     fetchMe,
+    applyUser,
     restore,
     clear,
     ensureFresh,

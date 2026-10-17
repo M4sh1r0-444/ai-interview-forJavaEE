@@ -26,6 +26,16 @@ export default defineConfig({
     locale: 'zh-CN',
     timezoneId: 'Asia/Shanghai',
     viewport: { width: 1440, height: 900 },
+    // F4-7：优先尝试 Chromium 假设备/自动授权；本机 macOS 下 getUserMedia 仍可能超时，
+    // E2E 最终以 audio-flow.spec.ts 的 addInitScript 注入假 MediaStream 兜底（P19）。
+    permissions: ['microphone'],
+    launchOptions: {
+      args: [
+        '--use-fake-device-for-media-stream',
+        '--use-fake-ui-for-media-stream',
+        '--autoplay-policy=no-user-gesture-required',
+      ],
+    },
   },
   projects: [
     {
