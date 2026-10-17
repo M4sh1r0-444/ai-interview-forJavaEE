@@ -9,10 +9,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -30,7 +32,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 面试 WebSocket：ws://host/ws/interviews/{sessionId}?token=&lt;jwt&gt;（计划 §5.6 / §7-3 R7）。
  * 浏览器 WS 不能自定义 Header，连接时用 query token 鉴权（验签 + 黑名单 + 会话归属），
  * 失败立即 close(4401)。同一会话允许多连接（刷新页面），推送遍历全部连接。
- * 心跳：服务端 30s PING，60s 无 PONG 踢除。
+ * 心跳（FIX-03）：服务端周期发 PING，客户端协议层自动回 PONG 刷新存活；
+ * 超过 pong-timeout 无 PONG 才 close(4408 心跳超时)，与鉴权失败 4401 区分。
  */
 @Slf4j
 @Component
@@ -38,8 +41,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class InterviewWebSocketHandler extends TextWebSocketHandler {
 
     public static final CloseStatus UNAUTHORIZED = new CloseStatus(4401, "unauthorized");
+    /** 心跳超时（区别于鉴权失败的 4401；FIX-03） */
+    public static final CloseStatus HEARTBEAT_TIMEOUT = new CloseStatus(4408, "heartbeat timeout");
 
-    private static final long PONG_TIMEOUT_MILLIS = 60_000;
+    /** 无 PONG 判定超时的时长，app.websocket.pong-timeout-ms 配置（默认 60s） */
+    @Value("${app.websocket.pong-timeout-ms:60000}")
+    long pongTimeoutMillis;
 
     /** sessionId → 该会话的全部连接（注册表） */
     private final Map<Long, Set<WebSocketSession>> registry = new ConcurrentHashMap<>();
@@ -54,7 +61,7 @@ public class InterviewWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession ws) throws Exception {
         Long sessionId = parseSessionId(ws.getUri());
         if (sessionId == null || !authorize(ws, sessionId)) {
-            safeClose(ws);
+            safeClose(ws, UNAUTHORIZED);
             return;
         }
         registry.computeIfAbsent(sessionId, k -> new CopyOnWriteArraySet<>()).add(ws);
@@ -118,19 +125,43 @@ public class InterviewWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    /** 服务端心跳：30s PING，60s 无 PONG 踢除注册表（计划 §5.6）。 */
-    @Scheduled(fixedDelay = 30_000)
+    /** 服务端心跳（FIX-03）：周期向所有存活连接发 PING；超过 pong-timeout 无 PONG 才 close(4408)。 */
+    @Scheduled(fixedDelayString = "${app.websocket.heartbeat-interval-ms:30000}")
     public void heartbeat() {
         long now = System.currentTimeMillis();
         lastAlive.forEach((wsId, last) -> {
-            if (now - last > PONG_TIMEOUT_MILLIS) {
-                registry.values().forEach(set -> set.stream()
-                        .filter(ws -> wsId.equals(ws.getId()) && ws.isOpen())
-                        .findFirst()
-                        .ifPresent(this::safeClose));
+            WebSocketSession ws = findOpenSession(wsId);
+            if (ws == null) {
+                lastAlive.remove(wsId); // 连接已不在注册表（异常路径兜底）
+                return;
+            }
+            long idle = now - last;
+            if (idle > pongTimeoutMillis) {
+                log.info("WS 心跳超时关闭 wsId={} 空闲={}ms", wsId, idle);
                 lastAlive.remove(wsId);
+                safeClose(ws, HEARTBEAT_TIMEOUT);
+                return;
+            }
+            try {
+                // WebSocketSession 非线程安全：同一连接串行发送
+                synchronized (ws) {
+                    ws.sendMessage(new PingMessage());
+                }
+            } catch (IOException e) {
+                log.warn("WS PING 发送失败 wsId={}: {}", wsId, e.getMessage());
             }
         });
+    }
+
+    private WebSocketSession findOpenSession(String wsId) {
+        for (Set<WebSocketSession> set : registry.values()) {
+            for (WebSocketSession ws : set) {
+                if (wsId.equals(ws.getId())) {
+                    return ws.isOpen() ? ws : null;
+                }
+            }
+        }
+        return null;
     }
 
     /** 连接鉴权：token 验签 + Redis 黑名单 + 会话归属（学生本人或 ADMIN）。 */
@@ -190,9 +221,9 @@ public class InterviewWebSocketHandler extends TextWebSocketHandler {
         return null;
     }
 
-    private void safeClose(WebSocketSession ws) {
+    private void safeClose(WebSocketSession ws, CloseStatus status) {
         try {
-            ws.close(UNAUTHORIZED);
+            ws.close(status);
         } catch (IOException ignored) {
             // 连接已断开
         }

@@ -46,6 +46,9 @@ ai:
 
 app:
   upload-dir: ${UPLOAD_DIR:./uploads}  # 音频存储目录（prod 指向挂载卷 /app/uploads）
+  websocket:                           # WS 心跳（FIX-03）：周期 PING，无 PONG 超时关闭(4408)
+    heartbeat-interval-ms: 30000
+    pong-timeout-ms: 60000
   security:
     login-rate-limit-per-minute: 5     # 登录限流：每 IP 每分钟次数（计划 §7 补充）
   interview:
