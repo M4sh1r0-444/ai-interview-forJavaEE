@@ -1,7 +1,6 @@
-# 前端构建服务（计划 §10.1：构建期一次性容器，产物交 frontend-dist 卷给 Nginx）。
-# 当前为占位静态页（真实 Vue3 前端待前后端联调阶段接入，计划 §8.3 边界说明）——
-# 无需 Node 构建链，alpine 直接拷贝产物；正式前端落地后本文件替换为
-# node:20 多阶段构建（npm ci && npm run build → /usr/share/nginx/html）。
+# 前端产物暂存镜像（FIX-02 方案 A）：COPY 到 /opt/frontend，由 compose 的
+# 初始化容器在启动时 rm -rf /site/* && cp -a /opt/frontend/. /site/ 强制覆盖
+# frontend-dist 卷——无论卷是全新空卷还是已被 Nginx 默认页初始化，均能修复。
+# 正式 Vue3 前端落地后：多阶段构建（npm ci && npm run build）把 dist/ 放到 /opt/frontend/。
 FROM alpine:3.20
-COPY index.html /usr/share/nginx/html/index.html
-CMD ["true"]
+COPY index.html /opt/frontend/index.html
