@@ -24,8 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * OpenAiCompatibleProvider（M4-4.6）：用 JDK HttpServer 模拟 OpenAI 兼容接口。
- * 覆盖：正常 JSON 解析；5xx/坏 JSON → 重试 1 次后降级 Mock；连续 3 次失败
- * 会话锁定 mock（后续调用不再打到服务端）。
+ * 覆盖：正常 JSON 解析；Bearer 鉴权头必带（FIX-01）；401/5xx/坏 JSON → 重试 1 次后
+ * 降级 Mock；连续 3 次失败会话锁定 mock（后续调用不再打到服务端）。
  */
 class OpenAiCompatibleProviderTest {
 
@@ -36,20 +36,28 @@ class OpenAiCompatibleProviderTest {
     private final java.util.Deque<String> contentQueue = new java.util.concurrent.ConcurrentLinkedDeque<>();
     private volatile String respondContent;
     private volatile int respondStatus = 200;
+    /** FIX-01：记录每个请求的 Authorization 头 */
+    private final java.util.List<String> authHeaders = new java.util.concurrent.CopyOnWriteArrayList<>();
+    /** FIX-01：为 true 时缺少/错误 Authorization 返回 401（模拟真实网关鉴权） */
+    private volatile boolean requireAuth = false;
 
     @BeforeEach
     void startServer() throws IOException {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/v1/chat/completions", exchange -> {
             requestCount.incrementAndGet();
+            String auth = exchange.getRequestHeaders().getFirst("Authorization");
+            authHeaders.add(auth);
+            boolean unauthorized = requireAuth && !"Bearer test-key".equals(auth);
+            int status = unauthorized ? 401 : respondStatus;
             String queued = contentQueue.poll();
-            String content = queued != null ? queued
-                    : (respondContent != null ? respondContent : "");
+            String content = unauthorized ? "" : (queued != null ? queued
+                    : (respondContent != null ? respondContent : ""));
             String json = "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":"
                     + toJsonString(content) + "}}]}";
             byte[] body = json.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(respondStatus, body.length);
+            exchange.sendResponseHeaders(status, body.length);
             exchange.getResponseBody().write(body);
             exchange.close();
         });
@@ -93,6 +101,31 @@ class OpenAiCompatibleProviderTest {
         assertThat(r.getContent()).contains("互斥锁");
         assertThat(r.getDifficulty()).isEqualTo(4);
         assertThat(requestCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void sendsBearerAuthorizationHeaderAgainstAuthRequiredStub() {
+        // FIX-01：要求 Bearer 的 stub 下，请求头正确且结果被真实解析（不降级 Mock）
+        requireAuth = true;
+        respondContent = "{\"action\":\"FOLLOW_UP\",\"content\":\"追问：缓存穿透与击穿的区别？\","
+                + "\"difficulty\":4,\"reason\":\"概念混淆\"}";
+        AiNextQuestionResult r = provider.nextQuestion(context());
+        assertThat(r.getAction()).isEqualTo("FOLLOW_UP");
+        assertThat(r.getContent()).contains("缓存穿透");
+        assertThat(r.getReason()).doesNotStartWith("mock:"); // 真实解析，不是 Mock 降级
+        assertThat(requestCount.get()).isEqualTo(1);
+        assertThat(authHeaders).containsExactly("Bearer test-key");
+    }
+
+    @Test
+    void fallsBackToMockAfter401Unauthorized() {
+        // FIX-01：鉴权失败（401）→ 重试 1 次 → 仍 401 → 降级 Mock，不抛异常
+        respondStatus = 401;
+        AiNextQuestionResult r = provider.nextQuestion(context());
+        assertThat(r.getAction()).isEqualTo("FOLLOW_UP");
+        assertThat(r.getContent()).isNotBlank();
+        assertThat(r.getReason()).startsWith("mock:");
+        assertThat(requestCount.get()).isEqualTo(2); // 1 次失败 + 1 次重试
     }
 
     @Test

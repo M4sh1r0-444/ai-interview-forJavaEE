@@ -28,7 +28,7 @@ public class WebClientConfig {
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .filter((request, next) -> {
-                    // 只记录方法与路径；API Key 在 Authorization 头里，绝不输出
+                    // 只记录方法与路径；请求携带 Authorization: Bearer <API Key>（FIX-01），绝不输出
                     org.slf4j.LoggerFactory.getLogger("ai.webclient")
                             .debug("AI 请求 {} {}", request.method(), request.url().getPath());
                     return next.exchange(request);

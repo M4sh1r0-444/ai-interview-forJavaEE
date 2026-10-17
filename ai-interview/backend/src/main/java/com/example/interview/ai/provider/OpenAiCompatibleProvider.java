@@ -12,6 +12,7 @@ import com.example.interview.ai.parser.AiResponseParser;
 import com.example.interview.ai.prompt.PromptBuilder;
 import com.example.interview.common.config.AiProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -131,6 +132,8 @@ public class OpenAiCompatibleProvider implements AiProvider {
         AiChatResponse resp = webClient.post()
                 .uri(properties.getApiUrl() + "/chat/completions")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getApiKey())
+                .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(Map.of(
                         "model", properties.getModel(),
                         "messages", List.of(
