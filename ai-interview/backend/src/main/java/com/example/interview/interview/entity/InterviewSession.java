@@ -24,6 +24,8 @@ public class InterviewSession {
     private Integer difficulty;
     /** 计划主问题数 5~8 */
     private Integer plannedRounds;
+    /** 用户选择的面试时长（分钟，V7/FIX-08 持久化；历史行默认 30） */
+    private Integer plannedDurationMinutes;
     /** 当前主问题序号（0-based，追问不 +1）；FINISHED 后 = plannedRounds */
     private Integer currentRound;
     /** 见 InterviewStatus */

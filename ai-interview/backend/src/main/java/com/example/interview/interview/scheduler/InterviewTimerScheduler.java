@@ -25,8 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 面试定时器（计划 §4.3 / §5.6 TIMER / §6.1 TIMEOUT）：
  * 每秒扫描内存注册表，剩余时间按粒度推送（常规 30s，最后 60s 内 10s，可配）；
- * 到期自动转 TIMEOUT。durationMinutes 未落库（9 表约束），注册表在内存，
- * 重启后按"启动时间 + 最大时长"上界兜底恢复（决策 D13，见进度记录）。
+ * 到期自动转 TIMEOUT。注册表在内存，重启后按 started_at + planned_duration_minutes
+ * （V7/FIX-08 落库的真实时长）恢复；PROCESSING_AI 卡死会话由 InterviewRecoveryService 重投。
  */
 @Slf4j
 @Component
@@ -127,8 +127,9 @@ public class InterviewTimerScheduler {
     }
 
     /**
-     * 重启恢复：内存定时器丢失后，对仍在进行中的会话按 started_at + 最大时长上界重挂；
-     * 已超上界的直接收卷（M2-2.7 到期 TIMEOUT 的兜底路径）。
+     * 重启恢复：内存定时器丢失后，对仍在进行中的会话按 started_at + planned_duration_minutes
+     * （V7/FIX-08 用户真实时长）重挂；已到期的直接收卷。maxDurationMinutes 仅作异常兜底
+     * （planned_duration_minutes 缺失的历史行），不再作为正常恢复口径。
      */
     @EventListener(ApplicationReadyEvent.class)
     public void recoverOnStartup() {
@@ -140,13 +141,16 @@ public class InterviewTimerScheduler {
             if (s.getStartedAt() == null) {
                 continue;
             }
-            LocalDateTime upperBound = s.getStartedAt().plusMinutes(maxDurationMinutes);
-            if (upperBound.isBefore(now)) {
+            int duration = s.getPlannedDurationMinutes() != null
+                    ? s.getPlannedDurationMinutes() : maxDurationMinutes;
+            LocalDateTime deadline = s.getStartedAt().plusMinutes(duration);
+            if (deadline.isBefore(now)) {
                 timers.put(s.getId(), new Entry(now.minusSeconds(1)));
-                log.warn("启动恢复：会话已超最大时长，收卷 session={}", s.getId());
+                log.warn("启动恢复：会话已超计划时长，收卷 session={} 时长={}min", s.getId(), duration);
             } else {
-                timers.put(s.getId(), new Entry(upperBound));
-                log.warn("启动恢复：按最大时长上界重挂定时器 session={} 截止={}", s.getId(), upperBound);
+                timers.put(s.getId(), new Entry(deadline));
+                log.info("启动恢复：按真实时长重挂定时器 session={} 时长={}min 截止={}",
+                        s.getId(), duration, deadline);
             }
         }
     }

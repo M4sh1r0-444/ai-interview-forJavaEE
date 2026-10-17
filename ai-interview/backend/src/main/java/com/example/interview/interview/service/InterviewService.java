@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 面试会话服务（计划 §4.3/§5.3）：创建 / start（组卷+落库首题）/ 文字与音频回答受理 /
@@ -72,9 +71,6 @@ public class InterviewService {
     @Value("${app.interview.default-duration-minutes:30}")
     private int defaultDurationMinutes;
 
-    /** durationMinutes 未落库（9 表约束），创建时内存暂存，start 取用（决策 D13）。 */
-    private final Map<Long, Integer> sessionDurations = new ConcurrentHashMap<>();
-
     // ==================== 用例 9：创建会话 ====================
 
     @Transactional
@@ -96,12 +92,12 @@ public class InterviewService {
         s.setMode(req.getMode());
         s.setDifficulty(req.getDifficulty());
         s.setPlannedRounds(req.getRounds());
+        s.setPlannedDurationMinutes(req.getDurationMinutes()); // FIX-08：时长落库（V7），重启不丢
         s.setCurrentRound(0);
         s.setStatus(InterviewStatus.CREATED.name());
         sessionMapper.insert(s);
-        sessionDurations.put(s.getId(), req.getDurationMinutes());
         log.info("创建面试会话 id={} user={} position={} mode={} rounds={} duration={}min",
-                s.getId(), s.getUserId(), req.getPositionId(), req.getMode(),
+                s.getId(), s.getUserId(), s.getPositionId(), s.getMode(),
                 req.getRounds(), req.getDurationMinutes());
         return detail(s.getId());
     }
@@ -134,7 +130,9 @@ public class InterviewService {
         }
         stateMachine.transition(id, InterviewStatus.RUNNING, InterviewStatus.WAITING_USER);
 
-        int duration = sessionDurations.getOrDefault(id, defaultDurationMinutes);
+        // FIX-08：时长读库（V7 planned_duration_minutes）；异常兜底默认值
+        int duration = s.getPlannedDurationMinutes() != null
+                ? s.getPlannedDurationMinutes() : defaultDurationMinutes;
         Question first = paper.get(0);
         afterCommit(() -> {
             timerScheduler.register(id, LocalDateTime.now().plusMinutes(duration));
