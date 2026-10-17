@@ -2,9 +2,10 @@
 
 > **文档性质**：本文是 **JavaEE 课程设计《AI 模拟面试与能力提升平台》的前端开发执行计划**，用于把《系统实现方案》§3.1/§10/§11/§16.3/§19/§20 与已完成的后端交付（39 个 REST 接口 + 1 个 WebSocket）拆解为可执行、可验证、可勾选的前端任务。
 >
-> **本文只交付计划，不编写前端代码**；正式实现从 F1 开始，进度以《AI模拟面试与能力提升平台_进度记录.md》为唯一事实源。
+> **本文是计划与验收基线**；正式实现自 F1 起，F1 已于 2026-10-17 交付，进度以《AI模拟面试与能力提升平台_进度记录.md》为唯一事实源。
 >
-> **版本**：v1.0（2026-10-17）
+> **版本**：v1.1（2026-10-17）
+> **v1.1 变更**：新增「液态玻璃（Liquid Glass）」视觉体系——§6.7 玻璃设计令牌、§8.3.1 规范、F1-3 基座交付与验收项、R-F18 风险与降级；F1 已按 v1.0 计划完成，F2~F6 继续沿用本视觉基线。
 > **契约基线**：后端 M6 收官提交 `4ddcca7`（39 REST + 1 WS，`mvn verify` 114 用例全绿，JaCoCo 89.0%）
 > **上游文档**：
 > - 需求基线：[`AI模拟面试与能力提升平台_系统实现方案.md`](AI模拟面试与能力提升平台_系统实现方案.md)
@@ -62,13 +63,14 @@
 | 实时交互能力 | WebSocket 推送、倒计时、AI 追问、异步受理结果对账，是本项目的技术亮点 |
 | 多媒体能力 | MediaRecorder 录音 + Chrome Web Speech 转写 + 受保护音频回放，体现浏览器 API 运用 |
 | 数据可视化 | 六维雷达图、七技能成长折线、近 7 日面试趋势柱线组合，支撑报告与看板 |
+| 视觉体系 | 液态玻璃（背景光斑 + 玻璃面板 + Element Plus 玻璃化 + 打印/无障碍降级），纯 CSS 不增依赖 |
 | 工程化与质量 | TypeScript 严格模式、Vitest 单测、Playwright E2E、构建产物体积门禁，形成可复查证据 |
 
 ### 1.3 交付边界
 
 | 类别 | 范围 |
 |---|---|
-| **本期交付（In Scope）** | 学生端 12 个页面（登录/注册/首页/岗位列表/岗位详情/面试设置/面试房间/报告/历史/成长/推荐/个人中心）+ 管理端 7 个页面（看板/岗位/题库/知识库/学习资源/用户/评分权重）+ 应用外壳与 403/404 + API/状态/图表/音频/WS 基础设施 + 单元/组件/E2E 测试 + 前端 README + Docker 构建与 Nginx 静态托管修复 + 答辩 UI 演示路径 |
+| **本期交付（In Scope）** | 学生端 12 个页面（登录/注册/首页/岗位列表/岗位详情/面试设置/面试房间/报告/历史/成长/推荐/个人中心）+ 管理端 7 个页面（看板/岗位/题库/知识库/学习资源/用户/评分权重）+ 应用外壳与 403/404 + 液态玻璃视觉体系 + API/状态/图表/音频/WS 基础设施 + 单元/组件/E2E 测试 + 前端 README + Docker 构建与 Nginx 静态托管修复 + 答辩 UI 演示路径 |
 | **不在本期（Out of Scope）** | 后端业务与接口修改；真实语音识别（ASR 由浏览器 Web Speech 完成，后端只接收转写文本）；短信/邮件/第三方登录；支付/会员；移动端 App/小程序；多语言；深色模式；微前端；服务端渲染；修改后端 9 张表结构 |
 | **依赖后端既有契约** | 39 个 REST + 1 个 WS，路径/字段/错误码严格按 §2.2；若确需新增接口（如知识库列表），单独立"后端变更任务"并先改契约，不在前端阶段私自假设 |
 | **允许修改的工程文件** | `ai-interview/frontend/**`；为修复静态产物托管，允许调整 `ai-interview/frontend/Dockerfile`、`ai-interview/docker-compose.yml` 中 frontend/nginx 相关段落、`ai-interview/nginx/nginx.conf` 的 gzip/缓存等非业务配置 |
@@ -81,7 +83,7 @@
 | 接口规模 | 39 REST + 1 WS；统一响应 `{code,message,data,traceId}` | 全部页面均可基于真实接口开发，无需 mock 后端（除单测外） |
 | 测试账号 | `demo01 / 123456`（学生，已有多场历史/成长数据）、`admin / Admin@123456`（管理员） | 演示与手工验收直接可用 |
 | 种子数据 | 2 个岗位、各 30 题、42 条知识片段、28 条学习资源；`demo01` 有历史 | 报告/成长/推荐页面有真实数据可展示 |
-| 前端现状 | `frontend/index.html` 占位页 + `frontend/Dockerfile`（alpine 拷贝式）+ 无 Node 工程 | 需从零创建 Vue3 工程并替换部署链路 |
+| 前端现状 | ✅ F1 Vue3 工程已交付（Vite+TS+Element Plus+液态玻璃基座，2026-10-17）；`frontend/Dockerfile` 仍为占位拷贝式 | F2 起在现有工程上迭代；F6-4 替换 Dockerfile 并修复 frontend-dist 产物卷 |
 | 工具链 | Node **v22.23.3**、npm **10.9.9**、pnpm 12.11.2 可用；Docker/colima 可用 | 计划按 Node 20 LTS 兼容写法，本机 22 可直接开发 |
 | 开发依赖 | MySQL 3306、Redis 6380 容器 healthy（dev 栈） | 后端可直接启动，前端只关心 8080/18080 |
 | 端口 | 5173 空闲；8080 空闲；18080 被本后端占用；80 核对时由临时验收栈占用并返回 nginx 默认页（现已释放） | 前端 dev 固定 5173；不要假设 80 是自己的前端入口 |
@@ -115,7 +117,7 @@
 
 | 里程碑 | 内容 | 主要页面/模块 | 预估人日 | 依赖 |
 |---|---|---|---|---|
-| **F1** | 工程基座 + 认证 + 应用外壳 | 脚手架、规范、API 层、类型、Auth 布局、登录、注册、路由守卫、403/404、设计令牌 | 3.5 | 无（可立即开始） |
+| **F1** | 工程基座 + 认证 + 应用外壳 | 脚手架、规范、API 层、类型、Auth 布局、登录、注册、路由守卫、403/404、设计令牌、液态玻璃视觉基座 | 3.5 | 无（可立即开始） |
 | **F2** | 面试主流程（文字） | 首页、岗位列表/详情、面试设置、面试房间（文字）、WS 客户端、倒计时、finish/abort | 5.5 | F1 |
 | **F3** | 报告与历史 | 报告页（轮询/重试/雷达/逐题证据）、历史列表 | 3.5 | F2 |
 | **F4** | 语音 + 成长 + 推荐 + 个人中心 | 录音、Web Speech、音频提交/回放、成长曲线、个性化推荐、资料编辑 | 5.0 | F2、F3 |
@@ -421,6 +423,9 @@ ai-interview/frontend/
 ├── .env.example
 ├── Dockerfile                      # F6 替换为 node:20 多阶段 + 产物写卷
 ├── README.md                       # F6 交付：30 分钟上手
+├── docs/
+│   ├── F1-验收记录.md              # F1 验收/截图/复现（2026-10-17）
+│   └── screenshots/f1/             # F1 验收截图（v1.1 液态玻璃版）
 ├── e2e/
 │   ├── fixtures/
 │   ├── helpers/
@@ -488,6 +493,7 @@ ai-interview/frontend/
     │   ├── admin/ResourceAdminView.vue, UserAdminView.vue
     │   └── error/NotFoundView.vue, ForbiddenView.vue
     ├── components/
+    │   ├── common/AppBackdrop.vue, GlassPanel.vue     # 液态玻璃背景层 / 通用玻璃容器
     │   ├── common/AppPageHeader.vue, EmptyState.vue, ErrorState.vue, LoadingSkeleton.vue
     │   ├── common/StatusTag.vue, SkillTag.vue, ScoreBadge.vue, TraceIdText.vue
     │   ├── charts/RadarScoreChart.vue, GrowthLineChart.vue, TrendBarLineChart.vue
@@ -504,10 +510,10 @@ ai-interview/frontend/
     │   ├── wsUrl.ts
     │   └── constants.ts
     └── styles/
-        ├── tokens.css
-        ├── element-overrides.scss
-        ├── global.scss
-        └── print.scss
+        ├── tokens.css              # 颜色/间距/字体 + 液态玻璃材质令牌
+        ├── element-overrides.scss  # Element Plus 玻璃化 + 降级
+        ├── global.scss             # 基础样式 + .card/.glass-surface + 无障碍降级
+        └── print.scss              # 打印强制白底、关闭 blur
 ```
 
 ### 3.6 编码约定
@@ -520,7 +526,7 @@ ai-interview/frontend/
 | 状态 | 服务端数据放 store 或页面局部；不把可推导值重复存 store；不持久化非 auth 数据 |
 | 请求 | 所有请求经 `http.ts`；页面不直接 `axios`；同一资源避免并发重复请求（可选请求去重） |
 | 错误 | 业务错误抛 `BizError`；页面捕获后按错误码处理；全局只做兜底 toast |
-| 样式 | 设计令牌 CSS 变量；禁止魔法色值散落；Element Plus 变量覆盖集中在一个文件 |
+| 样式 | 设计令牌 CSS 变量；禁止魔法色值散落；Element Plus 变量覆盖集中在一个文件；液态玻璃材质统一 `GlassPanel`/`.glass-surface`，禁止业务组件自行拼接 blur/阴影魔法值 |
 | 提交 | Conventional Commits：`feat(frontend): ...` / `fix(frontend): ...` / `test(frontend): ...` / `docs(frontend): ...` |
 | 注释 | 异步契约、WS 对账、状态机分支、浏览器兼容降级必须有注释；不写"什么"写"为什么" |
 
@@ -564,6 +570,7 @@ ai-interview/frontend/
 | 图片 | 仅 favicon/简单 SVG；不引远程图片，保证断网可演示 |
 | 工具库 | 不引 lodash/moment；dayjs 已随 Element Plus；日期/分数格式化自写 6 个函数 |
 | CDN | 禁止；所有资源进 bundle |
+| 液态玻璃 | 纯 CSS（tokens + AppBackdrop + GlassPanel + Element 覆盖）；不引玻璃拟态库、不引外部图片/视频；不增加首屏 JS 依赖 |
 
 ---
 
@@ -1299,6 +1306,8 @@ function isExpired() { return !expiresAt.value || Date.now() >= expiresAt.value 
 
 | 组件 | Props | Emits | 说明 |
 |---|---|---|---|
+| `AppBackdrop` | — | — | 全屏液态玻璃背景（渐变/光斑/网格/颗粒），纯装饰 |
+| `GlassPanel` | tone?, hoverable?, padded? | — | 液态玻璃容器；tone=default/strong/subtle/brand，统一 blur/高光/降级 |
 | `AppPageHeader` | title, description, backTo? | — | 页面标题/返回/右侧 slot |
 | `StatusTag` | status, type? | — | 面试/题目/用户/资源状态统一颜色与文案 |
 | `SkillTag` | code, name? | — | 技能标签，tooltip 显示编码 |
@@ -1337,23 +1346,43 @@ function isExpired() { return !expiresAt.value || Date.now() >= expiresAt.value 
   --color-warning: #d97706;
   --color-danger: #dc2626;
   --color-info: #64748b;
-  --color-bg: #f8fafc;
+  --color-bg: #eef4ff;
   --color-card: #ffffff;
-  --color-text: #1e293b;
-  --color-text-secondary: #64748b;
-  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-border: rgba(148, 163, 184, 0.28);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
   --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.08);
   --space-1: 4px; --space-2: 8px; --space-3: 12px;
   --space-4: 16px; --space-5: 24px; --space-6: 32px;
+
+  /* 液态玻璃材质（v1.1） */
+  --glass-blur: 20px;
+  --glass-blur-strong: 32px;
+  --glass-blur-subtle: 12px;
+  --glass-saturate: 165%;
+  --glass-bg: rgba(255, 255, 255, 0.56);
+  --glass-bg-strong: rgba(255, 255, 255, 0.74);
+  --glass-bg-subtle: rgba(255, 255, 255, 0.4);
+  --glass-bg-fallback: rgba(255, 255, 255, 0.94);
+  --glass-border: rgba(255, 255, 255, 0.62);
+  --glass-border-strong: rgba(255, 255, 255, 0.86);
+  --glass-sheen: linear-gradient(135deg, rgba(255,255,255,.62), rgba(255,255,255,.12) 28%, transparent 52%, rgba(255,255,255,.18));
+  --glass-shadow: 0 8px 32px rgba(30,64,175,.1), 0 1px 0 rgba(255,255,255,.55) inset;
+  --glass-shadow-lg: 0 24px 70px rgba(15,23,42,.16), 0 2px 0 rgba(255,255,255,.65) inset;
+  --glass-radius: 20px;
+  --glass-radius-lg: 28px;
 }
 ```
 
-- Element Plus 变量覆盖集中在 `element-overrides.scss`（`--el-color-primary` 等），不逐组件改主题。
+- Element Plus 变量覆盖集中在 `element-overrides.scss`（`--el-color-primary`、输入框/弹窗/下拉/消息的玻璃材质与降级），不逐组件改主题。
 - 字体：`"PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif`；正文 14px，标题 18/22/28px；行高 1.6。
-- 卡片圆角 12px、阴影 `--shadow-card`；页面背景 `--color-bg`；内容最大宽度 1280px（管理端 1440px）。
+- 卡片统一 `--glass-*` 材质：标准卡圆角 20px、强玻璃 28px；页面背景 `--color-bg` + `AppBackdrop` 光斑；内容最大宽度 1280px（管理端 1440px）。
+- **材质降级**：`@supports not (backdrop-filter)` → `--glass-bg-fallback`；`prefers-reduced-transparency` 关闭 blur；`prefers-reduced-motion` 停光斑/过渡；打印强制白底（§8.3.1）。
 - **分数色带**：`scoreClass(score)` → `<60 danger`、`60~74 warning`、`75~84 primary`、`≥85 success`；图表使用同一色板。
 - 图表色板（7 技能）：`#2563eb #0ea5e9 #14b8a6 #22c55e #f59e0b #f97316 #8b5cf6`；雷达面积用 primary 12% 透明度。
 
@@ -1652,11 +1681,66 @@ mount
 ### 8.3 视觉令牌与组件风格
 
 - 主色 `#2563eb`（与现有占位页品牌一致）；成功/警告/危险见 §6.7。
-- 登录页品牌区使用低饱和蓝渐变 + 细网格；不使用外部插画。
-- 按钮：主按钮实心蓝、次按钮描边、危险操作红色描边；禁用降低透明度并禁用 hover。
-- 标签：状态用 Element Plus `el-tag` 的 `type` 映射；技能用浅蓝底圆角标签。
+- 登录页品牌区使用低饱和蓝渐变 + 细网格；不使用外部插画；v1.1 起叠加液态玻璃材质。
+- 按钮：主按钮实心蓝、次按钮玻璃描边、危险操作红色描边；禁用降低透明度并禁用 hover。
+- 标签：状态用 Element Plus `el-tag` 的 `type` 映射；技能用浅蓝底圆角标签（玻璃浮层内保持白字/深字对比）。
 - 图标：Element Plus 图标，尺寸 16/18/24；不引第三方图标库。
 - 空态：本地 SVG + 一句行动建议 + CTA。
+- **视觉基线**：F2~F5 新增页面统一复用 §8.3.1 的液态玻璃层，不另起一套主题。
+
+#### 8.3.1 液态玻璃视觉规范（v1.1）
+
+> 目标：用“半透明材质 + 背景模糊 + 高光描边 + 多层阴影”建立统一的轻盈质感，同时保证 1440×900 投影可读、1024 宽可用、低端机不卡顿、打印不变形。**纯 CSS 实现，不引入玻璃拟态库或外部图片。**
+
+> 参考实现截图（F1 已交付）：[登录页](../ai-interview/frontend/docs/screenshots/f1/01-login.png)、[学生端](../ai-interview/frontend/docs/screenshots/f1/03-student-home.png)、[管理端](../ai-interview/frontend/docs/screenshots/f1/06-admin-dashboard.png)、[403](../ai-interview/frontend/docs/screenshots/f1/04-forbidden-403.png)。
+
+**三层结构（从底到顶）**
+
+| 层 | 实现 | 说明 |
+|---|---|---|
+| 背景层 | `AppBackdrop.vue` + `styles/tokens.css` | 固定全屏：柔和渐变 + 4 个模糊光斑（蓝/紫/青/琥珀）+ 48px 细网格 + 颗粒；光斑缓慢漂移，`prefers-reduced-motion` 停止 |
+| 材质层 | `GlassPanel.vue`、`.card`、`.glass-surface` | `backdrop-filter: blur(20~32px) saturate(165%)`；半透明白 + 斜向高光（`--glass-sheen`）+ 内外高光描边 + 双层阴影 |
+| 内容层 | 页面/表单/图表/表格 | 文本保持深色高对比；不把正文直接放在纯透明背景上 |
+
+**材质等级**
+
+| 等级 | Token | 典型用途 |
+|---|---|---|
+| 强玻璃 | `--glass-bg-strong` + `--glass-blur-strong` | 登录/注册卡片、403/404、确认弹窗、下拉浮层、MessageBox |
+| 标准玻璃 | `--glass-bg` + `--glass-blur` | 业务卡片、报告区块、空态/错误态、岗位卡 |
+| 弱玻璃 | `--glass-bg-subtle` + `--glass-blur-subtle` | 标签底、提示条、骨架屏、次级信息块、演示账号框 |
+
+**应用范围**
+
+- 应用外壳：侧栏、顶栏、移动端抽屉遮罩使用玻璃；内容区保持透明，让背景光斑透出。
+- 认证页：左侧品牌区为深蓝半透明玻璃 + 镜面高光；右侧表单卡片使用强玻璃；演示账号框/错误提示/验证码区域使用弱玻璃。
+- 通用组件：`ErrorState`、`EmptyState`、`LoadingSkeleton`、`TraceIdText`、403/404 卡片、占位卡片全部使用玻璃材质。
+- Element Plus：`el-card`、`el-input`、`el-select`、默认按钮、`el-dialog`、`el-message-box`、`el-message`、下拉/选择浮层统一玻璃化；主按钮保留实心蓝渐变以维持操作层级。
+- 图表：容器用玻璃，但 ECharts tooltip 必须使用不透明白底 + 阴影（投影可读优先），不在 canvas 内做半透明大面积叠加。
+- 表格：表头/悬浮行用弱玻璃或半透明白；表格主体保持可扫读，不把每一行做成玻璃卡片。
+
+**可读性与无障碍（硬约束）**
+
+- 正文与玻璃底对比度 ≥ 4.5:1；主按钮文字保持白色；不使用纯透明背景承载长文本。
+- 支持 `@supports not (backdrop-filter: blur(1px))` 回退：降级为 `--glass-bg-fallback`（约 94% 白），不得出现“透明到看不清”。
+- 支持 `prefers-reduced-transparency: reduce`：关闭 blur、提升不透明度。
+- 支持 `prefers-reduced-motion: reduce`：关闭光斑漂移、页面过渡与 hover 位移。
+- 打印：`print.scss` 强制白底、关闭 blur、隐藏 `AppBackdrop` 与导航（见 §8.7）。
+- 键盘焦点仍使用 2px 主色 outline；玻璃边框不能替代 focus 样式。
+
+**性能约束**
+
+- 固定模糊层数量：背景光斑 4 个、侧栏/顶栏各 1 个、每个卡片 1 个；禁止在长列表每一行叠加 `backdrop-filter`。
+- 模糊半径上限 32px；移动端光斑缩小、模糊降至 56px；避免大面积 `filter: blur()` 动画之外的实时滤镜。
+- 动画只作用于 `transform`，不触发布局；复杂页面（报告/房间/管理表格）分块渲染。
+- 首屏不新增图片/字体/依赖；玻璃材质全部由 CSS 变量与渐变实现，gzip 预算不因视觉升级放宽。
+
+**禁止项**
+
+- 禁止外部玻璃拟态库、CDN 图片、视频背景、canvas 噪声贴图。
+- 禁止在正文、代码块、表格数据区使用强透明底。
+- 禁止用玻璃效果替代加载态/错误态/禁用态；状态必须仍有文字和图标。
+- 禁止深色模式/主题切换（本期 Out of Scope）。
 
 ### 8.4 图表规范
 
@@ -1669,7 +1753,7 @@ mount
 | 看板柱线 | 管理看板 | 柱=场次（左轴），线=平均分（右轴 0~100）；null 分不断裂柱；tooltip 同时显示 |
 | 岗位权重条 | 岗位详情 | 横向条或简单表格；权重百分比标签；不额外引图表 |
 
-- 图表统一：字体 12px、轴线 `#e2e8f0`、tooltip 白底阴影、动画 300ms；无数据时显示 `EmptyState` 而非空图。
+- 图表统一：字体 12px、轴线 `#e2e8f0`、tooltip 白底阴影（不使用玻璃，保证投影可读）、动画 300ms；无数据时显示 `EmptyState` 而非空图；图表容器可使用玻璃材质（见 §8.3.1）。
 - 图表容器固定高度（雷达 320px、折线 360px、看板 320px），避免布局抖动。
 - 响应式 resize 用 `ResizeObserver`；侧栏折叠/窗口变化触发 `chart.resize()`。
 
@@ -1700,7 +1784,8 @@ mount
 
 ### 8.7 打印与截图
 
-- `print.scss`：隐藏侧栏/顶栏/按钮；报告宽度 100%；卡片避免跨页（`break-inside: avoid`）；雷达图/分数环使用 `print-color-adjust: exact`。
+- `print.scss`：隐藏侧栏/顶栏/`AppBackdrop`/按钮；报告宽度 100%；卡片避免跨页（`break-inside: avoid`）；雷达图/分数环使用 `print-color-adjust: exact`。
+- 打印强制关闭液态玻璃：`background:#fff`、`backdrop-filter:none`、`box-shadow:none`、隐藏高光伪元素，避免灰底、模糊和色块跨页（§8.3.1）。
 - 课程报告截图清单（F6）：登录、岗位详情、面试房间（含追问）、报告雷达与逐题证据、成长曲线、推荐、管理看板、题库编辑。
 - 截图统一 1440×900、浏览器缩放 100%、演示账号数据。
 
@@ -2045,7 +2130,7 @@ docker compose up -d --build
 
 ## 11. 里程碑与任务分解（F1~F6）
 
-> 状态：**F1~F6 全部 ⬜ 未开始**（本计划交付 ≠ 代码完成）。每完成一个任务，按 §14.2 更新进度记录。
+> 状态：**F1 ✅ 已完成（2026-10-17）；F2~F6 ⬜ 未开始**。任务级状态以《进度记录》为唯一事实源；每完成一个任务，按 §14.2 更新进度记录。
 > 完成标准（DoD）必须是**可运行验证**，不能只写"页面完成"。
 
 ### 11.1 排期建议（单人，6 周）
@@ -2063,11 +2148,13 @@ docker compose up -d --build
 
 ### 11.2 F1 工程基座与认证（3.5 人日）
 
+> 状态：**F1 ✅ 已完成（2026-10-17）**；任务级证据见《进度记录》与 `frontend/docs/F1-验收记录.md`。F2~F6 ⬜。
+
 | 任务 | 内容 | 产出 | 完成标准（DoD） |
 |---|---|---|---|
 | F1-1 | Vite+Vue3+TS 脚手架、依赖、别名、env、.gitignore | `package.json`、`vite.config.ts`、`tsconfig*.json`、`.env.*` | `npm run dev` 启动 5173；`npm run build` 成功 |
 | F1-2 | ESLint/Prettier/vue-tsc/Vitest 配置与 scripts | 配置文件 + scripts | `lint`/`type-check`/`test:unit` 全绿（空用例可先 1 个 smoke） |
-| F1-3 | 设计令牌、Element Plus 覆盖、Auth/Student/Admin 布局、403/404 | `styles/*`、`layouts/*`、错误页 | 三种布局可切换；页面无横向滚动；403/404 可达 |
+| F1-3 | 设计令牌、液态玻璃视觉基座（AppBackdrop/GlassPanel/Element 覆盖）、Auth/Student/Admin 布局、403/404 | `styles/*`、`components/common/AppBackdrop.vue`、`GlassPanel.vue`、`layouts/*`、错误页 | 三种布局可切换；页面无横向滚动；403/404 可达；玻璃层可读且 `@supports`/`prefers-reduced-transparency` 可降级；打印白底 |
 | F1-4 | `http.ts` + `authSession.ts` + `types` + 错误映射 + API 模块骨架 | `api/*`、`types/*`、`utils/authSession.ts` | 单测覆盖拦截器；真实登录请求返回 data；401 触发事件 |
 | F1-5 | auth store、路由表、守卫、启动 restore、按角色跳转 | `stores/auth.ts`、`router/*` | 刷新保持登录；过期清 token；学生/管理员跳转正确；403 正确 |
 | F1-6 | 登录/注册页 + 表单校验 + 错误码处理 | `LoginView`、`RegisterView` | demo01/admin 登录；10001/10002/10003/42901 均有对应 UI；注册→登录 |
@@ -2183,6 +2270,7 @@ flowchart LR
 | 23 | `verify` 门禁全绿；构建产物经 Nginx 真实可打开 | 命令 + P9 验证 |
 | 24 | 1440×900 无布局问题；报告打印正常 | 手工 + 截图 |
 | 25 | 断网 Mock 下文字模式完整可演示 | 离线栈手工 |
+| 26 | 液态玻璃视觉体系落地且可读：背景层/玻璃面板/Element Plus 浮层一致；无 backdrop-filter 时降级可读；打印白底无 blur；1440×900 投影下正文对比度达标 | 手工 + 截图；检查 `AppBackdrop`/`GlassPanel`/`element-overrides.scss`/`print.scss` |
 
 ### 12.2 对照方案 §20 最终验收标准（前端证据）
 
@@ -2258,6 +2346,7 @@ flowchart LR
 | R-F15 | 非 localhost/HTTPS 访问导致麦克风/语音 API 不可用 | 中 | 答辩现场录音失败 | 答辩用 `127.0.0.1`；如需局域网访问，准备 HTTPS 或改文字演示 |
 | R-F16 | `defaultRounds=100` 等异常岗位数据 | 已发生 | 设置页越界/后端 40002 | 设置页 clamp 5~8；演示前停用异常岗位；后端仍校验 |
 | R-F17 | 打印/PDF 版式在答辩浏览器不一致 | 低 | 截图不美观 | 固定 Chrome 打印；提供屏幕版报告为主 |
+| R-F18 | **液态玻璃的 backdrop-filter 在低端机/旧浏览器上卡顿或不可读** | 中 | 首屏掉帧、文字对比不足 | 只对卡片/浮层使用，固定模糊层数量与半径；`@supports` 回退到 94% 白；`prefers-reduced-transparency` 关闭 blur；`prefers-reduced-motion` 停动画；打印强制白底（§8.3.1/§8.7） |
 
 ---
 
@@ -2267,19 +2356,19 @@ flowchart LR
 
 | # | 产物 | 路径 | 阶段 | 状态 |
 |---|---|---|---|---|
-| 1 | 前端开发计划（本文） | `开发计划/AI模拟面试与能力提升平台_前端开发计划.md` | F0（计划） | ✅ 已交付 |
-| 2 | Vue3 工程 | `ai-interview/frontend/` | F1~F5 | ⬜ |
-| 3 | 类型/API 层 | `frontend/src/types`、`frontend/src/api` | F1 | ⬜ |
-| 4 | 学生端 12 页 | `frontend/src/views/{auth,student,interview,growth,user}` | F1~F4 | ⬜ |
+| 1 | 前端开发计划（本文 v1.1） | `开发计划/AI模拟面试与能力提升平台_前端开发计划.md` | F0（计划） | ✅ 已交付（v1.1 液态玻璃视觉规范） |
+| 2 | Vue3 工程 | `ai-interview/frontend/` | F1~F5 | 🔧 F1 完成（工程/认证/外壳/玻璃基座），F2~F5 待交付 |
+| 3 | 类型/API 层 | `frontend/src/types`、`frontend/src/api` | F1 | ✅ F1 骨架完成（39 REST + 1 WS），F6 契约测试待补 |
+| 4 | 学生端 12 页 | `frontend/src/views/{auth,student,interview,growth,user}` | F1~F4 | 🔧 F1 登录/注册完成，其余 F2~F4 |
 | 5 | 管理端 7 页 | `frontend/src/views/admin` | F5 | ⬜ |
-| 6 | 单元/组件测试 | `frontend/src/**/__tests__` | F1~F5 | ⬜ |
+| 6 | 单元/组件测试 | `frontend/src/**/__tests__` | F1~F5 | 🔧 F1 34 用例；F6 补覆盖率与组件测试 |
 | 7 | E2E 套件 | `frontend/e2e` | F6 | ⬜ |
 | 8 | 契约检查脚本 | `frontend/scripts/contract-check.mjs` | F6 | ⬜ |
 | 9 | Dockerfile + compose 修复 | `frontend/Dockerfile`、`docker-compose.yml` | F6 | ⬜ |
 | 10 | Nginx 优化 | `nginx/nginx.conf` | F6 | ⬜ |
 | 11 | 前端 README | `frontend/README.md` | F6 | ⬜ |
 | 12 | 答辩 UI 路径/脚本更新 | `ai-interview/答辩演示脚本.md` | F6 | ⬜ |
-| 13 | 截图 | `docs/screenshots/`（或计划约定目录） | F6 | ⬜ |
+| 13 | 截图 | `frontend/docs/screenshots/f1/`（F1）；F6 补全 | F1/F6 | 🔧 F1 已留 10 张；F6 补答辩全套 |
 | 14 | 验收自检 | 进度记录 F6 + 本节 | F6 | ⬜ |
 
 ### 14.2 进度记录更新规则
@@ -2290,7 +2379,7 @@ flowchart LR
 4. 每次答辩前：更新环境状态与演示数据清理记录。
 5. 后端契约变化：先更新 §2/附录 B 类型，再改代码；在进度记录登记偏差。
 
-### 14.3 计划决策（写入进度记录 D31~D34）
+### 14.3 计划决策（写入进度记录 D31~D34、D38）
 
 | 编号 | 决策 |
 |---|---|
@@ -2298,6 +2387,7 @@ flowchart LR
 | D32 | 面试交互采用"WS 通知 + REST 对账"模型；提交/结束异步受理；轮次以 `detail.currentRound` 为唯一依据；报告 10004 按正常态轮询 |
 | D33 | 管理端知识库按现有契约实现"新增 + 重建索引"；不新增后端列表接口；页面明确能力边界；`/admin/evaluation` 复用评分权重页 |
 | D34 | 前端产物部署采用"构建容器写入 frontend-dist 卷"方案修复 P9；离线演练前预构建镜像；语音面试离线不可用时以文字/手工转写兜底 |
+| D38 | **液态玻璃视觉体系**：以纯 CSS 实现 `AppBackdrop`（渐变光斑/网格/颗粒）+ `GlassPanel`（blur/saturate/高光/多层阴影）+ Element Plus 玻璃化；F1 完成基座，F2~F5 复用；必须提供 `@supports`、`prefers-reduced-transparency`、`prefers-reduced-motion` 与打印降级；不新增依赖、不引入外部图片 |
 
 ### 14.4 计划外但需记录的问题
 
@@ -2739,6 +2829,7 @@ export function buildWsUrl(sessionId: number, token: string): string {
 | 方案 §19 15 步答辩 | ✅ §12.3 映射 |
 | 方案 §20 验收 15 条 | ✅ §12.2 映射 |
 | 后端实际契约差异 | ✅ §2.5 12 条 + 附录 D |
+| 液态玻璃视觉体系 | ✅ §6.7 玻璃令牌 + §8.3.1 规范 + F1-3 交付 + §12.1 #26 + R-F18 + D38 |
 | 现有部署缺陷 P9 | ✅ §1.4/§10.3/F6-4 |
 | 进度记录联动 | ✅ §14.2/§14.3 |
 
@@ -2746,4 +2837,4 @@ export function buildWsUrl(sessionId: number, token: string): string {
 
 > **计划维护**：本文由前端开发会话维护；任务完成状态、偏差与验证证据写入《AI模拟面试与能力提升平台_进度记录.md》，本文只保留计划与契约基线。若后端契约变化，先更新 §2/附录 A/B，再改代码，并在进度记录登记决策/偏差。
 >
-> 课程：JavaEE 课程设计 · 项目：AI 模拟面试与能力提升平台 · 前端计划 v1.0（2026-10-17）
+> 课程：JavaEE 课程设计 · 项目：AI 模拟面试与能力提升平台 · 前端计划 v1.1（2026-10-17 · 液态玻璃视觉升级）

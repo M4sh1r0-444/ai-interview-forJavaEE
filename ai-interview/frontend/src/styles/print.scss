@@ -1,0 +1,61 @@
+/* 打印/另存 PDF：隐藏导航与操作按钮，报告内容占满纸张（计划 §8.7） */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .app-backdrop,
+  .sidebar,
+  .topbar,
+  .offline-bar,
+  .route-progress,
+  .el-message,
+  .el-message-box,
+  .el-dialog,
+  .no-print,
+  .el-button,
+  .el-pagination {
+    display: none !important;
+  }
+
+  .content {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .card,
+  .glass-panel,
+  .glass-surface,
+  .glass-surface--strong,
+  .glass-surface--subtle,
+  .el-card,
+  .el-popper,
+  .el-dialog,
+  .el-message-box {
+    background: #fff !important;
+    border: 1px solid #d9e1ec !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    break-inside: avoid;
+  }
+
+  .glass-panel::before,
+  .card::before,
+  .error-state::before {
+    display: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

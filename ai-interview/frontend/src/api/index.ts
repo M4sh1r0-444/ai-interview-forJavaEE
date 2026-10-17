@@ -1,0 +1,6 @@
+export * from '@/api/auth'
+export * from '@/api/position'
+export * from '@/api/interview'
+export * from '@/api/growth'
+export * from '@/api/admin'
+export { BizError, isBizError, errorMessage } from '@/api/http'

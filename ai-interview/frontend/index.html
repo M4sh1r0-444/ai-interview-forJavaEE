@@ -1,64 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI 模拟面试与能力提升平台</title>
-<style>
-  :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --muted: #64748b; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; background: var(--bg); color: var(--text); }
-  header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: #fff; padding: 64px 24px; text-align: center; }
-  header h1 { font-size: 2.2rem; margin-bottom: 12px; }
-  header p { opacity: .9; font-size: 1.05rem; }
-  .badge { display: inline-block; margin-top: 16px; padding: 4px 14px; border: 1px solid rgba(255,255,255,.5); border-radius: 999px; font-size: .85rem; }
-  main { max-width: 1080px; margin: -32px auto 48px; padding: 0 24px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-  .card { background: var(--card); border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(15,23,42,.08); }
-  .card h3 { color: var(--primary); margin-bottom: 10px; font-size: 1.05rem; }
-  .card p, .card li { color: var(--muted); font-size: .92rem; line-height: 1.7; }
-  .card ul { padding-left: 18px; }
-  section { margin-top: 32px; }
-  h2 { font-size: 1.25rem; margin-bottom: 16px; color: var(--text); }
-  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(15,23,42,.08); }
-  th, td { padding: 12px 16px; text-align: left; font-size: .9rem; border-bottom: 1px solid #e2e8f0; }
-  th { background: #eff6ff; color: var(--primary); }
-  code { background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-size: .85rem; }
-  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24px; }
-</style>
-</head>
-<body>
-<header>
-  <h1>AI 模拟面试与能力提升平台</h1>
-  <p>大模型驱动 · 双岗位模拟面试 · 六维评分报告 · 个性化成长推荐</p>
-  <span class="badge">占位演示页 · 正式前端（Vue3）联调阶段接入</span>
-</header>
-<main>
-  <div class="grid">
-    <div class="card"><h3>🎯 模拟面试</h3><p>Java 后端 / Web 前端双岗位，文字与语音两种作答方式，AI 动态追问还原真实面试压力。</p></div>
-    <div class="card"><h3>📊 六维评分报告</h3><p>技术正确性、知识深度、逻辑严谨性、岗位匹配、沟通表达、语音表现多维画像，逐题证据可溯。</p></div>
-    <div class="card"><h3>📈 成长曲线</h3><p>技能掌握度随场次自动折算更新，跨场次成长趋势一目了然。</p></div>
-    <div class="card"><h3>💡 短板推荐</h3><p>四规则短板识别 + 学习资源匹配 + 错题重练 + 下一次面试建议。</p></div>
-  </div>
-  <section>
-    <h2>演示账号</h2>
-    <table>
-      <tr><th>角色</th><th>账号</th><th>密码</th><th>说明</th></tr>
-      <tr><td>学生</td><td>demo01</td><td>123456</td><td>参加模拟面试、查看报告与成长推荐</td></tr>
-      <tr><td>管理员</td><td>admin</td><td>Admin@123456</td><td>题库 / 知识库 / 岗位 / 用户 / 数据看板</td></tr>
-    </table>
-  </section>
-  <section>
-    <h2>后端接口（经 Nginx 同源代理）</h2>
-    <div class="card">
-      <ul>
-        <li>REST 基址：<code>/api</code>（如 <code>POST /api/auth/login</code>、<code>GET /api/positions</code>）</li>
-        <li>WebSocket 面试推送：<code>/ws/interviews/{sessionId}?token=JWT</code></li>
-        <li>健康检查：<code>GET /actuator/health</code>（容器网络内）</li>
-      </ul>
-    </div>
-  </section>
-</main>
-<footer>Java EE 课程设计 · 后端 M1~M6 交付 · Nginx 80 端口演示</footer>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="AI 模拟面试与能力提升平台：大模型驱动的模拟面试、六维评估报告、成长曲线与个性化推荐。"
+    />
+    <title>AI 模拟面试与能力提升平台</title>
+    <style>
+      /* 首屏骨架：Vue 挂载前避免白屏，挂载后由应用替换；与液态玻璃主题同色系 */
+      html,
+      body {
+        margin: 0;
+        background: #eef4ff;
+      }
+      #app:empty {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(900px 600px at 12% 8%, rgba(191, 219, 254, 0.9), transparent 60%),
+          radial-gradient(800px 620px at 88% 12%, rgba(221, 214, 254, 0.8), transparent 58%),
+          linear-gradient(135deg, #eef4ff 0%, #f8fafc 48%, #eef2ff 100%);
+        color: #475569;
+        font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      }
+      #app:empty::after {
+        content: 'AI 模拟面试与能力提升平台 · 正在加载…';
+        padding: 12px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.6);
+        box-shadow: 0 12px 30px rgba(30, 64, 175, 0.1);
+        backdrop-filter: blur(16px);
+        font-size: 14px;
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>
