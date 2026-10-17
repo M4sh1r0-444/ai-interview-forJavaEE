@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -8,6 +8,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import AppBackdrop from '@/components/common/AppBackdrop.vue'
 import AppErrorBoundary from '@/components/common/AppErrorBoundary.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useReportStore } from '@/stores/report'
 import { useUiStore } from '@/stores/ui'
 import type { Role } from '@/types/auth'
 import { onForbidden, onGlobalError } from '@/utils/appEvents'
@@ -19,6 +20,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const ui = useUiStore()
+const reportStore = useReportStore()
 
 /** 全局 401/403/错误与跨标签页同步（计划 §4.4、§6.2.4、§7.1）。 */
 function syncOffline(): void {
@@ -52,6 +54,14 @@ function onStorage(event: StorageEvent): void {
     void router.replace(auth.homePath)
   }
 }
+
+// 报告缓存可能含上一账号的会话；登出/切换账号立即清空（计划 §6.8 隐私要求）。
+watch(
+  () => auth.token,
+  (token, previous) => {
+    if (!token || (previous && previous !== token)) reportStore.clearAll()
+  },
+)
 
 const offAuthExpired = onAuthExpired(redirectToLogin)
 const offForbidden = onForbidden(() => {
