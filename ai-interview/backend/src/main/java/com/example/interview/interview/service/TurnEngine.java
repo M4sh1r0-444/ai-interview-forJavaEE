@@ -315,9 +315,11 @@ public class TurnEngine {
         Position position = positionMapper.selectById(s.getPositionId());
         List<String> positionSkills = parseSkillNames(position);
 
+        // FIX-06：只取当前轮及已完成轮次——start 预写的未来主问题（roundNo > currentRound）不进 Prompt
         List<InterviewMessage> recent = messageMapper.selectList(
                 Wrappers.<InterviewMessage>lambdaQuery()
                         .eq(InterviewMessage::getSessionId, s.getId())
+                        .le(InterviewMessage::getRoundNo, s.getCurrentRound())
                         .orderByDesc(InterviewMessage::getId)
                         .last("LIMIT 10"));
         List<NextQuestionContext.HistoryMessage> history = new java.util.ArrayList<>();
