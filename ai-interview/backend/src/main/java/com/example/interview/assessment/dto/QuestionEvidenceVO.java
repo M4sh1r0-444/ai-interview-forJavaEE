@@ -1,17 +1,21 @@
 package com.example.interview.assessment.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * 报告逐题证据视图（计划 §4.3 assessment：题目/回答/得分/coveredPoints/
- * missingPoints/证据句/评分理由）。
+ * 报告逐题证据视图（计划 §4.3 assessment：题目/回答/得分点/coveredPoints/
+ * missingPoints/证据句/评分理由）。V7 起随报告 JSON 落库，需支持 Jackson 反序列化。
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuestionEvidenceVO {
 
     private Integer roundNo;

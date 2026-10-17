@@ -125,6 +125,7 @@ public class ReportService {
         report.setWeaknesses(aiReport.getWeaknesses());
         report.setImprovementPlan(aiReport.getImprovementPlan());
         report.setReportText(joinText(aiReport));
+        report.setQuestionEvidence(agg.evidenceList()); // FIX-07：逐题证据随报告落库
 
         try {
             transactionTemplate.executeWithoutResult(tx -> {
@@ -153,7 +154,7 @@ public class ReportService {
         eventPublisher.publishEvent(new ReportGeneratedEvent(sessionId, s.getUserId(), s.getPositionId()));
     }
 
-    /** 报告读取（计划 §5.3 #17）：未生成 10004；归属本人或 ADMIN。 */
+    /** 报告读取（计划 §5.3 #17）：未生成 10004；归属本人或 ADMIN。FIX-07：读取不再调用 AI。 */
     public ReportVO getReport(Long sessionId) {
         InterviewSession s = sessionMapper.selectById(sessionId);
         if (s == null || (!CurrentUser.isAdmin() && !s.getUserId().equals(CurrentUser.currentUserId()))) {
@@ -165,7 +166,6 @@ public class ReportService {
                     "报告尚未生成：面试结束会自动生成，失败可重新调用 finish 重试");
         }
         Position position = positionMapper.selectById(s.getPositionId());
-        Aggregation agg = aggregate(s, position, parseModel(position));
         String text = report.getReportText() != null ? report.getReportText() : "";
         int split = text.indexOf("\n\n");
         return ReportVO.builder()
@@ -181,9 +181,36 @@ public class ReportService {
                 .weaknesses(report.getWeaknesses())
                 .improvementPlan(report.getImprovementPlan())
                 .reportText(split > 0 ? text.substring(split + 2) : "")
-                .questionEvidence(agg.evidenceList)
+                .questionEvidence(evidenceForRead(s, position, report))
                 .createdAt(report.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * 读取侧证据来源（FIX-07）：优先报告落库快照；仅 V7 前旧报告（列为 NULL）
+     * 按旧逻辑确定性重算一次并回填，避免每次读取都调用 AI Provider。
+     */
+    private List<QuestionEvidenceVO> evidenceForRead(InterviewSession s, Position position,
+                                                     EvaluationReport report) {
+        if (report.getQuestionEvidence() != null) {
+            return report.getQuestionEvidence();
+        }
+        List<QuestionEvidenceVO> recomputed = aggregate(s, position, parseModel(position)).evidenceList();
+        backfillEvidence(report.getId(), recomputed);
+        return recomputed;
+    }
+
+    /** 旧报告证据回填（一次性行为，之后读取走快照）。 */
+    private void backfillEvidence(Long reportId, List<QuestionEvidenceVO> evidence) {
+        try {
+            EvaluationReport upd = new EvaluationReport();
+            upd.setId(reportId);
+            upd.setQuestionEvidence(evidence);
+            reportMapper.updateById(upd);
+            log.info("旧报告证据已重算并回填 reportId={}", reportId);
+        } catch (Exception e) {
+            log.warn("旧报告证据回填失败 reportId={}：{}", reportId, e.getMessage());
+        }
     }
 
     /** 已生成报告的 id；未生成返回 null（finish 幂等/重试判断用）。 */
@@ -194,15 +221,24 @@ public class ReportService {
 
     /**
      * 会话逐题证据（含 missingPoints/技能标签）：报告读取与推荐引擎共用
-     * （M5-5.3 规则③与错题重练的数据源，评分快照缺漏时确定性重算同 getReport）。
+     * （M5-5.3 规则③与错题重练的数据源）。FIX-07：优先报告落库快照，不再隐式调 AI；
+     * 仅旧报告（无快照）确定性重算一次并回填。
      */
     public List<QuestionEvidenceVO> evidenceOf(Long sessionId) {
         InterviewSession s = sessionMapper.selectById(sessionId);
         if (s == null) {
             return List.of();
         }
+        EvaluationReport report = findBySessionId(sessionId);
+        if (report != null && report.getQuestionEvidence() != null) {
+            return report.getQuestionEvidence();
+        }
         Position position = positionMapper.selectById(s.getPositionId());
-        return aggregate(s, position, parseModel(position)).evidenceList();
+        List<QuestionEvidenceVO> evidence = aggregate(s, position, parseModel(position)).evidenceList();
+        if (report != null) {
+            backfillEvidence(report.getId(), evidence);
+        }
+        return evidence;
     }
 
     // ==================== 聚合 ====================
