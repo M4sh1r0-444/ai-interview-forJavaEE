@@ -6,6 +6,7 @@ import com.example.interview.common.result.ResultCode;
 import com.example.interview.common.util.JsonUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,6 +32,10 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    /** HTTP CORS 白名单（FIX-04 配置化）：开发 5173；prod/Compose 需含 Nginx 80 入口两源 */
+    @Value("${app.security.cors-allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
+    private List<String> corsAllowedOrigins;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -60,17 +65,21 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /** 开发期前端 5173 跨域（计划 §11 R11）；prod 走 Nginx 同源。 */
+    /**
+     * HTTP CORS（FIX-04 配置化）：只作用于 /api/**——WS 握手（带 Origin 的 GET）由
+     * WebSocketConfig 的 allowed-origins 独立管控，不应被 HTTP CORS 过滤器拦截
+     * （否则 WS 白名单放行的源会被 CorsFilter 提前 403）。开发默认 5173；prod 含 Nginx 80 入口两源。
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://127.0.0.1:5173"));
+        config.setAllowedOriginPatterns(corsAllowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/api/**", config);
         return source;
     }
 
