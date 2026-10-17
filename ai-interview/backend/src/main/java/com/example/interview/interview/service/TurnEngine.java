@@ -166,13 +166,18 @@ public class TurnEngine {
         m.setSpeaker("AI");
         m.setContentText(r.getContent());
         m.setQuestionId(question != null ? question.getId() : null);
+        // FIX-05：同一事务内先 CAS 抢占状态，失败即回滚——终态后绝不落追问消息
         Boolean committed = transactionTemplate.execute(tx -> {
+            if (!stateMachine.tryTransition(s.getId(),
+                    InterviewStatus.PROCESSING_AI, InterviewStatus.WAITING_USER)) {
+                tx.setRollbackOnly();
+                return false;
+            }
             messageMapper.insert(m);
-            return stateMachine.tryTransition(s.getId(),
-                    InterviewStatus.PROCESSING_AI, InterviewStatus.WAITING_USER);
+            return true;
         });
         if (!Boolean.TRUE.equals(committed)) {
-            log.info("追问落库后状态竞争失败，丢弃 session={}", s.getId());
+            log.info("追问状态竞争失败（会话已终态），丢弃 session={}", s.getId());
             return;
         }
         Map<String, Object> payload = new HashMap<>();
@@ -193,15 +198,23 @@ public class TurnEngine {
         if (next < s.getPlannedRounds()) {
             InterviewMessage nextQuestionMsg = mainQuestionOf(s.getId(), next);
             Question nextQuestion = questionMapper.selectById(nextQuestionMsg.getQuestionId());
-            transactionTemplate.executeWithoutResult(tx -> {
-                // 先推进 current_round（消息可见性跟随），再退出 PROCESSING_AI
+            // FIX-05：先 CAS 抢占状态再推进 current_round；失败回滚，不推送不漂移
+            Boolean committed = transactionTemplate.execute(tx -> {
+                if (!stateMachine.tryTransition(s.getId(),
+                        InterviewStatus.PROCESSING_AI, InterviewStatus.WAITING_USER)) {
+                    tx.setRollbackOnly();
+                    return false;
+                }
                 InterviewSession upd = new InterviewSession();
                 upd.setId(s.getId());
                 upd.setCurrentRound(next);
                 sessionMapper.updateById(upd);
-                stateMachine.tryTransition(s.getId(),
-                        InterviewStatus.PROCESSING_AI, InterviewStatus.WAITING_USER);
+                return true;
             });
+            if (!Boolean.TRUE.equals(committed)) {
+                log.info("推进轮次状态竞争失败（会话已终态），丢弃 session={}", s.getId());
+                return;
+            }
             wsHandler.push(s.getId(), WsMessageType.QUESTION,
                     interviewService.questionPayload(next, 0, nextQuestion));
             log.info("进入下一题 session={} round={} questionId={}",
@@ -210,13 +223,22 @@ public class TurnEngine {
         }
 
         // 轮次用尽：PROCESSING_AI → FINISHED；current_round=plannedRounds 使全部消息可见
-        transactionTemplate.executeWithoutResult(tx -> {
+        Boolean committed = transactionTemplate.execute(tx -> {
+            if (!stateMachine.tryTransition(s.getId(),
+                    InterviewStatus.PROCESSING_AI, InterviewStatus.FINISHED)) {
+                tx.setRollbackOnly();
+                return false;
+            }
             InterviewSession upd = new InterviewSession();
             upd.setId(s.getId());
             upd.setCurrentRound(s.getPlannedRounds());
             sessionMapper.updateById(upd);
-            stateMachine.tryTransition(s.getId(), InterviewStatus.PROCESSING_AI, InterviewStatus.FINISHED);
+            return true;
         });
+        if (!Boolean.TRUE.equals(committed)) {
+            log.info("轮次用尽状态竞争失败（会话已终态），跳过推送与报告触发 session={}", s.getId());
+            return;
+        }
         timerScheduler.cancel(s.getId());
         wsHandler.push(s.getId(), WsMessageType.PROGRESS, Map.of(
                 "status", InterviewStatus.FINISHED.name(),
