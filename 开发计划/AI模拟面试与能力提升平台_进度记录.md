@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | **后端 M6 ✅ 完成；前端 F1~F6 计划已立项、尚未开工** |
-| 当前里程碑 | 后端 M6 ✅（2026-10-15）；下一里程碑 **F1 前端工程基座** |
-| 整体进度 | 后端 6/6 里程碑完成；前端计划 100%、开发 0/6（F1~F6 全部 ⬜） |
+| 当前阶段 | **后端 M6 ✅ 完成；前端 F1 ✅ 完成，F2 待开始** |
+| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F1 ✅（2026-10-17）；下一里程碑 **F2 面试主流程（文字）** |
+| 整体进度 | 后端 6/6；前端 1/6（F1 ✅，F2~F6 ⬜） |
 | 上次更新 | 2026-10-17 |
-| 上次更新人 | ZCode（前端计划会话） |
+| 上次更新人 | ZCode（F1 开发会话） |
 
 ### 里程碑状态
 
@@ -33,20 +33,21 @@
 | M5 | 个性化 + 管理端补全 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 | M6 | 测试 + 部署 + 验收 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 
-### 前端里程碑状态（F1~F6，计划已交付、开发未开始）
+### 前端里程碑状态（F1~F6，F1 已完成、F2~F6 待开始）
 
-> 任务明细与验收标准见 [《AI模拟面试与能力提升平台_前端开发计划.md》](AI模拟面试与能力提升平台_前端开发计划.md) §11；本节只登记里程碑状态，F1 开工后按任务粒度回填。
+> 任务明细与验收标准见 [《AI模拟面试与能力提升平台_前端开发计划.md》](AI模拟面试与能力提升平台_前端开发计划.md) §11；F1 任务粒度已回填，F2 起逐里程碑回填。
 
 | 里程碑 | 内容 | 状态 | 开始日期 | 完成日期 |
 |---|---|---|---|---|
-| F1 | 工程基座 + 认证 + 应用外壳 | ⬜ 未开始 | — | — |
+| F1 | 工程基座 + 认证 + 应用外壳 | ✅ 已完成 | 2026-10-17 | 2026-10-17 |
 | F2 | 面试主流程（文字 + WS + 倒计时） | ⬜ 未开始 | — | — |
 | F3 | 报告 + 历史 | ⬜ 未开始 | — | — |
 | F4 | 语音 + 成长 + 推荐 + 个人中心 | ⬜ 未开始 | — | — |
 | F5 | 管理端 7 页 | ⬜ 未开始 | — | — |
 | F6 | 质量 + 部署修复 + 验收 | ⬜ 未开始 | — | — |
 
-> ⚠ 2026-10-17 复核：M6-6.3 的"静态页 200"只验证了 HTTP 状态码，**未校验页面内容**；当前 `frontend-dist` 卷实际为 nginx 默认欢迎页（见 P9）。前端 F6-4 修复后需以"页面含产品名 + assets 200"重新验证。
+> ⚠ 2026-10-17 复核：M6-6.3 的"静态页 200"只验证了 HTTP 状态码，**未校验页面内容**；`frontend-dist` 卷实际为 nginx 默认欢迎页（见 P9）。
+> ✅ 2026-10-17 当日已修复（后端修复 FIX-02）：frontend 改为初始化容器，启动时把产物强制覆盖进卷；独立 compose 项目验证页面含产品名（新卷/旧卷双场景），P9 关闭。
 
 ---
 
@@ -70,7 +71,8 @@
 | 14 | Mock 离线演练套件（M6-6.4） | `ai-interview/docker-compose.offline.yml` + `qa/m6_offline_drill.sh` + `qa/m6_offline_drill.py` + `qa/offline_drill_{env,result}.json` | 2026-10-15 | ✅ 已交付 | 一键脚本：停 dev 栈→起离线栈（核心服务 internal 网络零外网出口 + nginx 边缘入口）→断网证明 5 项（AI_PROVIDER=mock、外网 IP/DNS 不通、内网正常、宿主机入口 200）→业务演练 13/13（文字+语音面试→六维报告→历史/成长/推荐→管理端→WS）→恢复 dev 栈（数据无损） |
 | 15 | 验收自检表（M6-6.5） | `开发计划/AI模拟面试与能力提升平台_验收自检_M6.md` | 2026-10-15 | ✅ 已交付 | 计划 §12 对照表 15 条全部 ✅ 并附验证方式与实测证据（SQL 计数/DEBUG 日志/接口实录/IT 用例/离线演练留存） |
 | 16 | 后端 README + 答辩演示脚本（M6-6.6） | `ai-interview/backend/README.md` + `ai-interview/答辩演示脚本.md` | 2026-10-15 | ✅ 已交付 | README 按新人 30 分钟路径组织（环境/快速开始/一场面试/测试/配置/模块/接口/联调契约/部署/FAQ）；演示脚本将方案 §19 15 步逐条映射为可执行命令（含故障预案） |
-| 17 | **前端开发计划 v1.0（F1~F6）** | `开发计划/AI模拟面试与能力提升平台_前端开发计划.md` | 2026-10-17 | ✅ 已交付（计划） | 2700+ 行；基于后端 39 REST + 1 WS 实测契约；19 页规格 + 架构/状态机/测试/部署/验收 + 12 项契约差异；F1~F6 预估 26.5 人日；同时登记 P9（产物卷缺陷）、P10（答辩脚本权重 payload 错误）、P11（开发库测试残留） |
+| 17 | **前端开发计划 v1.1（F1~F6 + 液态玻璃）** | `开发计划/AI模拟面试与能力提升平台_前端开发计划.md` | 2026-10-17 | ✅ 已交付（计划 v1.1） | 2750+ 行；v1.1 新增液态玻璃视觉规范（§6.7/§8.3.1/F1-3/R-F18/D37）；基于后端 39 REST + 1 WS 实测契约；19 页规格 + 架构/状态机/测试/部署/验收 + 12 项契约差异；F1~F6 预估 26.5 人日；同时登记 P9（产物卷缺陷）、P10（答辩脚本权重 payload 错误）、P11（开发库测试残留） |
+| 18 | **前端 Vue3 工程（F1-1~F1-8）** | `ai-interview/frontend/` + `frontend/docs/F1-验收记录.md` + `frontend/docs/screenshots/f1/` | 2026-10-17 | ✅ 已交付（F1） | Vite 5 + Vue 3 + TS + Element Plus + Pinia + Vue Router + Axios；设计令牌 + 液态玻璃视觉基座（AppBackdrop/GlassPanel/Element 覆盖/降级）/三种布局/Auth store/路由守卫/登录注册/403/404/离线条/traceId；39 REST + 1 WS API/类型骨架；`lint/type-check/test:unit/build` 全绿（34 用例）；Vite `/api` 登录与 `/ws` 101 代理实测通过；功能冒烟 16 项 + 液态玻璃视觉/降级检查 + 4 档视口无横向滚动；11 张截图；原占位页备份 `docs/legacy-placeholder-index.html` |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。前端产物的任务编号使用 F1~F6（见前端开发计划 §11），不占用 M 编号。
 
@@ -153,20 +155,35 @@
 | 6.5 | 验收自检（对照表 15 条） | ✅ | 2026-10-15 | 计划 §12 逐条 ✅ 并附验证方式与实测证据（双岗/题量/题型比例 SQL、追问消息表实录、知识检索 DEBUG 日志、报告六维与五要素实录、两场后成长曲线 5 条全 2 点、推荐 Top3 实录、管理端 IT、双模式、compose 一键+15 步映射），产出《AI模拟面试与能力提升平台_验收自检_M6.md》 |
 | 6.6 | README + 答辩演示脚本 | ✅ | 2026-10-15 | backend/README.md（环境→快速开始→一场面试→测试门禁→配置→模块→接口与联调契约→部署→FAQ，新人 30 分钟启动路径）；ai-interview/答辩演示脚本.md（方案 §19 15 步逐条映射可执行命令 + 演示前准备清单 + 故障预案） |
 
-### F1~F6 前端阶段（计划已交付，开发未开始）
+### F1~F6 前端阶段（F1 ✅，F2~F6 待开始）
 
-> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。本节在 F1 开工后按任务粒度回填；当前只登记里程碑级状态。
+> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。F1 已按任务粒度回填，详见下方 F1 任务表与《F1-验收记录》。
 
 | 里程碑 | 任务数 | 状态 | 开工条件 | 备注 |
 |---|---|---|---|---|
-| F1 工程基座 + 认证 | 8（F1-1~F1-8） | ⬜ 未开始 | 本文交付即可开工 | 脚手架/规范/API/类型/守卫/登录注册 |
+| F1 工程基座 + 认证 | 8（F1-1~F1-8） | ✅ 已完成（2026-10-17） | 本文交付即可开工 | 脚手架/规范/API/类型/守卫/登录注册 |
 | F2 面试主流程（文字） | 8（F2-1~F2-8） | ⬜ 未开始 | F1 完成 | 首页/岗位/设置/房间/WS/倒计时/finish |
 | F3 报告 + 历史 | 6（F3-1~F3-6） | ⬜ 未开始 | F2 完成 | 报告轮询/雷达/证据/历史 |
 | F4 语音 + 成长 + 推荐 + 个人中心 | 7（F4-1~F4-7） | ⬜ 未开始 | F2、F3 完成 | 录音/ASR/回放/成长/推荐/资料 |
 | F5 管理端 | 8（F5-1~F5-8） | ⬜ 未开始 | F1 完成；F3 可并行 | 看板/题库/岗位/权重/知识库/资源/用户 |
 | F6 质量 + 部署 + 验收 | 6（F6-1~F6-6） | ⬜ 未开始 | F1~F5 完成 | 单测/E2E/契约/产物卷修复/文档/验收 |
 
-> **前置阻塞**：F6-4 依赖 P9 修复（frontend 产物写入 `frontend-dist` 卷）；F6-6 依赖 P11（清理 `ACC_*` 测试岗位/数据）与 P10（修正答辩脚本权重 payload）。F1 本身不依赖上述修复，可立即开始。
+> **前置阻塞**：F6-4 依赖 P9 修复（frontend 产物写入 `frontend-dist` 卷）；F6-6 依赖 P11（清理 `ACC_*` 测试岗位/数据）与 P10（修正答辩脚本权重 payload）。F1 本身不依赖上述修复，已开工并完成。
+
+#### F1 任务明细（2026-10-17 ✅）
+
+| 任务 | 内容 | 状态 | 完成日期 | 验证记录 |
+|---|---|---|---|---|
+| F1-1 | Vite+Vue3+TS 脚手架、依赖、别名、env、.gitignore | ✅ | 2026-10-17 | Node 22.23.3；Vite 5 固定 5173 + `strictPort`；`@` 别名；`.env.development/.production/.example`；`npm run dev` 200、`vite build` 成功 |
+| F1-2 | ESLint/Prettier/vue-tsc/Vitest 配置与 scripts | ✅ | 2026-10-17 | `lint` 0/0、`type-check` 0 error、`test:unit` 7 文件 34 用例全绿、`test:coverage` 通过；scripts 对齐计划 §3.7 |
+| F1-3 | 设计令牌、液态玻璃视觉基座、Element Plus 覆盖、Auth/Student/Admin 布局、403/404 | ✅ | 2026-10-17 | `tokens.css`/`element-overrides.scss`/`global.scss`/`print.scss` + `AppBackdrop`/`GlassPanel`；玻璃层覆盖认证/Shell/错误页/公共组件/Element 浮层；`@supports`/reduced-transparency/打印白底降级；403/404 可达；4 档视口（1440/1024/768/390）无横向滚动 |
+| F1-4 | http.ts + authSession.ts + types + 错误映射 + API 模块骨架 | ✅ | 2026-10-17 | 39 REST 全部函数骨架；BizError/401 单次事件/403 事件/blob 鉴权；8 个类型文件；单测覆盖拦截器 7 用例（HTTP 200+code、401 并发去重、网络错误、blob JSON） |
+| F1-5 | auth store、路由表、守卫、启动 restore、按角色跳转 | ✅ | 2026-10-17 | 21 个视图路由（学生 12 + 管理 7 + 403/404）+ 3 个重定向（`/`、`/admin`、`/admin/evaluation`）；刷新保持登录；过期清 token；学生/管理员跳转、管理员回管理端、profile 例外；跨标签页 storage 同步 |
+| F1-6 | 登录/注册页 + 表单校验 + 错误码处理 | ✅ | 2026-10-17 | demo01→`/home`、admin→`/admin/dashboard`；10002 就地提示、10003 弹窗+提示、42901 60s 倒计时、10001 用户名定位、密码不一致前端拦截；注册→登录预填 |
+| F1-7 | 全局错误处理、离线条、traceId、路由懒加载兜底 | ✅ | 2026-10-17 | `AppErrorBoundary` + `app.config.errorHandler` + `unhandledrejection`；离线/在线事件条；`TraceIdText` 复制；`router.onError` 识别 chunk 失效并提示刷新 |
+| F1-8 | API 联调冒烟（Vite 代理） | ✅ | 2026-10-17 | 5173 `/api/positions` 返回 40101、登录 code=0、`/api/users/me` code=0（Bearer 透传）；`/ws/interviews/21?token=…` open（101）；UI 冒烟 16 项通过、0 pageerror |
+
+> F1 验收细节、截图与复现命令见 [`frontend/docs/F1-验收记录.md`](../ai-interview/frontend/docs/F1-验收记录.md)。
 
 ---
 
@@ -213,6 +230,12 @@
 | 2026-10-17 | 决策 | **D32：面试交互采用"WS 通知 + REST 对账"模型**——回答/finish 异步受理；WS 事件到达后必须重新拉取 detail+messages，按服务端消息 ID 去重；轮次以 `detail.currentRound` 为唯一依据（不用消息数推断）；报告 10004 视为正常态轮询 + finish 重试 | 前端计划 §2.3/§2.4/§5.7/§7 |
 | 2026-10-17 | 决策 | **D33：管理端知识库与评分权重页按现有契约落地**——知识库只做"新增片段 + 重建索引"（后端无列表接口，页面明确说明，不新增后端接口）；方案 §11 的 `/admin/evaluation` 复用 `PUT /admin/positions/{id}/weights`，实现为评分权重页 | 前端计划 §5.15/§5.17/附录 D |
 | 2026-10-17 | 决策 | **D34：前端产物部署链路修复与离线构建策略**——frontend 构建容器必须把 `dist` 写入共享 `frontend-dist` 卷（compose 为 frontend 增加该卷），验收以页面内容 + assets 200 为准；离线演练前预构建镜像/预装依赖，断网时不执行 `npm ci`；ASR 离线不可用时以文字模式/手工转写兜底 | 前端计划 §10.3/§10.5/§13 |
+| 2026-10-17 | 决策 | **D35：F1 实现口径**——依赖按计划 `^` 范围解析为 Vue 3.5.x / Element Plus 2.14.x / Axios 1.20.x（Axios 响应泛型为条件类型，`request<T>()` 边界收窄）；unplugin-vue-components 生成的 `src/components.d.ts` 入库，保证全新克隆直接 `vue-tsc` 可过；F2~F5 的 17 个页面以统一 `PlaceholderView` 占据最终路由，F2 起逐页替换；原 `index.html` 备份为 `docs/legacy-placeholder-index.html`，Dockerfile 保持不动到 F6-4 | F1-1~F1-8 |
+| 2026-10-17 | 决策 | **D36：F1 启动与角色跳转落地**——`main.ts` 在挂载前 await `auth.restore()` + `router.isReady()`，避免无权页面闪现；`GET /me` 网络失败保留 token 并标记“服务暂不可达”，仅 40101/10003 清空；管理员访问学生区回 `/admin/dashboard`（个人中心例外），学生访问管理区跳 `/403`；`/` 同时用 redirect 与守卫按角色纠正 | F1-5 |
+| 2026-10-17 | 决策 | **D37：难度自适应口径（修复计划 D1，选 B 方案）**——R5/R6（连续低/高分）明确定义为「**追问难度/提示强度自适应**」：规则引擎产出的 difficultyDelta 只进入追问 Prompt 指令，主问题在 start 组卷时按目标难度一次性锁定、回答期间不漂移（原实现即如此；核实确认 difficultyDelta 从不影响选题）。README 首屏表述已由「难度自适应」改为「追问难度/提示强度自适应；主问题组卷时锁定」。若课程验收明确要求主问题动态换难度，另立 A 方案任务（预组多难度候选），不并入本轮 | FIX-13（Phase 3 文档收尾复核） |
+| 2026-10-17 | 决策 | **D37：液态玻璃视觉体系（计划 v1.1）**——纯 CSS 三层结构：`AppBackdrop`（渐变 + 4 光斑 + 网格 + 颗粒）+ `GlassPanel`/`.card`/`.glass-surface`（backdrop-filter + 高光 + 多层阴影）+ Element Plus 浮层玻璃化；认证页品牌区/卡片、Shell 侧栏顶栏、403/404、公共状态组件全部接入；强制 `@supports`、`prefers-reduced-transparency`、`prefers-reduced-motion`、打印白底降级；不新增依赖/外部图片；F2~F5 新页面复用 | 计划 §6.7/§8.3.1/F1-3 |
+
+
 
 ## 5. 问题与风险跟踪
 
@@ -229,11 +252,14 @@
 | R3 | 2026-10-14 | 预置风险：ngram token=2，单字/单英文查询不命中 FULLTEXT | ✅ 已验证防护 | KeywordExtractor 过滤词长 <2 与停用词、查询词超 4 取前 4；V5 内容均为完整技术词。手验时另发现：docker exec mysql 客户端默认字符集非 utf8mb4 会把中文查询条件转码失配（M4 SQL 手验需加 `--default-character-set=utf8mb4`），应用侧 JDBC 无此问题 |
 | P7 | 2026-10-15 | Docker `internal: true` 网络上的发布端口宿主机不可达（curl 000），纯 internal 网络方案无法从宿主机驱动离线演练 | ✅ 已解决 | nginx 双网络：`networks: [edge, svc]`（edge 普通网络在前，80 端口发布在边缘网；svc 为 internal 承载服务间通信），宿主机恢复 200 访问；核心服务仍只挂 svc 保持零外网出口（方案见 D30） |
 | P8 | 2026-10-15 | bash 脚本中 `$VAR` 后紧跟全角字符（如 `$BASE）`）会把多字节字符并入变量名，`set -u` 下报 unbound variable | ✅ 已解决 | 变量与中文之间一律 `${VAR}` 显式定界（qa/m6_offline_drill.sh 三处）；教训随 6.4 交付记录 |
-| P9 | 2026-10-17 | **frontend-dist 卷未接前端产物**：`frontend` 服务未挂载该卷，Dockerfile 只把占位 index.html 拷进镜像内；nginx 挂载空卷后被初始化成 nginx 默认欢迎页。M6-6.3 只验证 HTTP 200，未验证内容；本次复核 80 端口实际为 `Welcome to nginx!`，frontend 容器 `Exited (0)` | ⬜ 待修复（F6-4） | compose 为 frontend 增加 `frontend-dist:/usr/share/nginx/html`；Dockerfile 构建后把 dist 写入该卷；验收改为 grep 产品名 + assets 200。详见前端计划 §10.3 |
-| P10 | 2026-10-17 | `答辩演示脚本.md` §14 的评分权重请求体为 `{"weights":{"technical":...}}`，与后端 `WeightsUpdateRequest`（`{"scoreWeights":{content/expression/total}}`）不一致；照脚本执行会 40001 | ⬜ 待修正（F6-5） | 前端按真实契约调用；F6-5 修正演示脚本 §14 并补 curl 示例 |
-| P11 | 2026-10-17 | dev 库存在测试残留：`GET /api/positions` 返回第 3 个启用岗位 `ACC_c4b462`（defaultRounds=100）；管理端题库/资源/用户含 `acc_*` 数据。演示选择岗位页会出现异常项 | ⬜ 待清理（F6-6） | 演示前停用/清理 `ACC_*` 岗位与 E2E 数据；前端设置页把 rounds 钳制到 5~8；E2E 用 `E2E-` 前缀并清理 |
+| P9 | 2026-10-17 | **frontend-dist 卷未接前端产物**：`frontend` 服务未挂载该卷，Dockerfile 只把占位 index.html 拷进镜像内；nginx 挂载空卷后被初始化成 nginx 默认欢迎页。M6-6.3 只验证 HTTP 200，未验证内容；本次复核 80 端口实际为 `Welcome to nginx!`，frontend 容器 `Exited (0)` | ✅ 已修复（2026-10-17 后端修复 FIX-02，commit 16b6c51） | frontend 改为初始化容器：产物 COPY 到 /opt/frontend，compose 启动时 `rm -rf /site/* && cp -a /opt/frontend/. /site/` 强制覆盖卷（新卷/旧卷均生效）；独立 compose 项目验证页面含「AI 模拟面试与能力提升平台」+ /api 401 JSON。真实 Vue3 产物落地后仅替换 /opt/frontend 内容，编排不变 |
+| P10 | 2026-10-17 | `答辩演示脚本.md` §14 的评分权重请求体为 `{"weights":{"technical":...}}`，与后端 `WeightsUpdateRequest`（`{"scoreWeights":{content/expression/total}}`）不一致；照脚本执行会 40001 | ⬜ 待修正（FIX-19 / F6-5，Phase 3） | 前端按真实契约调用；FIX-19/F6-5 修正演示脚本 §14 并补 curl 示例 |
+| P11 | 2026-10-17 | dev 库存在测试残留：`GET /api/positions` 返回第 3 个启用岗位 `ACC_c4b462`（defaultRounds=100）；管理端题库/资源/用户含 `acc_*` 数据。演示选择岗位页会出现异常项 | ⬜ 待清理（FIX-19 / F6-6，Phase 3） | `ACC_*` 岗位与 `acc_*`/`race_*`/`dis_*` 用户已被 2026-10-17 验收检查会话清理（报告 §9，当前 2 岗位）；历史残留（61 题/45 知识/29 资源）仍在，演示前建议全新迁移库；qa/cleanup_e2e_data.sh 随 FIX-19 交付 |
 | P12 | 2026-10-17 | 方案 §11 的 `/admin/evaluation` 无独立后端接口（只有岗位权重接口） | ✅ 已决策（D33） | 复用 `PUT /admin/positions/{id}/weights`，实现评分权重页；`/admin/evaluation` 重定向到岗位权重页 |
 | P13 | 2026-10-17 | 方案 §10.5 只列 7 个管理接口，实际后端 18 个（新增岗位/权重/资源/用户/看板） | ✅ 已按实际契约记录（D31） | 前端按 39 REST 开发；管理端菜单覆盖 18 个接口对应能力；差异见前端计划 §2.5 |
+| P14 | 2026-10-17 | jsdom 25 的 `Blob` 没有 `text()`，导致受保护音频的“HTTP 200 + JSON 业务错误”检测在单测中失效（真实 Chrome 具备该方法） | ✅ 已解决 | `fetchBlob` 增加 FileReader 兜底；单测覆盖成功 blob 与 40401 JSON 两条路径 |
+| P15 | 2026-10-17 | F1 联调时登录限流（5 次/60s/IP）被密集 UI 用例触发；429 尝试同样计入 Redis INCR，但 TTL 只在首次计数设置，窗口结束后自动恢复 | ✅ 已确认（非缺陷） | 429 页面已实现 60s 倒计时并留证；联调脚本后续避免同一分钟密集登录，或等待窗口重置（同 P5） |
+
 
 > 开发中新遇到的问题在此追加；已解决的把状态改为 ✅ 并填解决方式。计划 §11 的 R1~R12 作为预置风险清单，触发时在此登记。
 
@@ -245,14 +271,14 @@
 | JDK 25 | 仍存在（系统默认） | 仅做兜底；编译由 `maven.compiler.release=17` 保证 |
 | Maven | 3.9.16（~/tools/apache-maven-3.9.16） | settings.xml 已配阿里云镜像 |
 | Docker | ✅ colima 运行中（实测可用内存 ~3.8G，非默认 2G） | 镜像经 daocloud 源拉取（D7）；M6 部署镜像已本地化（maven/temurin-jre/nginx/alpine） |
-| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库 V6 + 演示数据；**存在 `ACC_*` 测试残留（P11）**；测试库 ai_interview_test 同步 V6 |
+| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库 **V7**（2026-10-17 验收修复迁移：question_evidence_json / planned_duration_minutes / uk_ability_source_skill）+ 演示数据；`ACC_*` 岗位已被验收检查会话清理，历史残留仍见 P11；测试库 ai_interview_test 同步 V7 |
 | aiinterview-redis | ✅ healthy，宿主机端口 6380 | 6379 被其他项目占用（D6） |
 | 本机 8080 | ⚠ 2026-10-17 检测空闲；历史 P6 曾被其他项目占用 | 当前 dev 后端跑在 18080（health 200）；前端代理默认 8080，可用 `.env.development.local` 指 18080 |
 | 本机 18080 | ✅ 本项目 dev 后端（health 200） | 前端联调临时用；正式演示用 compose 80 |
-| 本机 5173 | ✅ 空闲（2026-10-17 检测） | Vite dev 固定端口；`strictPort: true` |
+| 本机 5173 | ✅ F1 起由 Vite dev 占用（`npm run dev`） | 固定端口 + `strictPort: true`；后端 18080 通过 `.env.development.local` 代理 |
 | 本机 80 | ⚠ 2026-10-17 核对时由临时验收栈占用并返回 nginx 默认页，现已释放 | 前端 F6-4 修复产物卷后由本项目 compose 的 nginx 占用；修复前不可作为演示入口 |
-| frontend 工程 | ⬜ 占位页 + 拷贝式 Dockerfile（无 Node 工程） | F1 创建 Vue3 工程；F6 替换 Dockerfile/修复卷（P9） |
-| Node / npm | v22.23.3 / npm 10.9.9（pnpm 12.11.2 可用） | 前端开发用；计划按 Node 20 LTS 兼容写法，Docker 用 node:20-alpine |
+| frontend 工程 | ✅ Vue3 + Vite + TS 工程（F1 完成，2026-10-17） | `npm install && npm run dev`；F2~F5 页面为占位页；Dockerfile 仍为占位版，F6-4 替换并修复卷（P9） |
+| Node / npm | v22.23.3 / npm 10.9.9（pnpm 12.11.2 可用） | F1 实测 412 packages 安装成功；计划按 Node 20 LTS 兼容写法，Docker 用 node:20-alpine |
 
 **日常启动（M1 之后继续开发时）：**
 
@@ -264,11 +290,12 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 # 若 8080 被占（P6）：mvn spring-boot:run -Dspring-boot.run.arguments=--server.port=18080
 # 测试：mvn test（用 ai_interview_test 库 + 6380 Redis）；质量门禁：mvn verify（JaCoCo ≥60%）
 # 账号：admin / Admin@123456；demo01 / 123456
-# 前端（F1 起）：cd ../frontend && npm install && npm run dev   # http://127.0.0.1:5173
+# 前端（F1 已完成）：cd ../frontend && npm install && npm run dev   # http://127.0.0.1:5173
 #   后端在 18080 时：echo 'VITE_PROXY_TARGET=http://127.0.0.1:18080' > .env.development.local
+#   门禁：npm run lint && npm run type-check && npm run test:unit && npm run build
 # 正式演示栈（M6-6.3）：先 docker compose -f docker-compose.dev.yml stop（防双 mysql 共卷），
 #   再 docker compose up -d → Nginx http://127.0.0.1:80；用毕 docker compose down 后恢复 dev 栈
-#   ⚠ 当前前端产物卷未接（P9），修复前 80 端口显示 nginx 默认页，不能作为答辩入口
+#   ✅ P9 已修复（FIX-02）：frontend 初始化容器启动时强制覆盖 frontend-dist 卷，80 端口页面正确
 ```
 
 > 每次环境变化（装 JDK 17、起容器、改 colima 资源等）更新此表并注明日期。
@@ -289,3 +316,6 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-15 | **M6 进行中（6.1/6.2/6.3 完成）**：6.1 ✅ pom 接入 JaCoCo（≥60% 行覆盖门禁），`mvn verify` BUILD SUCCESS（114 用例 0 失败），覆盖率 89.0%、核心包全部 ≥60%；6.2 ✅ AI 质量抽测双岗各 20 条（好/中/差），**40/40 人工分差 ≤15（100%≥80% 达标）**，四项核对（分差/追问相关性/报告完整/建议对短板）全过，记录表产出《AI质量抽测记录_M6.md》，抽测脚本入库 qa/m6_ai_quality_sampling.py；6.3 ✅ backend/Dockerfile（多阶段+阿里云 settings）+ nginx/nginx.conf + frontend 占位页 + docker-compose.yml 五服务编排 + .env(.example)，`docker compose up -d` 一键起，Nginx 80 验证：静态页 200、/api 全链路（登录→岗位→会话→作答→finish→报告 64.46→推荐）、/ws 101 升级；验证后正式栈撤下、dev 栈已恢复（数据完好）；登记决策/偏差 D27~D29 | ZCode（M6 开发会话） |
 | 2026-10-15 | **M6 完成（6.4/6.5/6.6 交付，开发计划全部完成）**：6.4 ✅ 离线演练套件（docker-compose.offline.yml + qa/m6_offline_drill.sh/.py），断网证明 5 项 + 业务演练 13/13 通过（文字 75.66 分/追问 15 次 + 语音含 voice → 报告 → 历史/成长/推荐 → 管理端 → WS），结果留存 qa/offline_drill_{env,result}.json，演练后 dev 栈自动恢复；6.5 ✅ 验收自检 15/15 全过并附实测证据，产出《AI模拟面试与能力提升平台_验收自检_M6.md》（本会话新证：SQL 题型比例/追问消息表/两场后成长曲线 5 条全 2 点/知识检索 DEBUG 日志/报告五要素实录）；6.6 ✅ backend/README.md（新人 30 分钟启动路径 + FAQ）+ ai-interview/答辩演示脚本.md（方案 §19 15 步逐条映射 + 故障预案）；登记决策 D30、问题 P7/P8（均解决）；产物清单补登 #13~#16 | ZCode（M6 开发会话） |
 | 2026-10-17 | **前端开发计划交付（F1~F6 立项，未开工）**：产物 #17《AI模拟面试与能力提升平台_前端开发计划.md》（2700+ 行）；按后端实际 39 REST + 1 WS 重写契约基线，覆盖 19 个页面/路由、架构/类型/状态机/测试/部署/验收；预估 26.5 人日。**本次实测发现并登记**：P9 frontend-dist 卷未接产物（80 端口实际为 nginx 默认页，M6-6.3 只验证 200）、P10 答辩脚本 §14 权重 payload 与后端不一致、P11 dev 库 `ACC_*` 测试残留；新增 D31~D34（前端范围/异步对账模型/知识库与权重页降级/产物卷修复与离线构建），F1~F6 全部 ⬜ | ZCode（前端计划会话） |
+| 2026-10-17 | **F1 完成（工程基座 + 认证 + 应用外壳）**：F1-1~F1-8 全部 ✅（产物 #18 交付）；Vite 5 + Vue 3 + TS + Element Plus + Pinia + Vue Router + Axios；设计令牌/三种布局/403/404、39 REST + 1 WS 类型与 API 骨架、auth store + 21 视图路由/3 重定向 + 角色守卫、登录注册（10001/10002/10003/42901 UI）、离线条/traceId/错误边界/懒加载兜底；`lint` 0/0、`type-check` 0 error、`test:unit` 34/34、`test:coverage` 通过、`vite build` 成功；5173 `/api` 登录与 `/ws` 101 代理实测通过；功能冒烟 16 项 + 4 档视口无横向滚动；证据留存 `frontend/docs/F1-验收记录.md` + 10 张截图；登记 D35/D36、P14/P15；F1 状态 ✅，下一里程碑 F2 | ZCode（F1 开发会话） |
+| 2026-10-17 | **后端验收修复 Phase 0~2 完成（FIX-01~08，分支 fix/backend-acceptance-20261017）**：依据《后端验收检查报告_20261017》（P0×2/P1×6）与《后端修复计划_20261017》执行。**FIX-01**（0610eb1）真实 Provider 补发 Authorization Bearer 头 + stub 断言头/401 降级两用例；**FIX-02**（16b6c51）frontend 初始化容器强制覆盖 frontend-dist 卷（P9 关闭，新卷/旧卷双验证页面含产品名）；**FIX-03**（116a1a8）WS 心跳发 PingMessage、超时 4408 与鉴权 4401 区分、pong-timeout/heartbeat-interval 配置化（3 单测对旧码红灯 + WebSocketLifecycleIT 9s 存活）；**FIX-04**（0f32b24）WS/HTTP Origin 白名单配置化（prod 含 80 两源），并发现 HTTP CORS 全局拦截 WS 握手 → CORS 收窄 /api/**（WebSocketOriginIT 同源 101/5173 回归/外部 403）；**FIX-05**（bf616f2）TurnEngine applyFollowup/applyAdvance 先 CAS 后写入、失败回滚（TurnEngineTerminalRaceIT 4 用例对旧码红灯：finish/abort/timeout 交叉无终态后消息/轮次漂移/重复报告）；**FIX-06**（26ff069）Prompt 历史过滤未来主问题（PromptHistoryIT 红转绿）；**FIX-07**（e24caef）V7 迁移 + 报告逐题证据落库，getReport/evidenceOf 不再调 AI（ReportEvidenceIT 3 用例含旧报告回填一次）；**FIX-08**（1e9a9b8）时长落库 + recoverOnStartup 按真实时长 + InterviewRecoveryService 重投 PROCESSING_AI（SessionDurationRestartIT @DirtiesContext 真实重启 / ProcessingRecoveryIT 双投幂等）。V7（question_evidence_json、planned_duration_minutes、ability_record 去重+uk_ability_source_skill）先测试库后 dev 库，迁移前双库 mysqldump 备份至仓库外。Gate 2：JDK17 `mvn -B verify` **134/134 全绿**（基线 114 + 新增 20），JaCoCo 89.36%；compose 栈端到端：同源 WS 101 + 95.4s 存活（4×PING 回 PONG 不关闭）+ 外部 Origin 403 + 页面内容 + /api 401。登记 D37（难度口径 B 方案）；P9 关闭，P10/P11 转 Phase 3（FIX-19）；#6/#14 按 D5 改判"协议级通过、真实 key 待环境验证"（不宣称 15/15）。Phase 3/4（FIX-09~20）待确认后继续 | ZCode（后端验收修复会话） |
+| 2026-10-17 | **F1 视觉升级（计划 v1.1 液态玻璃）**：新增 `AppBackdrop`（渐变 + 4 光斑 + 网格 + 颗粒）与 `GlassPanel`（blur/saturate/高光/多层阴影）；改造认证页品牌区/表单卡片、Student/Admin Shell 侧栏顶栏、403/404、ErrorState/TraceIdText/LoadingSkeleton、Element Plus 输入/按钮/下拉/弹窗/MessageBox/离线提示条；新增玻璃设计令牌（§6.7）与视觉规范（§8.3.1）、F1-3 交付与验收项 26、R-F18、D37；提供 `@supports`/`prefers-reduced-transparency`/`prefers-reduced-motion`/打印白底降级，零新增依赖；11 张液态玻璃截图；`lint/type-check/test:unit/build` 复跑全绿 | ZCode（F1 视觉升级会话） |

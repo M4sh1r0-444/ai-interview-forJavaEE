@@ -3,8 +3,10 @@
 > 对应任务：M6-6.5「验收自检」。逐条对照计划 §12 验收对照表，全部勾选并附**验证方式与实测证据**。
 > 验证时间：2026-10-15；验证环境：dev 栈（MySQL 8 / Redis 7 容器 + 本机后端 18080，DEBUG 日志）与 6.4 离线栈（五服务 Docker，断网隔离）。
 > 证据来源标记：**[现场]** = 本次自检新实测；**[IT]** = 集成测试（`mvn test` 114 用例全绿，M6-6.1 `mvn verify` 全绿 + JaCoCo 89.0%）；**[M4]** = M4 里程碑手工验证记录（进度记录 §3-M4）；**[离线]** = M6-6.4 离线演练留存（`ai-interview/qa/offline_drill_result.json`）。
+>
+> **⚠ 2026-10-17 验收复核修订**：独立验收检查（见《后端验收检查报告_20261017》）判定原 #6/#14 不成立（真实 Provider 未发送 Authorization 头，qwen 实际全部降级 Mock）、#15 部分成立（页面为 Nginx 默认页、浏览器 Origin 下 WS 403）。当日修复（FIX-01~08）后本表 #6/#14/#15 已按新证据改判，**真实 key 成功调用前不得宣称 15/15**（D5 口径）。下表结果列为修订后状态。
 
-## 总结论：**15/15 全部通过 ✅**
+## 总结论：**13/15 通过，#6/#14 协议级通过（真实 key 待环境验证）⚠️**（2026-10-17 修订）
 
 | # | 验收标准（方案 §20） | 结果 | 验证方式（计划 §12） |
 |---|---|---|---|
@@ -13,7 +15,7 @@
 | 3 | 四类题型覆盖 | ✅ | SQL 分组计数 + PaperAssemblerTest [现场+IT] |
 | 4 | 文字+语音输入 | ✅ | InterviewTextFlowIT / AudioAnswerIT + 离线演练双模式各一场 [IT+离线] |
 | 5 | AI ≥3 轮动态追问 | ✅ | 消息表验证：每轮 3 次追问 × 5 轮 [现场+IT] |
-| 6 | 大模型参与对话/理解/报告 | ✅ | ai 模块三方法双实现 + OpenAiCompatibleProviderTest + qwen 联调记录 [IT+M4] |
+| 6 | 大模型参与对话/理解/报告 | ⚠️ 协议级通过 | FIX-01 后：要求 Bearer 的 stub 下请求头正确且真实解析不降级 + 401→重试→降级用例 [IT]；**真实 key 成功调用待环境验证** |
 | 7 | 知识检索注入提示词 | ✅ | DEBUG 日志含检索片段与【参考知识片段】注入 [现场+IT] |
 | 8 | 报告多维评分 | ✅ | report 接口 dimension_scores（TEXT 5 维 / AUDIO 6 维含 voice）[现场+离线] |
 | 9 | 报告含分数/证据/亮点/不足/建议 | ✅ | report 字段实录（五要素 + 逐题证据全非空）[现场+IT] |
@@ -21,8 +23,8 @@
 | 11 | 成长曲线 | ✅ | 两场面试后 5 条曲线全部 2 点、current 更新 [现场+IT] |
 | 12 | 短板推荐资源/计划 | ✅ | recommendations Top3 + 资源/错题/下场建议 [现场+IT] |
 | 13 | 管理员维护题库/知识库 | ✅ | AdminCrudIT / AdminExtendedIT + 演练新增知识片段 [IT+离线] |
-| 14 | 真实大模型与 Mock 双模式 | ✅ | mock=断网演练 13/13；qwen=协议级联调 + 容错实测 [离线+IT+M4] |
-| 15 | Docker Compose 一键启动 | ✅ | compose up 五服务 + §19 15 步演示映射 [现场+离线] |
+| 14 | 真实大模型与 Mock 双模式 | ⚠️ 协议级通过 | mock=断网演练 13/13；qwen=协议级鉴权断言通过（FIX-01），**真实 key 成功调用是本条最终条件（D5），待环境验证** [离线+IT] |
+| 15 | Docker Compose 一键启动 | ✅（修复后） | FIX-02/03/04 后：页面内容含产品名（新卷/旧卷）、/api 401 JSON、同源 WS 101 + 95s 存活（4×PING 自动回 PONG 不关闭）、外部 Origin 403 [现场+IT]；Nginx 限流/日志脱敏属 Phase 3（FIX-09/10） |
 
 ---
 
@@ -146,4 +148,39 @@ WeaknessDetector 四规则（WeaknessDetectorTest 5 用例）+ RecommendationEng
 
 ---
 
+## 2026-10-17 验收复核修订证据（FIX-01~08）
+
+> 原 15/15 判定被《后端验收检查报告_20261017》推翻三条：#6/#14（真实 Provider 无 Authorization 头，qwen 全部 401 降级 Mock）与 #15（页面为默认页、浏览器 Origin WS 403）。同日按《后端修复计划_20261017》完成 FIX-01~08，新证据如下（复现命令与输出摘录，脱敏）：
+
+### #6/#14（协议级通过；真实 key 待环境验证）
+
+- FIX-01：`OpenAiCompatibleProvider.callOnce` 补发 `Authorization: Bearer <api-key>` 与 `Accept: application/json`；修正 WebClientConfig 虚假注释。
+- 新增用例（`OpenAiCompatibleProviderTest`，JDK17 `mvn -B verify` 7/7 绿）：
+  - `sendsBearerAuthorizationHeaderAgainstAuthRequiredStub`：要求 Bearer 的 stub 下请求头恰为 `Bearer test-key` 且结果被真实解析（reason 不以 `mock:` 开头，不降级）；
+  - `fallsBackToMockAfter401Unauthorized`：401 → 重试 1 次 → 仍 401 → 降级 Mock 不抛异常。
+- 按 D5 口径：**本地鉴权 stub 必跑已满足；一次真实 qwen key 的成功调用是 #6/#14 的最终条件，无 key 只能标注"协议级通过/真实待环境验证"，不宣称 15/15。**
+
+### #15（修复后通过；限流/日志脱敏属 Phase 3）
+
+- FIX-02（frontend 初始化容器）：`docker compose -p fix-verify up -d --build` 全新项目 → `curl -s http://127.0.0.1/` 含「AI 模拟面试与能力提升平台」；**不 down -v 再 up 一次页面仍正确**（旧卷覆盖修复）；`/api/positions` 无 token → 401 JSON（`{"code":40101,...}`）。
+- FIX-03（心跳 PING）：`InterviewWebSocketHandlerTest` 3/3（对旧代码红灯：不发 PING/4401 误用/PONG 刷新缺失）+ `WebSocketLifecycleIT`（心跳 1s/超时 4s 压缩配置，空闲 9s 跨两个超时周期仍 open）。
+- FIX-04（Origin 配置化）：`WebSocketOriginIT` 3/3（生产同源 101、5173 不回归、外部 403）；HTTP CORS 收窄至 `/api/**` 并配置化。
+- 经 Nginx 80 端到端实测（fix-verify 栈，重建含全部修复的后端镜像）：
+  ```text
+  handshake: HTTP/1.1 101        # Origin: http://127.0.0.1（同源）
+  frames={'PING': 4, 'TEXT': 0, 'CLOSE': 0} closed=False alive≈95.4s   # 95s 存活，4×PING 自动回 PONG
+  foreign origin: HTTP/1.1 403   # Origin: http://evil.example 被拒
+  ```
+- 遗留（Phase 3，不影响本条）：Nginx 登录限流全局 5 次/分钟 + XFF 可伪造（FIX-09）、access log 记录 WS query token（FIX-10）。
+
+### 其余修复条目（对应验收报告 P1，`mvn -B verify` 134/134 绿，JaCoCo 89.36%）
+
+- FIX-05 终态竞态：`TurnEngineTerminalRaceIT` 4/4（finish/abort/timeout × FOLLOW_UP/NEXT_QUESTION 交叉，终态后零写入零推送、轮次不漂移）。
+- FIX-06 Prompt 泄题：`PromptHistoryIT`（第 0/1/2 轮 Prompt 不含未问轮题干）。
+- FIX-07 报告读取调 AI：`ReportEvidenceIT` 3/3（连续 GET/推荐缓存未命中零 AI 调用；旧报告回退重算一次并回填）。
+- FIX-08 重启时长/卡死：`SessionDurationRestartIT`（@DirtiesContext 真实重启，15 分钟保持 ~900s）+ `ProcessingRecoveryIT`（PROCESSING_AI 重投恢复 WAITING_USER，双重投递幂等）。
+
+---
+
 > 自检人：ZCode（M6 开发会话）· 复现入口：`ai-interview/backend/README.md`（快速开始/测试/部署）、`ai-interview/qa/m6_offline_drill.sh`（离线演练一键复跑）。
+> 2026-10-17 修订：ZCode（后端验收修复会话，分支 fix/backend-acceptance-20261017）。

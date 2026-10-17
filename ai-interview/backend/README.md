@@ -90,14 +90,14 @@ node -e 'const ws=new WebSocket(`ws://127.0.0.1:8080/ws/interviews/'$SID'?token=
 
 ```bash
 cd backend
-mvn test      # 114 个用例（25 个测试类）：单测 + 集成测试（@SpringBootTest + MockMvc）
-mvn verify    # 全量质量门禁：测试 + JaCoCo 行覆盖率 ≥60% 检查（核心业务代码口径，当前 89.0%）
+mvn test      # 134 个用例（33 个测试类）：单测 + 集成测试（@SpringBootTest + MockMvc）
+mvn verify    # 全量质量门禁：测试 + JaCoCo 行覆盖率 ≥60% 检查（核心业务代码口径，当前 89.4%）
 ```
 
 - 集成测试使用**独立测试库** `ai_interview_test`（`createDatabaseIfNotExist`，同一 MySQL 容器、不污染 dev 库）与 6380 Redis；
   所以跑测试前 dev 容器需要在跑。
 - 覆盖率报告：`target/site/jacoco/index.html`。
-- 测试清单（分组）：状态机/组卷/追问七规则/解析容错/评分公式/语音指标/关键词词典/真实 Provider 容错/掌握度/短板/推荐引擎 + 认证/岗位/文字面试闭环/报告/音频/知识库/安全边界/历史成长/推荐/管理端等 15 个集成测试类。
+- 测试清单（分组）：状态机/组卷/追问七规则/解析容错/评分公式/语音指标/关键词词典/真实 Provider 容错（Bearer 鉴权头/401 降级）/掌握度/短板/推荐引擎 + 认证/岗位/文字面试闭环/报告/音频/知识库/安全边界/历史成长/推荐/管理端 + 验收修复 IT（WS 心跳存活、WS Origin、终态竞态、Prompt 历史过滤、报告证据持久化、时长重启恢复、处理中会话恢复）共 20 个集成测试类。
 
 ## 5. 配置项
 
@@ -111,6 +111,11 @@ mvn verify    # 全量质量门禁：测试 + JaCoCo 行覆盖率 ≥60% 检查�
 | `AI_PROVIDER` | `mock` | `mock`=离线规则引擎（无网可完整演示）；`qwen`=真实大模型 |
 | `AI_API_URL` / `AI_API_KEY` / `AI_MODEL` | 空 / 空 / qwen-plus | qwen 模式必填 URL+KEY，否则**启动即失败**（显式暴露配置错误）；运行期失败自动重试 1 次→降级 mock→连续 3 次锁定该会话 |
 | `UPLOAD_DIR` | `./uploads` | 音频落盘目录（prod 指向卷 `/app/uploads`） |
+| `APP_WEBSOCKET_ALLOWED_ORIGINS` | dev：5173 两源；prod：含 `http://127.0.0.1`、`http://localhost` | WS 握手 Origin 白名单（逗号分隔，FIX-04；生产经 Nginx 80 入口必含同源两源） |
+| `APP_CORS_ALLOWED_ORIGINS` | 同上 | HTTP CORS 白名单（仅作用于 `/api/**`） |
+
+WS 心跳参数（FIX-03）：`app.websocket.heartbeat-interval-ms`（默认 30000）与 `app.websocket.pong-timeout-ms`（默认 60000）；
+心跳超时关闭码 4408，与鉴权失败 4401 区分。
 
 切换真实大模型示例：
 
