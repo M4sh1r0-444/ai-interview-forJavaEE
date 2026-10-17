@@ -6,6 +6,7 @@ import 'element-plus/dist/index.css'
 import '@/styles/tokens.css'
 import '@/styles/element-overrides.scss'
 import '@/styles/global.scss'
+import '@/styles/admin.scss'
 import '@/styles/print.scss'
 
 import App from '@/App.vue'

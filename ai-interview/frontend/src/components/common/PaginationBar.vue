@@ -47,7 +47,7 @@ function handleSizeChange(size: number): void {
 .pagination-bar {
   display: flex;
   justify-content: flex-end;
-  padding: var(--space-3) 0 var(--space-1);
+  padding: var(--space-3) var(--space-5) var(--space-2);
   overflow-x: auto;
 }
 

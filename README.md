@@ -7,7 +7,7 @@
 
 ## 1. 项目简介
 
-面向学生求职场景的 **AI 模拟面试与能力提升平台**（当前交付后端 M1~M6 + 前端 F4）。学生选择目标岗位后，系统自动组卷并驱动大模型进行**多轮模拟面试**（支持动态追问、追问难度/提示强度自适应；主问题在组卷时按目标难度一次锁定、回答期间不漂移），面试结束后产出**六维评估报告**，并基于能力短板给出**学习资源推荐与成长曲线**。
+面向学生求职场景的 **AI 模拟面试与能力提升平台**（当前交付后端 M1~M6 + 前端 F5）。学生选择目标岗位后，系统自动组卷并驱动大模型进行**多轮模拟面试**（支持动态追问、追问难度/提示强度自适应；主问题在组卷时按目标难度一次锁定、回答期间不漂移），面试结束后产出**六维评估报告**，并基于能力短板给出**学习资源推荐与成长曲线**。
 
 业务闭环：
 
@@ -41,7 +41,7 @@
 | 实时 | Spring WebSocket | 面试过程推送 |
 | AI | OpenAI 兼容 Chat API / Mock | 默认 `ai.provider=mock` 离线可演示；qwen 模式含三级容错 |
 | HTTP 客户端 | Spring WebClient | 调用大模型（30s 超时、API Key 日志脱敏） |
-| 前端 | Vue 3.5 + TypeScript + Vite 5 + Element Plus + Pinia + Vue Router + Axios + ECharts | F1 基座/认证/布局 + F2 面试主流程 + F3 报告与历史 + F4 语音/成长/推荐/个人中心已交付；F5~F6 按计划推进 |
+| 前端 | Vue 3.5 + TypeScript + Vite 5 + Element Plus + Pinia + Vue Router + Axios + ECharts | F1 基座/认证/布局 + F2 面试主流程 + F3 报告与历史 + F4 语音/成长/推荐/个人中心、F5 管理端 7 页已交付；F6 按计划推进 |
 | 迁移 | Flyway | V1 建表 + V2~V6 种子数据 |
 | 构建 | Maven 3.9 | |
 
@@ -60,7 +60,7 @@
     ├── docker-compose.offline.yml   # 离线（断网）演练叠加编排（M6-6.4）
     ├── .env(.example)               # 部署环境变量（AI_PROVIDER/AI_API_KEY 等）
     ├── nginx/nginx.conf             # 静态页 + /api 反代 + /ws 升级
-    ├── frontend/                    # Vue3 工程（F4 已完成）：Vite + TS + Element Plus + ECharts；F5~F6 按计划推进
+    ├── frontend/                    # Vue3 工程（F5 已完成）：Vite + TS + Element Plus + ECharts；F6 按计划推进
     ├── 答辩演示脚本.md              # 方案 §19 15 步逐条映射（M6-6.6）
     ├── qa/                          # 质量与演练脚本（AI 抽测 / 离线演练 + 结果留存）
     └── backend/                     # Spring Boot 后端（10 个业务包 + common）
@@ -83,7 +83,7 @@
             └── main/resources/db/migration/  # Flyway V1~V6
 ```
 
-## 4. 当前进度（后端 6/6；前端 4/6，F4 已完成）
+## 4. 当前进度（后端 6/6；前端 5/6，F5 已完成）
 
 > 实时进度以 [`开发计划/AI模拟面试与能力提升平台_进度记录.md`](开发计划/AI模拟面试与能力提升平台_进度记录.md) 为准。
 > 前端执行计划见 [`开发计划/AI模拟面试与能力提升平台_前端开发计划.md`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md)。
@@ -100,7 +100,8 @@
 | F2 | 前端面试主流程（首页/岗位/设置/文字房间/WS/倒计时/finish-abort） | ✅ 2026-10-17 |
 | F3 | 前端报告与历史（总分环/雷达/逐题证据/10004 轮询/历史分页） | ✅ 2026-10-17 |
 | F4 | 前端语音 + 成长 + 推荐 + 个人中心（录音/转写/音频回放/成长曲线/推荐/资料） | ✅ 2026-10-18 |
-| F5~F6 | 管理端 7 页 + 质量/部署/验收 | ⬜ 待开始 |
+| F5 | 前端管理端 7 页（看板/岗位/权重/题库/知识库/资源/用户） | ✅ 2026-10-18 |
+| F6 | 前端质量 + 部署修复 + 验收 | ⬜ 待开始 |
 
 **当前已交付（M1~M6 全部）：**
 
@@ -124,7 +125,9 @@
 
 **前端 F4（2026-10-18）**：语音 + 成长 + 推荐 + 个人中心 4 域替换占位；`useAudioRecorder`（权限/能力检测、webm/opus、600s/10MB 上限、MediaStream 释放）+ `useSpeechRecognition`（final/interim、错误映射、重启上限、手工/离线降级）+ 房间语音面板（录音/试听/转写编辑/音频提交/受保护回放）+ `GrowthView`（time 轴多技能曲线、岗位切换、空态）+ `RecommendationView`（Top3/理由/资源/错题/下场建议/外链安全）+ `ProfileView`（资料回显保存/退出/不展示密码）；`lint/type-check` 0/0，单测 **176/176**（35 文件，F4 新增 43）、coverage **72.13%**、build 成功，Playwright E2E **15/15**（F2 6 + F3 4 + F4 5：录音→转写→音频提交→voice 报告→回放、ASR 断网手工转写、成长/岗位切换、推荐、个人中心），验收记录与 9 张截图见 [`frontend/docs/F4-验收记录.md`](ai-interview/frontend/docs/F4-验收记录.md)。
 
-**后续工作**：按 [`前端开发计划`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md) 继续 F5（管理端）→ F6（质量/部署/验收）；F6-4 修复前端产物卷（P9）、F6-5 修正演示脚本（P10）、F6-6 清理开发库测试残留（P11）；其余后端开发计划任务已全部交付。
+**前端 F5（2026-10-18）**：管理端 7 页（看板/岗位与技能权重/评分权重/题库/知识库/学习资源/用户）替换占位；看板四卡 + 近 7 日柱线组合（null 均分断点、双轴）；题库 CRUD + 筛选分页 URL 同步 + 40003 冲突恢复 + 逻辑删；岗位/技能权重/三组评分权重实时校验与回读；资源 CRUD/下架、用户搜索/启停/自禁用保护、知识库新增/重建（明确无列表接口）；管理端菜单/路由守卫/`/admin/evaluation` 别名与移动端提示；`lint/type-check/format:check` 0/0，单测 **214/214**（40 文件，F5 新增 38）、coverage **76.54%**、build 成功，Playwright E2E **20/20**（F2 6 + F3 4 + F4 5 + F5 5：权限 403、看板、题库 40003、岗位权重、资源/用户、知识库），验收记录与 10 张截图见 [`frontend/docs/F5-验收记录.md`](ai-interview/frontend/docs/F5-验收记录.md)。
+
+**后续工作**：按 [`前端开发计划`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md) 完成 F6（质量/部署/验收）；F6-4 修复前端产物卷（P9）、F6-5 修正演示脚本（P10）、F6-6 清理开发库测试残留（P11）；其余后端开发计划任务已全部交付。
 
 ## 5. 快速开始
 
@@ -146,7 +149,7 @@ curl http://127.0.0.1:8080/actuator/health
 
 种子账号：`admin / Admin@123456`（管理员）、`demo01 / 123456`（演示学生）。
 
-前端（F4 已交付，v1.1 液态玻璃；详见 [`ai-interview/frontend/docs/F4-验收记录.md`](ai-interview/frontend/docs/F4-验收记录.md)）：
+前端（F5 已交付，v1.1 液态玻璃；详见 [`ai-interview/frontend/docs/F5-验收记录.md`](ai-interview/frontend/docs/F5-验收记录.md)）：
 
 ```bash
 cd ai-interview/frontend
@@ -154,7 +157,7 @@ npm install
 npm run dev       # http://127.0.0.1:5173；/api 与 /ws 代理到 127.0.0.1:8080
 # 若后端跑在 18080：echo 'VITE_PROXY_TARGET=http://127.0.0.1:18080' > .env.development.local
 # 质量门禁：npm run lint && npm run type-check && npm run test:coverage && npm run build
-# E2E（需后端可达；globalSetup 会校验 health 并单次登录 demo01；F2 6 + F3 4 + F4 5 = 15 条）：
+# E2E（需后端可达；globalSetup 会校验 health 并单次登录 demo01/admin；F2 6 + F3 4 + F4 5 + F5 5 = 20 条）：
 npm run test:e2e
 ```
 

@@ -16,6 +16,8 @@ const props = withDefaults(
     brandSubtitle: string
     homePath: string
     contentClass?: string
+    /** 管理端菜单含 query（如评分权重）时，由布局显式指定高亮项。 */
+    activeMenu?: string
   }>(),
   {
     contentClass: 'page-container',
@@ -29,15 +31,17 @@ const ui = useUiStore()
 
 const mobileOpen = ref(false)
 const isMobile = ref(false)
+const isNarrow = ref(false)
 
 const pageTitle = computed(() => route.meta.title ?? '')
-const activeMenu = computed(() => route.meta.activeMenu ?? route.path)
+const activeMenu = computed(() => props.activeMenu ?? route.meta.activeMenu ?? route.path)
 const menuCollapsed = computed(() => ui.sidebarCollapsed && !isMobile.value)
 const avatarText = computed(() => auth.displayName.slice(0, 1).toUpperCase())
 const variantLabel = computed(() => (props.variant === 'admin' ? '管理控制台' : '学生端'))
 
 function updateViewport(): void {
   isMobile.value = window.innerWidth < 900
+  isNarrow.value = window.innerWidth < 768
   if (!isMobile.value) mobileOpen.value = false
 }
 
@@ -183,6 +187,14 @@ async function handleCommand(command: string): Promise<void> {
       </header>
 
       <main class="content">
+        <div
+          v-if="variant === 'admin' && isNarrow"
+          class="admin-mobile-hint"
+          role="note"
+          data-testid="admin-mobile-hint"
+        >
+          管理端建议使用桌面端（≥1024px）；表格可左右滑动查看全部字段与操作。
+        </div>
         <div :class="contentClass">
           <router-view />
         </div>
@@ -437,6 +449,17 @@ async function handleCommand(command: string): Promise<void> {
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   z-index: calc(var(--z-sidebar) - 1);
+}
+
+.admin-mobile-hint {
+  margin-bottom: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid rgba(217, 119, 6, 0.24);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 251, 235, 0.72);
+  color: #92400e;
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {

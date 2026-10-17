@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | **后端 M6 ✅ 完成；前端 F4 ✅ 完成，F5 待开始** |
-| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F4 ✅（2026-10-18）；下一里程碑 **F5 管理端 7 页** |
-| 整体进度 | 后端 6/6；前端 4/6（F1 ✅、F2 ✅、F3 ✅、F4 ✅，F5~F6 ⬜） |
+| 当前阶段 | **后端 M6 ✅ 完成；前端 F5 ✅ 完成，F6 待开始** |
+| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F5 ✅（2026-10-18）；下一里程碑 **F6 质量/部署/验收** |
+| 整体进度 | 后端 6/6；前端 5/6（F1 ✅、F2 ✅、F3 ✅、F4 ✅、F5 ✅，F6 ⬜） |
 | 上次更新 | 2026-10-18 |
-| 上次更新人 | ZCode（F4 语音/成长/推荐/个人中心会话） |
+| 上次更新人 | ZCode（F5 管理端会话） |
 
 ### 里程碑状态
 
@@ -33,7 +33,7 @@
 | M5 | 个性化 + 管理端补全 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 | M6 | 测试 + 部署 + 验收 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 
-### 前端里程碑状态（F1~F6，F1~F4 已完成、F5~F6 待开始）
+### 前端里程碑状态（F1~F6，F1~F5 已完成、F6 待开始）
 
 > 任务明细与验收标准见 [《AI模拟面试与能力提升平台_前端开发计划.md》](AI模拟面试与能力提升平台_前端开发计划.md) §11；F1 任务粒度已回填，F2 起逐里程碑回填。
 
@@ -43,7 +43,7 @@
 | F2 | 面试主流程（文字 + WS + 倒计时） | ✅ 已完成 | 2026-10-17 | 2026-10-17 |
 | F3 | 报告 + 历史 | ✅ 已完成 | 2026-10-17 | 2026-10-17 |
 | F4 | 语音 + 成长 + 推荐 + 个人中心 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
-| F5 | 管理端 7 页 | ⬜ 未开始 | — | — |
+| F5 | 管理端 7 页 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
 | F6 | 质量 + 部署修复 + 验收 | ⬜ 未开始 | — | — |
 
 > ⚠ 2026-10-17 复核：M6-6.3 的"静态页 200"只验证了 HTTP 状态码，**未校验页面内容**；`frontend-dist` 卷实际为 nginx 默认欢迎页（见 P9）。
@@ -76,6 +76,7 @@
 | 19 | **前端 F2 面试主流程（F2-1~F2-8，文字）** | `frontend/src/{views/student,views/interview,components/interview,composables,stores,utils}` + `frontend/e2e/` + `frontend/docs/F2-验收记录.md` + `frontend/docs/screenshots/f2/` | 2026-10-17 | ✅ 已交付（F2） | 首页/岗位列表/详情/设置/房间 5 页替换占位；`stores/interview` 唯一事实源 + `useInterviewRoom` 编排 + 原生 WS 客户端（退避重连/4401/断线 2s 轮询）+ 倒计时校准 + 文字作答（IME/Ctrl+Enter/乐观气泡/草稿/10005 刷新）+ finish/abort 二次确认与终态；`lint/type-check` 0/0，单测 **91/91**（F2 新增 57，`round/draft` 100%、interview store 80.31%），coverage 59.32%，build 成功，Playwright E2E **6/6**（首页导航/首页接口降级/文字闭环+刷新/中止+终态刷新/跨标签页结束/WS 断线轮询）；1440/1024/768/390 无横向滚动，0 pageerror；12 张截图；测试数据已清理（demo01 历史 7 场） |
 | 20 | **前端 F3 报告与历史（F3-1~F3-6）** | `frontend/src/{views/interview/ReportView.vue,views/growth/HistoryView.vue,stores/report.ts,components/report,components/charts,components/common/PaginationBar.vue,composables/useEchart.ts,composables/usePagination.ts,composables/useAudioReplay.ts,utils/report.ts,utils/echarts.ts}` + `frontend/e2e/report.spec.ts` + `frontend/docs/F3-验收记录.md` + `frontend/docs/screenshots/f3/` | 2026-10-17 | ✅ 已交付（F3） | 报告页/历史页替换占位；报告缓存 + 10004 轮询（1s→2s→3s，60s 上限，隐藏暂停）+ finish 幂等重试 + 40401/ABORTED/未结束空态 + WS REPORT_READY；SVG 总分环、TEXT 5 维/AUDIO 6 维雷达（ECharts 按需注册）、维度条、逐题证据折叠、受保护音频回放、亮点/不足/建议、推荐 Top2、打印；历史服务端分页 10/20/50 + 当前页状态筛选 + page/size/status URL 同步；`lint/type-check` 0/0，单测 **133/133**（27 文件，F3 新增 42），coverage **68.31%**，build 成功，Playwright E2E **10/10**（F2 6 + F3 4）；16 张截图；测试数据已清理（demo01 历史 7 场） |
 | 21 | **前端 F4 语音 + 成长 + 推荐 + 个人中心（F4-1~F4-7）** | `frontend/src/{composables/useAudioRecorder.ts,composables/useSpeechRecognition.ts,components/interview/AudioRecorder.vue,TranscriptPanel.vue,AudioAnswerPanel.vue,components/charts/GrowthLineChart.vue,views/growth/GrowthView.vue,RecommendationView.vue,views/user/ProfileView.vue,utils/audio.ts,growth.ts,url.ts}` + `frontend/e2e/audio-flow.spec.ts` + `frontend/scripts/f4-screenshots.mjs` + `frontend/docs/F4-验收记录.md` + `frontend/docs/screenshots/f4/` | 2026-10-18 | ✅ 已交付（F4） | 语音房间录音/转写/音频提交/受保护回放（MediaRecorder + Web Speech + 手工降级）；成长曲线（time 轴多技能/岗位切换/空态/dispose）；学习推荐（Top3/理由/资源/错题/下场建议/外链安全）；个人中心（资料回显保存/退出/不展示密码）；`lint/type-check` 0/0，单测 **176/176**（35 文件，F4 新增 43），coverage **72.13%**，build 成功，Playwright E2E **15/15**（F2 6 + F3 4 + F4 5）；9 张截图；测试数据清理后 demo01 历史 7 场 |
+| 22 | **前端 F5 管理端 7 页（F5-1~F5-8）** | `frontend/src/{layouts/AdminLayout.vue,components/admin,components/charts/TrendBarLineChart.vue,views/admin,utils/admin.ts,utils/echarts.ts,styles/admin.scss}` + `frontend/e2e/admin.spec.ts` + `frontend/scripts/f5-screenshots.mjs` + `frontend/docs/F5-验收记录.md` + `frontend/docs/screenshots/f5/` | 2026-10-18 | ✅ 已交付（F5） | 看板四卡 + 近 7 日柱线（null 断点/双轴）；题库 CRUD + 筛选分页 URL 同步 + 40003 冲突覆盖/放弃 + 逻辑删；岗位/技能权重动态行 + 三组评分权重实时校验/回读 + `?tab=weights` 与 `/admin/evaluation` 别名；资源 CRUD/下架；用户搜索/启停/自禁用保护；知识库新增/重建并明确无列表；管理端菜单 query 高亮 + 移动端提示；`lint/type-check/format:check` 0/0，单测 **214/214**（40 文件，F5 新增 38），coverage **76.54%**，build 成功，Playwright E2E **20/20**（F2 6 + F3 4 + F4 5 + F5 5）；10 张截图、0 pageerror；测试数据清理后 demo01 历史 7 场 |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。前端产物的任务编号使用 F1~F6（见前端开发计划 §11），不占用 M 编号。
 
@@ -158,9 +159,9 @@
 | 6.5 | 验收自检（对照表 15 条） | ✅ | 2026-10-15 | 计划 §12 逐条 ✅ 并附验证方式与实测证据（双岗/题量/题型比例 SQL、追问消息表实录、知识检索 DEBUG 日志、报告六维与五要素实录、两场后成长曲线 5 条全 2 点、推荐 Top3 实录、管理端 IT、双模式、compose 一键+15 步映射），产出《AI模拟面试与能力提升平台_验收自检_M6.md》 |
 | 6.6 | README + 答辩演示脚本 | ✅ | 2026-10-15 | backend/README.md（环境→快速开始→一场面试→测试门禁→配置→模块→接口与联调契约→部署→FAQ，新人 30 分钟启动路径）；ai-interview/答辩演示脚本.md（方案 §19 15 步逐条映射可执行命令 + 演示前准备清单 + 故障预案） |
 
-### F1~F6 前端阶段（F1~F4 ✅，F5~F6 待开始）
+### F1~F6 前端阶段（F1~F5 ✅，F6 待开始）
 
-> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。F1~F4 已按任务粒度回填，详见下方任务表与《F1-验收记录》《F2-验收记录》《F3-验收记录》《F4-验收记录》。
+> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。F1~F5 已按任务粒度回填，详见下方任务表与《F1-验收记录》《F2-验收记录》《F3-验收记录》《F4-验收记录》《F5-验收记录》。
 
 | 里程碑 | 任务数 | 状态 | 开工条件 | 备注 |
 |---|---|---|---|---|
@@ -168,10 +169,10 @@
 | F2 面试主流程（文字） | 8（F2-1~F2-8） | ✅ 已完成（2026-10-17） | F1 完成 | 首页/岗位/设置/房间/WS/倒计时/finish |
 | F3 报告 + 历史 | 6（F3-1~F3-6） | ✅ 已完成（2026-10-17） | F2 完成 | 报告轮询/雷达/证据/历史 |
 | F4 语音 + 成长 + 推荐 + 个人中心 | 7（F4-1~F4-7） | ✅ 已完成（2026-10-18） | F2、F3 完成 | 录音/ASR/回放/成长/推荐/资料 |
-| F5 管理端 | 8（F5-1~F5-8） | ⬜ 未开始 | F1 完成；F3 可并行 | 看板/题库/岗位/权重/知识库/资源/用户 |
+| F5 管理端 | 8（F5-1~F5-8） | ✅ 已完成（2026-10-18） | F1 完成；F3 可并行 | 看板/题库/岗位/权重/知识库/资源/用户 |
 | F6 质量 + 部署 + 验收 | 6（F6-1~F6-6） | ⬜ 未开始 | F1~F5 完成 | 单测/E2E/契约/产物卷修复/文档/验收 |
 
-> **前置阻塞**：F6-4 依赖 P9 修复（frontend 产物写入 `frontend-dist` 卷）；F6-6 依赖 P11（清理 `ACC_*` 测试岗位/数据）与 P10（修正答辩脚本权重 payload）。F1~F4 本身不依赖上述修复，已完成；F5 起继续。
+> **前置阻塞**：F6-4 依赖 P9 修复（frontend 产物写入 `frontend-dist` 卷）；F6-6 依赖 P11（清理 `ACC_*` 测试岗位/数据）与 P10（修正答辩脚本权重 payload）。F1~F5 本身不依赖上述修复，已完成；下一里程碑 F6。
 
 #### F1 任务明细（2026-10-17 ✅）
 
@@ -227,6 +228,21 @@
 | F4-7 | 语音/离线 E2E | ✅ | 2026-10-18 | `e2e/audio-flow.spec.ts` 5 条：语音闭环+voice 报告+回放、ASR network 手工转写、成长/岗位切换、推荐、个人中心；全套 **15/15**（37.0s）；截图脚本 `scripts/f4-screenshots.mjs` 输出 9 张截图、0 pageerror、1440/390 无横向滚动 |
 
 > F4 验收细节、口径偏差与截图见 [`frontend/docs/F4-验收记录.md`](../ai-interview/frontend/docs/F4-验收记录.md)。
+
+#### F5 任务明细（2026-10-18 ✅）
+
+| 任务 | 内容 | 状态 | 完成日期 | 验证记录 |
+|---|---|---|---|---|
+| F5-1 | 管理外壳、菜单、路由守卫、权限 | ✅ | 2026-10-18 | `AdminLayout` 7 页菜单（看板/岗位/评分权重/题库/知识库/资源/用户）；`AppShell` 新增 `activeMenu` 支持 `/admin/positions?tab=weights` 高亮；学生访问 `/admin/*` 守卫跳 `/403`（E2E 验证）；刷新通过 `auth.restore` 保持；`/admin/evaluation` 重定向到 `?tab=weights`；<768 顶部提示建议桌面端 |
+| F5-2 | 看板 | ✅ | 2026-10-18 | `DashboardView` 四卡 + `TrendBarLineChart`（柱=场次/线=均分双轴、`connectNulls:false`、null 均分「—」、移动端旋转标签）；加载骨架/错误重试/刷新；E2E 与 `GET /admin/dashboard` 数字逐项一致并验证刷新请求 |
+| F5-3 | 题库 CRUD | ✅ | 2026-10-18 | `QuestionAdminView` 岗位/题型/难度筛选 + 分页 URL 同步；新增/编辑（version）→ 40003 冲突拉取最新版本并展示最新题干/版本，支持覆盖或放弃；逻辑删 DISABLED 行保留；`JsonArrayEditor` 三数组每行一条、>10 条阻止保存；E2E 全链路通过 |
+| F5-4 | 岗位 + 技能权重 + 评分权重 + evaluation 别名 | ✅ | 2026-10-18 | `PositionAdminView` 列表/新增/编辑/查看 + `?tab=weights`；`SkillWeightsEditor` 动态行/实时和/重复编码/至少 1 行；`WeightsView` + `WeightsEditorPanel` 三组 5/5/4 项实时校验、默认值恢复、保存回读；E2E 验证权重和 1.20 时保存禁用、恢复默认保存 0.30、学生可见性、停用后不可见、evaluation 重定向 |
+| F5-5 | 学习资源 CRUD | ✅ | 2026-10-18 | `ResourceAdminView` 岗位/技能/类型筛选 + 分页 URL 同步；技能下拉随岗位能力模型联动；新增/编辑全量提交；DELETE=下架 enabled=0，已下架可编辑重新启用；外部链接仅 http(s)；E2E 新增/编辑/下架通过 |
+| F5-6 | 用户管理 | ✅ | 2026-10-18 | `UserAdminView` 用户名/真实姓名搜索 + 分页 URL 同步；启用/禁用二次确认并即时更新行；当前登录账号「当前」标记且开关禁用（后端 40001 兜底）；E2E 临时用户启停 API 状态 0/1 与 admin 自禁用保护通过 |
+| F5-7 | 知识库新增/重建 | ✅ | 2026-10-18 | `KnowledgeAdminView` 说明卡（关键词→FULLTEXT Top5→Prompt）+ 能力边界；岗位/标题/内容/keywords/技能多选/difficulty 校验；成功回显片段 ID/岗位/技能/关键词；重建索引二次确认与 `rebuilt:true` 提示；页面明确无列表/编辑/删除接口；E2E 新增+重建通过 |
+| F5-8 | 管理端 E2E | ✅ | 2026-10-18 | `e2e/admin.spec.ts` 5 条串行：学生 403+看板、题库 CRUD+40003、岗位权重、资源+用户、知识库；`global-setup` 单次登录 admin 写 storageState/token；全套 **20/20**（52.2s），F5 单文件 5/5（23.3s） |
+
+> F5 验收细节、口径偏差与截图见 [`frontend/docs/F5-验收记录.md`](../ai-interview/frontend/docs/F5-验收记录.md)。
 
 ---
 
@@ -284,6 +300,7 @@
 | 2026-10-18 | 决策 | **D43：F4 语音链路口径**——`useAudioRecorder` 首次点击才申请麦克风，优先 `audio/webm;codecs=opus`，600s/10MB 上限，停止/重录/卸载均释放 MediaStream；录音状态只由 `AudioRecorder` 内部实例持有，`AudioAnswerPanel` 通过事件接收 blob/时长（修复双实例导致按钮禁用）；Web Speech final 累加/interim 独立，权限/服务错误不重启、network 直接引导手工转写；音频提交与文字共用异步受理 + WS/REST 对账，TRANSCRIPT 按 messageId 回填；房间 AUDIO 消息回放走受保护 blob + 单实例 Audio；不支持录音时引导新建 TEXT 会话，不伪造 voice 维度 | F4-1~F4-3 / 计划 §5.7.5/§7.4 |
 | 2026-10-18 | 决策 | **D44：F4 成长/推荐/个人中心口径**——成长曲线用 time 轴（同日多场生成多点、`connectNulls:false`），岗位切换写 `?positionId=` 并回退首个启用岗位；推荐只把 http(s) 渲染为外链（`target=_blank rel=noopener noreferrer`），无 contentUrl 显示站内资源文案；`nextInterviewSuggested` 只解析"难度 1~5"，解析失败仅带岗位；设置页读取 `?difficulty=` 作为建议难度；个人中心保存后 `auth.applyUser` 更新内存 + localStorage，不展示密码/散列 | F4-4~F4-6 / 计划 §5.10~§5.12 |
 | 2026-10-18 | 决策 | **D45：F4 测试与清理口径**——E2E 在 Chromium 注入假 MediaStream/MediaRecorder + SpeechRecognition stub（本机 macOS Chrome 即使加 fake-device 参数 `getUserMedia` 仍超时，按计划允许的"伪造麦克风或手工转写"路径）；音频提交后等待服务端 USER 消息落库再 finish，避免乐观气泡导致报告 0 题；截图用临时 `shots_f4_*` 账号 + 独立脚本；验收后删除全部 `e2e_*`/`shots_f4_*` 用户及关联会话（多轮合计，含最终回归），demo01 历史恢复 7 场、2 个种子岗位不变，清理 `rec:*` 缓存 | F4-7 / 计划 §5.7.5/§9.4/§9.7 |
+| 2026-10-18 | 决策 | **D46：F5 管理端口径**——管理端 7 页按计划 §5.13~§5.19 落地；菜单“评分权重”指向 `/admin/positions?tab=weights`，`AppShell` 增加 activeMenu 支持 query 高亮，`/admin/evaluation` 重定向该地址；评分权重独立页与岗位 tab 复用 `WeightsEditorPanel`，默认权重与后端 `ScoreCalculator`/V2 种子一致，未配置时提示并允许保存写入；题库 40003 因后端无单题 GET，改为按 positionId 分页查找最新版本，弹窗展示版本/时间/题干，支持覆盖或放弃；知识库只做新增+重建（D33），页面明确边界；管理端 E2E 使用 admin storageState、F5 describe 串行；<768 管理端顶部提示但不阻塞，表格在卡片内部横向滚动 | F5-1~F5-8 / 计划 §5.13~§5.19、§7.10 |
 
 
 ## 5. 问题与风险跟踪
@@ -311,9 +328,9 @@
 | P16 | 2026-10-17 | F1 的 `element-overrides.scss` 把 `.el-button--primary` 蓝色渐变无条件套到 `is-text/is-plain`，导致蓝字叠蓝底、按钮文字不可见（F2 首页/岗位/房间的“查看能力模型/查看全部历史/查看完整推荐”等按钮暴露） | ✅ 已修复（F2） | 增加 `.el-button--primary.is-plain/is-text/is-link` 的透明/浅色底与 hover 规则；F2 截图复验文字可见；后续 Element Plus 变体需同时检查 `element-overrides.scss` |
 | P17 | 2026-10-17 | F2 E2E/手工验收在 demo01 名下累积 16+ 场测试会话，首页统计与截图出现 19 场、最近记录为 ABORTED，污染演示数据 | ✅ 已清理（F2） | 先 abort 活跃会话，再按 id 段删除 `interview_message/evaluation_report/ability_record/interview_session`；`demo01` 历史恢复 7 场；F6 交付 `qa/cleanup_e2e_data.sh` 并建议 E2E 使用独立测试用户 |
 | P18 | 2026-10-17 | F3 E2E 首轮并发执行触发后端登录限流 429（5 次/分钟/IP，含 globalSetup 与独立学生登录） | ✅ 已解决（F3） | 报告用例改为串行 + 共享一个 E2E 用户，历史用例单独用户；全套 10 条 E2E 稳定通过；验收后删除 `e2e_*`/`shots2_*` 测试用户与会话，demo01 历史恢复 7 场；与 P5/P15 同源，F6 可在 E2E 环境放宽限流配置 |
-
 | P19 | 2026-10-18 | 本机 macOS + 系统 Chrome（headless/headed）即使加 `--use-fake-device-for-media-stream --use-fake-ui-for-media-stream`，`getUserMedia` 仍 5s 超时，无法在 E2E 使用真实/假麦克风采集 | ⚠ 部分规避（真机待复验） | F4-7 按计划允许路径注入假 MediaStream + MediaRecorder（录音 UI/计时/提交/回放请求均覆盖）；真实麦克风权限与声音采集需答辩机 Chrome 手工复验一次（F6 手工验收项） |
 | P20 | 2026-10-18 | F4 E2E 失败重跑与调试脚本在 dev 库留下 `e2e_*`/`shots_f4_*` 用户与 demo01 调试会话 | ✅ 已清理（F4） | SQL 删除全部关联 session 及 messages/reports/ability（最后一轮 20 场），清理全部 e2e/截图用户；demo01 历史恢复 7 场；Redis `rec:*` 清空；截图脚本保留 `scripts/f4-screenshots.mjs` 可复跑 |
+| P21 | 2026-10-18 | F5 E2E 需要创建岗位/题目/资源/用户/知识片段，但后端无岗位与知识片段删除接口，E2E 无法完全自清理 | ✅ 已清理（F5） | 验收后 SQL 删除 `E2E_F5_*` 岗位、`E2E-F5%` 题目/资源/知识片段、`e2e_f5_*` 用户；同时清理 F3/F4 回归残留 `e2e_*` 用户与 demo01 本轮 4 场会话；Redis `rec:*` 清空；demo01 恢复 7 场、2 岗位/61 题/29 资源/45 知识/11 用户/30 场；F6-6 固化为 `qa/cleanup_e2e_data.sh` |
 
 > 开发中新遇到的问题在此追加；已解决的把状态改为 ✅ 并填解决方式。计划 §11 的 R1~R12 作为预置风险清单，触发时在此登记。
 
@@ -331,7 +348,7 @@
 | 本机 18080 | ✅ 本项目 dev 后端（health 200） | 前端联调临时用；正式演示用 compose 80 |
 | 本机 5173 | ✅ F1 起由 Vite dev 占用（`npm run dev`） | 固定端口 + `strictPort: true`；后端 18080 通过 `.env.development.local` 代理；F4 语音 E2E 使用注入假麦克风（P19） |
 | 本机 80 | ⚠ 2026-10-17 核对时由临时验收栈占用并返回 nginx 默认页，现已释放 | 前端 F6-4 修复产物卷后由本项目 compose 的 nginx 占用；修复前不可作为演示入口 |
-| frontend 工程 | ✅ Vue3 + Vite + TS 工程（F4 完成，2026-10-18） | `npm install && npm run dev`；学生端 12 页已完成 11 页（登录/注册/首页/岗位/详情/设置/房间/报告/历史/成长/推荐/个人中心）；F5 管理端 7 页仍为占位页；Dockerfile 仍为占位版，F6-4 替换并修复卷（P9） |
+| frontend 工程 | ✅ Vue3 + Vite + TS 工程（F5 完成，2026-10-18） | `npm install && npm run dev`；学生端 12 页 + 管理端 7 页全部完成（看板/岗位/权重/题库/知识库/资源/用户）；E2E 20/20；Dockerfile 仍为占位版，F6-4 替换并修复卷（P9） |
 | Node / npm | v22.23.3 / npm 10.9.9（pnpm 12.11.2 可用） | F1 实测 412 packages 安装成功；计划按 Node 20 LTS 兼容写法，Docker 用 node:20-alpine |
 
 **日常启动（M1 之后继续开发时）：**
@@ -376,3 +393,4 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-17 | **F1 视觉升级（计划 v1.1 液态玻璃）**：新增 `AppBackdrop`（渐变 + 4 光斑 + 网格 + 颗粒）与 `GlassPanel`（blur/saturate/高光/多层阴影）；改造认证页品牌区/表单卡片、Student/Admin Shell 侧栏顶栏、403/404、ErrorState/TraceIdText/LoadingSkeleton、Element Plus 输入/按钮/下拉/弹窗/MessageBox/离线提示条；新增玻璃设计令牌（§6.7）与视觉规范（§8.3.1）、F1-3 交付与验收项 26、R-F18、D38；提供 `@supports`/`prefers-reduced-transparency`/`prefers-reduced-motion`/打印白底降级，零新增依赖；11 张液态玻璃截图；`lint/type-check/test:unit/build` 复跑全绿 | ZCode（F1 视觉升级会话） |
 | 2026-10-17 | **F3 完成（报告与历史）**：F3-1~F3-6 全部 ✅（产物 #20 交付）；新增报告页/历史页、`stores/report`（缓存 + 10004 轮询 1s→2s→3s/60s + finish 幂等重试 + 隐藏暂停/恢复 + 账号切换清空）、`useEchart`/`usePagination`/`useAudioReplay`、`utils/report`、ScoreRing/RadarScoreChart/DimensionBars/EvidenceAccordion/PaginationBar；历史服务端分页 10/20/50 + 当前页状态筛选 + page/size/status URL 同步；`lint/type-check` 0/0，单测 **133/133**（27 文件，F3 新增 42），coverage **68.31%**，build 成功（ReportView 懒加载 157.58KB gzip），Playwright E2E **10/10**（F2 6 + F3 4：完整报告/10004 自动恢复/clock 60s 重试/历史分页筛选）；16 张截图；测试数据清理后 demo01 历史 7 场；登记 D41/D42、P18；F3 ✅，下一里程碑 F4 | ZCode（F3 开发会话） |
 | 2026-10-18 | **F4 完成（语音 + 成长 + 推荐 + 个人中心）**：F4-1~F4-7 全部 ✅（产物 #21 交付）；新增 `useAudioRecorder`/`useSpeechRecognition`、AudioRecorder/TranscriptPanel/AudioAnswerPanel、GrowthLineChart/GrowthView、RecommendationView、ProfileView、`utils/audio|growth|url`；房间支持录音/实时转写/手工降级/音频提交/受保护回放与录音离开确认；成长曲线 time 轴多技能 + 岗位切换；推荐 Top3/资源/错题/外链安全/下场建议；个人中心资料保存与退出；`lint/type-check` 0/0、单测 **176/176**（35 文件，F4 新增 43）、coverage **72.13%**、build 成功、Playwright E2E **15/15**（F2 6 + F3 4 + F4 5）；9 张截图、0 pageerror、1440/390 无横向滚动；测试数据清理（e2e/截图用户全部删除，最后一轮 20 场会话，demo01 历史 7 场）；登记 D43~D45、P19（真实麦克风待人工复验）/P20（测试数据清理）；F4 ✅，下一里程碑 F5 管理端 | ZCode（F4 开发会话） |
+| 2026-10-18 | **F5 完成（管理端 7 页）**：F5-1~F5-8 全部 ✅（产物 #22 交付）；看板四卡 + 近 7 日柱线（null 断点/双轴）；题库 CRUD + 筛选分页 URL 同步 + 40003 冲突覆盖/放弃 + 逻辑删；岗位/技能权重动态行 + 三组评分权重实时校验/回读 + `?tab=weights` 与 `/admin/evaluation` 别名；资源 CRUD/下架；用户搜索/启停/自禁用保护；知识库新增/重建并明确无列表；`lint/type-check/format:check` 0/0、单测 **214/214**（40 文件，F5 新增 38）、coverage **76.54%**、build 成功、Playwright E2E **20/20**（F2 6 + F3 4 + F4 5 + F5 5）；10 张截图、0 pageerror、1440/390 无横向滚动；登记 D46、P21；测试数据清理后 demo01 历史 7 场；F5 ✅，下一里程碑 F6 | ZCode（F5 开发会话） |

@@ -11,6 +11,8 @@ export interface StudentAuth {
   user: { id: number; username: string; role: string; status: number }
 }
 
+export type AdminAuth = StudentAuth
+
 interface RegisterOverrides {
   positionId?: number
   mode?: InterviewMode
@@ -30,8 +32,18 @@ export function readAuth(): StudentAuth {
   return JSON.parse(readFileSync(file, 'utf8')) as StudentAuth
 }
 
+/** 管理端登录态（global-setup 写入；供 admin.spec.ts 的 API 准备/清理使用）。 */
+export function readAdminAuth(): AdminAuth {
+  const file = path.resolve(process.cwd(), 'e2e/.auth/admin-token.json')
+  return JSON.parse(readFileSync(file, 'utf8')) as AdminAuth
+}
+
 export function authHeaders(token: string = readAuth().token): Record<string, string> {
   return { Authorization: `Bearer ${token}` }
+}
+
+export function adminAuthHeaders(token: string = readAdminAuth().token): Record<string, string> {
+  return authHeaders(token)
 }
 
 async function expectOk<T>(
