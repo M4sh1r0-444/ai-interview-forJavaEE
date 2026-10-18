@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.interview.common.exception.BizException;
 import com.example.interview.common.result.ResultCode;
 import com.example.interview.interview.service.PaperAssembler;
+import com.example.interview.position.entity.Position;
+import com.example.interview.position.mapper.PositionMapper;
 import com.example.interview.question.dto.QuestionAdminVO;
 import com.example.interview.question.dto.QuestionUpsertRequest;
 import com.example.interview.question.entity.Question;
@@ -25,6 +27,7 @@ import java.util.List;
 public class QuestionService {
 
     private final QuestionMapper questionMapper;
+    private final PositionMapper positionMapper;
     private final PaperAssembler paperAssembler = new PaperAssembler();
 
     /** M2-2.2 组卷：取岗位全部 ENABLED 题目，交纯逻辑组卷器选题（计划 §6.3）。 */
@@ -51,8 +54,9 @@ public class QuestionService {
         return result;
     }
 
-    /** 用例 22：新增。 */
+    /** 用例 22：新增（positionId 必须存在且启用，FIX-18：FK 冲突不再冒 500）。 */
     public QuestionAdminVO create(QuestionUpsertRequest req) {
+        requirePositionUsable(req.getPositionId());
         Question q = new Question();
         copyFields(req, q);
         q.setStatus("ENABLED");
@@ -61,7 +65,7 @@ public class QuestionService {
         return QuestionAdminVO.from(questionMapper.selectById(q.getId()));
     }
 
-    /** 用例 23：修改（version 乐观锁，冲突→40003）。 */
+    /** 用例 23：修改（version 乐观锁，冲突→40003；positionId 存在性校验 FIX-18）。 */
     public QuestionAdminVO update(Long id, QuestionUpsertRequest req) {
         if (req.getVersion() == null) {
             throw new BizException(ResultCode.PARAM_INVALID, "version: 修改时版本号必填");
@@ -70,6 +74,7 @@ public class QuestionService {
         if (exist == null) {
             throw new BizException(ResultCode.NOT_FOUND_OR_FORBIDDEN);
         }
+        requirePositionUsable(req.getPositionId());
         Question q = new Question();
         q.setId(id);
         q.setVersion(req.getVersion());
@@ -106,5 +111,12 @@ public class QuestionService {
         q.setKeyPoints(req.getKeyPoints());
         q.setDeductionPoints(req.getDeductionPoints());
         q.setFollowupTemplates(req.getFollowupTemplates());
+    }
+
+    /** FIX-18：题目写库前校验岗位存在（未启用岗位允许挂题——启用后再出卷），不存在 40002。 */
+    private void requirePositionUsable(Long positionId) {
+        if (positionId == null || positionMapper.selectById(positionId) == null) {
+            throw new BizException(ResultCode.PARAM_OUT_OF_RANGE, "岗位不存在：" + positionId);
+        }
     }
 }

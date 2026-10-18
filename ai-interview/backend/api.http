@@ -290,6 +290,12 @@ Content-Type: application/json
   }
 }
 
+### 30.5 学习资源更新语义（FIX-18 文档口径）：修改为部分更新——**省略 enabled = 保持原值**
+###      （MyBatis-Plus null 不覆盖）；显式传 "enabled": 0/1 才变更启用状态。
+###      岗位 defaultRounds(3~8) 与 enabled(0/1)、资源 enabled(0/1)、用户 status(0/1)
+###      越界一律 400/40001；题目 positionId 不存在 → 400/40002（不冒 500）。
+
+###
 ### 31. 学习资源 CRUD（skillCode 须对齐岗位能力模型；DELETE=下架 enabled→0，推荐匹配即刻排除）
 GET {{BASE}}/api/admin/resources?positionId=1&skillCode=spring&resourceType=ARTICLE
 Authorization: Bearer {{ADMIN_TOKEN}}

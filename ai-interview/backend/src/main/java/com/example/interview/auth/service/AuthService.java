@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -68,7 +69,12 @@ public class AuthService {
         user.setMajor(req.getMajor());
         user.setRole("STUDENT");
         user.setStatus(1);
-        userMapper.insert(user);
+        try {
+            userMapper.insert(user);
+        } catch (DuplicateKeyException e) {
+            // FIX-18：查重后并发窗口内同名注册——唯一键冲突转 10001，不再冒 500
+            throw new BizException(ResultCode.USERNAME_EXISTS);
+        }
         log.info("用户注册成功 uid={} username={}", user.getId(), user.getUsername());
         return UserVO.from(user);
     }

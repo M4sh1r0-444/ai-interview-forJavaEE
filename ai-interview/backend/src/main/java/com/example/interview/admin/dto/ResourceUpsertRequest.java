@@ -31,6 +31,8 @@ public class ResourceUpsertRequest {
     @Min(value = 1, message = "difficulty 取值 1~5")
     @Max(value = 5, message = "difficulty 取值 1~5")
     private Integer difficulty;
-    /** 1 启用 0 下架；缺省 1 */
+    /** 1 启用 0 下架；缺省 1。更新时省略 = 保持原值（部分更新语义，FIX-18 文档口径）。 */
+    @Min(value = 0, message = "enabled 取值 0 或 1")
+    @Max(value = 1, message = "enabled 取值 0 或 1")
     private Integer enabled;
 }
