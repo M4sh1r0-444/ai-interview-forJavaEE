@@ -112,7 +112,7 @@
 - 个性化成长（M5）：报告落库自动更新能力掌握度（首次直取、此后 旧×0.7 + 本次×0.3，同会话幂等）→ 按技能的成长曲线（records 升序 + current）→ 个性化推荐（短板识别四规则 + 优先级 (100-掌握度)×权重 Top3 + 学习资源/练习 + 错题重练 retryQuestions + 下一次面试配置建议；Redis 缓存报告事件预生成，TTL 10min）。
 - 管理端补全（M5）：统计看板（用户数/面试场次/岗位题量/平均分/近 7 日趋势）、岗位与评分权重维护（组内和=1 校验）、学习资源 CRUD（技能对齐校验、下架逻辑删）、用户启停（禁用登录拦截、防自禁用）。
 - AI 双模式：mock 全流程离线可演示；qwen 真实调用含三级容错（重试 → Mock 降级 → 会话锁定），缺 API Key 启动即显式失败。
-- 测试：`mvn test` **134 个用例全绿**（33 个测试类：状态机、组卷、追问七规则、JSON 容错、评分公式、语音指标、关键词词典、真实 Provider 容错（含 Bearer 鉴权头/401 降级）、掌握度折算、短板四规则、推荐引擎、WS 心跳，及文字/报告/音频/知识库/认证/岗位/管理/安全边界/历史成长/推荐/管理端扩展 + 验收修复 IT（WS 存活/WS Origin/终态竞态/Prompt 历史过滤/报告证据持久化/时长重启恢复/处理中恢复）共 **20 个集成测试类**）。
+- 测试：`mvn test` **166 个用例全绿**（43 个测试类：状态机、组卷、追问七规则、JSON 容错、评分公式、语音指标、关键词词典、真实 Provider 容错（含 Bearer 鉴权头/401 降级）、掌握度折算、短板四规则、推荐引擎、WS 心跳，及文字/报告/音频/知识库/认证/岗位/管理/安全边界/历史成长/推荐/管理端扩展 + 验收修复 IT（WS 存活/WS Origin/终态竞态/Prompt 历史过滤/报告证据持久化/时长重启恢复/处理中恢复）共 **26 个集成测试类**——Phase 3 新增登录限流/协议错误/分页校验/掌握度并发幂等/知识召回回退/管理端校验）。
 - 质量与部署（M6 6.1~6.3 + 2026-10-17 验收修复）：`mvn verify` 全绿 + JaCoCo 行覆盖率 **89.4%**（核心包全部 ≥60%，check 门禁固化进 pom）；AI 质量抽测 **40/40 条人工分差 ≤15（100%，达标线 80%）**，记录见 [`开发计划/AI质量抽测记录_M6.md`](开发计划/AI质量抽测记录_M6.md)；五服务 Docker 编排（mysql/redis/backend/frontend/nginx）一键启动，Nginx 80 端口 `/api` 反代 + `/ws` 升级全通。
   > 2026-10-17 验收修复（FIX-02）：`frontend` 改为初始化容器，启动时把产物强制覆盖进 `frontend-dist` 卷——80 端口页面内容含产品名（新卷/旧卷均验证），不再是默认页（P9 已修复）。
 - 验收与文档（M6 6.4~6.6）：**Mock 断网离线演练 13/13 项通过**（核心服务 internal 网络零外网出口，容器内实测外网 IP/DNS 不通；断网下完整走通 文字+语音面试 → 报告 → 历史/成长/推荐 → 管理端 → WebSocket，一键复跑 `bash ai-interview/qa/m6_offline_drill.sh`）；验收自检见 [`开发计划/AI模拟面试与能力提升平台_验收自检_M6.md`](开发计划/AI模拟面试与能力提升平台_验收自检_M6.md)（2026-10-17 验收复核后：#15 已修复，#6/#14 降为"协议级通过、真实 key 待环境验证"，未取得真实 key 前不宣称 15/15）；新人 30 分钟启动文档（[`ai-interview/backend/README.md`](ai-interview/backend/README.md)）与 15 步答辩演示脚本（[`ai-interview/答辩演示脚本.md`](ai-interview/答辩演示脚本.md)）。
@@ -206,7 +206,7 @@ curl -s "$BASE/api/users/me/recommendations?positionId=1" -H "$AUTH"
 # node -e 'const ws=new WebSocket(`ws://127.0.0.1:8080/ws/interviews/'$SID'?token='$TOKEN'`);ws.onmessage=e=>console.log(e.data)'
 ```
 
-运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 134 用例全绿）。全量质量门禁：`mvn verify`（含 JaCoCo 行覆盖率检查，核心代码 ≥60% 门禁固化，当前 89.4%，报告见 `backend/target/site/jacoco/`）。
+运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 166 用例全绿）。全量质量门禁：`mvn verify`（enforcer 限定 JDK [17,25) + JaCoCo 行覆盖率检查，核心代码 ≥60% 门禁固化，当前 89.55%，报告见 `backend/target/site/jacoco/`）。
 
 **切换真实大模型**（可选，默认 mock 离线可演示）：
 

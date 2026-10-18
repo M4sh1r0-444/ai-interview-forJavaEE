@@ -94,14 +94,14 @@ node -e 'const ws=new WebSocket(`ws://127.0.0.1:8080/ws/interviews/'$SID'?token=
 
 ```bash
 cd backend
-mvn test      # 134 个用例（33 个测试类）：单测 + 集成测试（@SpringBootTest + MockMvc）
+mvn test      # 166 个用例（43 个测试类）：单测 + 集成测试（@SpringBootTest + MockMvc）
 mvn verify    # 全量质量门禁：测试 + JaCoCo 行覆盖率 ≥60% 检查（核心业务代码口径，当前 89.4%）
 ```
 
 - 集成测试使用**独立测试库** `ai_interview_test`（`createDatabaseIfNotExist`，同一 MySQL 容器、不污染 dev 库）与 6380 Redis；
   所以跑测试前 dev 容器需要在跑。
 - 覆盖率报告：`target/site/jacoco/index.html`。
-- 测试清单（分组）：状态机/组卷/追问七规则/解析容错/评分公式/语音指标/关键词词典/真实 Provider 容错（Bearer 鉴权头/401 降级）/掌握度/短板/推荐引擎 + 认证/岗位/文字面试闭环/报告/音频/知识库/安全边界/历史成长/推荐/管理端 + 验收修复 IT（WS 心跳存活、WS Origin、终态竞态、Prompt 历史过滤、报告证据持久化、时长重启恢复、处理中会话恢复）共 20 个集成测试类。
+- 测试清单（分组）：状态机/组卷/追问七规则/解析容错/评分公式/语音指标/关键词词典/真实 Provider 容错（Bearer 鉴权头/401 降级）/掌握度/短板/推荐引擎 + 认证/岗位/文字面试闭环/报告/音频/知识库/安全边界/历史成长/推荐/管理端 + 验收修复 IT（WS 心跳存活、WS Origin、终态竞态、Prompt 历史过滤、报告证据持久化、时长重启恢复、处理中会话恢复）共 26 个集成测试类（Phase 3 新增：登录限流、协议错误、分页校验、掌握度并发幂等、知识召回回退、管理端校验）。
 
 ## 5. 配置项
 
