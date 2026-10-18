@@ -2,6 +2,7 @@ package com.example.interview.knowledge;
 
 import com.example.interview.common.util.JsonUtils;
 import com.example.interview.knowledge.service.KnowledgeSearchService;
+import com.example.interview.knowledge.service.KeywordExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,8 @@ abstract class KnowledgeSearchSupport {
     protected MockMvc mockMvc;
     @Autowired
     protected KnowledgeSearchService searchService;
+    @Autowired
+    protected KeywordExtractor keywordExtractor;
 
     /** 直接调用检索服务（FULLTEXT SQL 验证口径）。 */
     protected List<String> search(long positionId, String booleanQuery) {

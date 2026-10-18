@@ -32,7 +32,9 @@ public class KeywordExtractor {
 
     private static final Pattern TECH_TOKEN = Pattern.compile("[A-Za-z][A-Za-z0-9+.#]{1,}");
     private static final int TOP_N = 10;
-    /** 检索查询词上限：词数 > 4 时取前 4，避免 BOOLEAN MODE 全 AND 查空（计划 §6.5-4） */
+    /** 严格查询词上限：仅前 2 个高置信词加 +（FIX-15：全 AND 在任一词缺失时 0 命中）。 */
+    private static final int STRICT_TERM_LIMIT = 2;
+    /** 宽松查询词上限（严格 0 命中后的回退，不加 + 即 BOOLEAN OR）。 */
     private static final int QUERY_TERM_LIMIT = 4;
     /** BOOLEAN MODE 操作符字符，进入查询串前剔除 */
     private static final Pattern BOOLEAN_MODE_CHARS = Pattern.compile("[-+<>()~*\"@]");
@@ -110,13 +112,28 @@ public class KeywordExtractor {
         return List.copyOf(keywords);
     }
 
-    /** 构造 FULLTEXT BOOLEAN MODE 查询串：+词1 +词2；词数超限取前 4。空关键词返回 null。 */
+    /**
+     * 严格 BOOLEAN MODE 查询串（FIX-15）：仅前 2 个高置信词加 +（AND）。
+     * 空关键词或清洗后无有效词返回 null。
+     */
     public String buildBooleanQuery(List<String> keywords) {
+        return buildQuery(keywords, STRICT_TERM_LIMIT, true);
+    }
+
+    /**
+     * 宽松查询串（FIX-15 回退用）：前 4 个词不加 +（BOOLEAN OR，按 MATCH 分数排序）。
+     * 与严格串相同（词数 ≤2 且无差异）时返回值可能相等，由调用方判断是否需要二次检索。
+     */
+    public String buildLooseQuery(List<String> keywords) {
+        return buildQuery(keywords, QUERY_TERM_LIMIT, false);
+    }
+
+    private String buildQuery(List<String> keywords, int termLimit, boolean strict) {
         if (keywords == null || keywords.isEmpty()) {
             return null;
         }
-        List<String> terms = keywords.size() > QUERY_TERM_LIMIT
-                ? keywords.subList(0, QUERY_TERM_LIMIT) : keywords;
+        List<String> terms = keywords.size() > termLimit
+                ? keywords.subList(0, termLimit) : keywords;
         StringBuilder sb = new StringBuilder();
         for (String term : terms) {
             String cleaned = BOOLEAN_MODE_CHARS.matcher(term.trim()).replaceAll("");
@@ -124,7 +141,10 @@ public class KeywordExtractor {
                 if (sb.length() > 0) {
                     sb.append(' ');
                 }
-                sb.append('+').append(cleaned);
+                if (strict) {
+                    sb.append('+');
+                }
+                sb.append(cleaned);
             }
         }
         return sb.length() > 0 ? sb.toString() : null;

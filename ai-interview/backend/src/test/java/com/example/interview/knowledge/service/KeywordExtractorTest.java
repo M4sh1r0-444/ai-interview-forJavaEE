@@ -84,14 +84,24 @@ class KeywordExtractorTest {
     }
 
     @Test
-    void booleanQueryJoinsWithPlusAndCapsAt4() {
+    void booleanQueryStrictTakesFirstTwoTermsOnly() {
+        // FIX-15：严格模式仅前 2 个高置信词 AND（原前 4 全 + 在任一词缺失时 0 命中）
         assertThat(extractor.buildBooleanQuery(List.of("缓存", "redis")))
                 .isEqualTo("+缓存 +redis");
-        // 超过 4 词只取前 4，避免 BOOLEAN MODE 全 AND 查空
         assertThat(extractor.buildBooleanQuery(List.of("缓存", "redis", "索引", "事务", "锁", "队列")))
-                .isEqualTo("+缓存 +redis +索引 +事务");
+                .isEqualTo("+缓存 +redis");
         assertThat(extractor.buildBooleanQuery(null)).isNull();
         assertThat(extractor.buildBooleanQuery(List.of("的"))).isNull(); // 全被过滤
+    }
+
+    @Test
+    void looseQueryJoinsUpToFourTermsWithoutPlus() {
+        // FIX-15：宽松模式（严格 0 命中后的回退）不加 +，BOOLEAN OR 语义
+        assertThat(extractor.buildLooseQuery(List.of("缓存", "redis", "索引", "事务", "锁")))
+                .isEqualTo("缓存 redis 索引 事务");
+        assertThat(extractor.buildLooseQuery(List.of("缓存"))).isEqualTo("缓存");
+        assertThat(extractor.buildLooseQuery(null)).isNull();
+        assertThat(extractor.buildLooseQuery(List.of("(c)"))).isNull();
     }
 
     @Test

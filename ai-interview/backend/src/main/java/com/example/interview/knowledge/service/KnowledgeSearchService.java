@@ -26,17 +26,28 @@ public class KnowledgeSearchService {
     private final KeywordExtractor keywordExtractor;
 
     /**
-     * 从回答文本检索知识片段：提取关键词 → BOOLEAN MODE 查询 → Top5 格式化。
-     * 返回空列表表示无匹配（检索失败/无结果均不阻断面试）。
+     * 从回答文本检索知识片段（FIX-15 两级查询）：提取关键词 → 严格查询（前 2 高置信词
+     * AND）→ 0 命中回退宽松查询（前 4 词 OR，按 MATCH 分数排序）→ 仍空返回空列表
+     * （检索失败/无结果均不阻断面试）。
      */
     public List<String> searchForAnswer(Long positionId, String answerText) {
         List<String> keywords = keywordExtractor.extract(answerText);
-        String query = keywordExtractor.buildBooleanQuery(keywords);
-        if (query == null) {
+        String strict = keywordExtractor.buildBooleanQuery(keywords);
+        if (strict == null) {
             log.debug("知识检索跳过：回答未提取到有效关键词 positionId={}", positionId);
             return List.of();
         }
-        return search(positionId, query);
+        List<String> hits = search(positionId, strict);
+        if (!hits.isEmpty()) {
+            return hits;
+        }
+        String loose = keywordExtractor.buildLooseQuery(keywords);
+        if (loose == null || loose.equals(strict)) {
+            return hits;
+        }
+        log.debug("知识检索严格查询 0 命中，回退宽松查询 positionId={} strict={} loose={}",
+                positionId, strict, loose);
+        return search(positionId, loose);
     }
 
     /** 按构造好的 BOOLEAN MODE 查询串检索并格式化。 */
