@@ -7,7 +7,10 @@ import com.example.interview.growth.dto.RecommendationVO;
 import com.example.interview.growth.dto.SkillGrowthVO;
 import com.example.interview.growth.service.GrowthService;
 import com.example.interview.growth.service.RecommendationService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,11 +20,12 @@ import java.util.List;
 
 /**
  * 成长域接口（计划 §5.4）。M3 交付 #20 history；M5-5.2 交付
- * #18 growth 与 #19 recommendations。
+ * #18 growth 与 #19 recommendations。分页参数校验见 FIX-11。
  */
 @RestController
 @RequestMapping("/api/users/me")
 @RequiredArgsConstructor
+@Validated
 public class GrowthController {
 
     private final GrowthService growthService;
@@ -39,10 +43,12 @@ public class GrowthController {
         return Result.ok(recommendationService.recommendations(positionId));
     }
 
-    /** 用例 20：我的面试历史（分页，时间倒序）。 */
+    /** 用例 20：我的面试历史（分页，时间倒序；page≥1、size 1~100，FIX-11）。 */
     @GetMapping("/history")
-    public Result<Page<HistoryItemVO>> history(@RequestParam(defaultValue = "1") int page,
-                                               @RequestParam(defaultValue = "10") int size) {
+    public Result<Page<HistoryItemVO>> history(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "page 取值 1 起") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "size 取值 1~100")
+            @Max(value = 100, message = "size 取值 1~100") int size) {
         return Result.ok(growthService.history(page, size));
     }
 }

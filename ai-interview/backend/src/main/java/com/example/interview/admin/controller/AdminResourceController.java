@@ -6,8 +6,11 @@ import com.example.interview.admin.service.AdminResourceService;
 import com.example.interview.common.result.Result;
 import com.example.interview.growth.entity.LearningResource;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,24 +22,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 管理端学习资源 CRUD（计划 §5.5 #29★）。全部 ROLE_ADMIN。
+ * 管理端学习资源 CRUD（计划 §5.5 #29★）。全部 ROLE_ADMIN。分页参数校验见 FIX-11。
  */
 @RestController
 @RequestMapping("/api/admin/resources")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@Validated
 public class AdminResourceController {
 
     private final AdminResourceService adminResourceService;
 
-    /** 用例 #29★：列表（含已下架，id 倒序）。 */
+    /** 用例 #29★：列表（含已下架，id 倒序；page≥1、size 1~100）。 */
     @GetMapping
     public Result<Page<LearningResource>> list(
             @RequestParam(required = false) Long positionId,
             @RequestParam(required = false) String skillCode,
             @RequestParam(required = false) String resourceType,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "page 取值 1 起") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "size 取值 1~100")
+            @Max(value = 100, message = "size 取值 1~100") int size) {
         return Result.ok(adminResourceService.page(positionId, skillCode, resourceType, page, size));
     }
 

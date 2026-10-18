@@ -7,8 +7,11 @@ import com.example.interview.admin.dto.WeightsUpdateRequest;
 import com.example.interview.admin.service.AdminPositionService;
 import com.example.interview.common.result.Result;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,20 +23,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 管理端岗位与能力模型维护（计划 §5.5 #28★/#30★）。岗位被题库/历史
- * 引用，不提供删除。全部 ROLE_ADMIN。
+ * 引用，不提供删除。全部 ROLE_ADMIN。分页参数校验见 FIX-11。
  */
 @RestController
 @RequestMapping("/api/admin/positions")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@Validated
 public class AdminPositionController {
 
     private final AdminPositionService adminPositionService;
 
-    /** 用例 #28★：岗位列表（含停用）。 */
+    /** 用例 #28★：岗位列表（含停用；page≥1、size 1~100）。 */
     @GetMapping
-    public Result<Page<PositionAdminVO>> list(@RequestParam(defaultValue = "1") int page,
-                                              @RequestParam(defaultValue = "10") int size) {
+    public Result<Page<PositionAdminVO>> list(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "page 取值 1 起") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "size 取值 1~100")
+            @Max(value = 100, message = "size 取值 1~100") int size) {
         return Result.ok(adminPositionService.page(page, size));
     }
 

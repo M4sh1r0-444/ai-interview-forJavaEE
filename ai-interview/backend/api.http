@@ -323,3 +323,26 @@ Authorization: Bearer {{ADMIN_TOKEN}}
 Content-Type: application/json
 
 {"status": 0}
+
+### 33. 协议级错误口径（FIX-11）：未知路径 404/40400、方法不支持 405/40501、
+###      Content-Type 不支持 415/41501、路径参数类型错误与非法分页 400/40001；
+###      业务资源归属隐藏仍用 40401（HTTP 200），与 40400 不混用
+GET {{BASE}}/api/not-exist
+Authorization: Bearer {{TOKEN}}
+
+###
+GET {{BASE}}/api/auth/login
+
+###
+POST {{BASE}}/api/auth/login
+Content-Type: text/plain
+
+not json
+
+###
+GET {{BASE}}/api/interviews/abc
+Authorization: Bearer {{TOKEN}}
+
+###
+GET {{BASE}}/api/users/me/history?page=0&size=10
+Authorization: Bearer {{TOKEN}}

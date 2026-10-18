@@ -91,7 +91,7 @@ class AdminCrudIT {
                         .queryParam("positionId", "1")
                         .queryParam("type", "TECHNICAL")
                         .queryParam("page", "1")
-                        .queryParam("size", "200")
+                        .queryParam("size", "100")
                         .header("Authorization", "Bearer " + admin))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -107,7 +107,7 @@ class AdminCrudIT {
         MvcResult afterDel = mockMvc.perform(get("/api/admin/questions")
                         .queryParam("positionId", "1")
                         .queryParam("page", "1")
-                        .queryParam("size", "500")
+                        .queryParam("size", "100")
                         .header("Authorization", "Bearer " + admin))
                 .andExpect(status().isOk())
                 .andReturn();

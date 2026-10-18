@@ -156,7 +156,7 @@ api.http                           # IDEA HTTP Client 用例 32 组（与开发�
 | 管理端 | `/api/admin` | 题库 CRUD 4、知识片段新增+索引重建 2、岗位列表/详情/新增/修改/权重 5、学习资源 CRUD 4、用户列表/启停 2、看板 1（共 18 个） |
 | WebSocket | `/ws/interviews/{id}?token=` | 下行 QUESTION / FOLLOW_UP / TRANSCRIPT / TIMER / PROGRESS / REPORT_READY / ERROR；30s 心跳 |
 
-统一契约：业务失败 **HTTP 200 + code** 区分（0=成功），协议级错误用 HTTP 状态码（401/403/400/429/500）；错误码表见开发计划附录 A。
+统一契约：业务失败 **HTTP 200 + code** 区分（0=成功），协议级错误用 HTTP 状态码（400/401/403/404/405/415/429/500）；错误码表见开发计划附录 A。FIX-11 新增协议级错误码：**40400**（资源不存在，HTTP 404，区别于归属隐藏的 40401/HTTP 200）、**40501**（方法不支持）、**41501**（Content-Type 不支持）；列表接口分页参数 `page≥1、size 1~100`，越界统一 400/40001。
 
 **前端联调要点（异步契约）**：
 - 文字/音频回答与 finish 均为**异步受理**：接口立即返回 `{accepted:true,...}`，AI 追问、下一题、报告经 WS 推送 + `GET messages` / `GET report` 轮询获取；报告未就绪时 report 返回 code=10004，finish 可幂等重试。

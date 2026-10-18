@@ -6,8 +6,11 @@ import com.example.interview.question.dto.QuestionAdminVO;
 import com.example.interview.question.dto.QuestionUpsertRequest;
 import com.example.interview.question.service.QuestionService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,23 +23,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 管理端题库 CRUD（方案 §10.5，计划 §5.5-21~24）。全部 ROLE_ADMIN。
+ * 分页参数校验见 FIX-11。
  */
 @RestController
 @RequestMapping("/api/admin/questions")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@Validated
 public class AdminQuestionController {
 
     private final QuestionService questionService;
 
-    /** 用例 21：列表。 */
+    /** 用例 21：列表（page≥1、size 1~100）。 */
     @GetMapping
     public Result<Page<QuestionAdminVO>> list(
             @RequestParam(required = false) Long positionId,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Integer difficulty,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "page 取值 1 起") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "size 取值 1~100")
+            @Max(value = 100, message = "size 取值 1~100") int size) {
         return Result.ok(questionService.adminPage(positionId, type, difficulty, page, size));
     }
 

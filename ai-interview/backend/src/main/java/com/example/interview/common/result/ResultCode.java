@@ -18,9 +18,12 @@ public enum ResultCode {
     PARAM_INVALID(40001, "参数校验失败", 400),
     PARAM_OUT_OF_RANGE(40002, "参数超出允许范围", 400),
     VERSION_CONFLICT(40003, "数据已被修改，请刷新后重试", 200),
+    NOT_FOUND(40400, "请求的资源不存在", 404),
     NOT_FOUND_OR_FORBIDDEN(40401, "资源不存在或无权访问", 200),
     UNAUTHORIZED(40101, "未登录或登录已失效", 401),
     FORBIDDEN(40301, "无权限执行该操作", 403),
+    METHOD_NOT_ALLOWED(40501, "请求方法不支持", 405),
+    UNSUPPORTED_MEDIA_TYPE(41501, "Content-Type 不支持", 415),
     TOO_MANY_REQUESTS(42901, "请求过于频繁，请稍后再试", 429),
     INTERNAL_ERROR(50001, "服务器内部错误", 500);
 
