@@ -1,6 +1,6 @@
 {
  "base": "http://127.0.0.1",
- "user": "offline_45025",
+ "user": "offline_318131",
  "passed": 13,
  "total": 13,
  "ok": true,
@@ -13,7 +13,7 @@
   {
    "name": "文字面试完整走完（FINISHED）",
    "pass": true,
-   "note": "sessionId=27 status=FINISHED"
+   "note": "sessionId=398 status=FINISHED"
   },
   {
    "name": "动态追问离线可用",
@@ -23,12 +23,12 @@
   {
    "name": "六维评估报告生成",
    "pass": true,
-   "note": "总分 75.66，维度 communication=83/depth=77/logic=76/match=73/technical=70，逐题证据 5 条"
+   "note": "总分 74.42，维度 communication=83/depth=74/logic=76/match=73/technical=66，逐题证据 5 条"
   },
   {
    "name": "语音面试完整走完（FINISHED）",
    "pass": true,
-   "note": "sessionId=28 status=FINISHED，音频提交 20 次"
+   "note": "sessionId=399 status=FINISHED，音频提交 20 次"
   },
   {
    "name": "AUDIO 场报告含 voice 维度",
@@ -58,7 +58,7 @@
   {
    "name": "管理端看板可用",
    "pass": true,
-   "note": "用户 11 / 场次 28 / 题量 61 / 均分 72.52"
+   "note": "用户 12 / 场次 32 / 题量 61 / 均分 72.71"
   },
   {
    "name": "管理端新增知识片段",
@@ -81,123 +81,124 @@
   "internalRedisOk": 1,
   "nginxToBackendOk": 1,
   "hostViaNginxHttp": "200",
-  "verifiedAt": "2026-10-15 14:17:05"
+  "hostPageContentOk": 1,
+  "verifiedAt": "2026-10-18 18:08:50"
  },
  "sessions": {
   "text": {
-   "sessionId": 27,
+   "sessionId": 398,
    "status": "FINISHED",
-   "totalScore": 75.66,
+   "totalScore": 74.42,
    "dimensionScores": {
-    "depth": 77.4,
+    "depth": 73.6,
     "logic": 76.4,
     "match": 73.0,
-    "technical": 70.2,
+    "technical": 66.4,
     "communication": 82.6
    },
    "followups": [
     {
      "roundNo": 0,
      "tier": "good",
-     "question": "项目中你负责的模块与其他人如何协作？接口如何约定？",
-     "followup": "前后端对接口字段有分歧时怎么推进？"
+     "question": "Spring Bean 的生命周期和作用域",
+     "followup": "AOP 代理是在生命周期哪个环节生成的？"
     },
     {
      "roundNo": 0,
      "tier": "good",
-     "question": "项目中你负责的模块与其他人如何协作？接口如何约定？",
+     "question": "Spring Bean 的生命周期和作用域",
      "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
     },
     {
      "roundNo": 0,
      "tier": "good",
-     "question": "项目中你负责的模块与其他人如何协作？接口如何约定？",
+     "question": "Spring Bean 的生命周期和作用域",
      "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
     },
     {
      "roundNo": 1,
      "tier": "good",
-     "question": "消息队列消息积压了百万条，怎么办？",
-     "followup": "扩队列转发方案的实现细节是什么？"
-    },
-    {
-     "roundNo": 1,
-     "tier": "good",
-     "question": "消息队列消息积压了百万条，怎么办？",
-     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
-    },
-    {
-     "roundNo": 1,
-     "tier": "good",
-     "question": "消息队列消息积压了百万条，怎么办？",
-     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
-    },
-    {
-     "roundNo": 2,
-     "tier": "mid",
-     "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
-     "followup": "自调用导致事务失效，你项目里怎么规避？"
-    },
-    {
-     "roundNo": 2,
-     "tier": "mid",
-     "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
-     "followup": "NESTED 和 REQUIRES_NEW 到底差在哪？"
-    },
-    {
-     "roundNo": 2,
-     "tier": "mid",
-     "question": "Spring 事务传播行为有哪些？REQUIRED 和 REQUIRES_NEW 的区别？",
-     "followup": "自调用导致事务失效，你项目里怎么规避？"
-    },
-    {
-     "roundNo": 3,
-     "tier": "mid",
      "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
      "followup": "什么是回表？怎么减少回表？"
     },
     {
-     "roundNo": 3,
-     "tier": "mid",
+     "roundNo": 1,
+     "tier": "good",
      "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
      "followup": "为什么建议主键用自增整型？和页分裂有什么关系？"
     },
     {
-     "roundNo": 3,
-     "tier": "mid",
+     "roundNo": 1,
+     "tier": "good",
      "question": "MySQL 索引为什么用 B+ 树而不是 B 树或哈希表？",
      "followup": "什么是回表？怎么减少回表？"
     },
     {
-     "roundNo": 4,
-     "tier": "poor",
-     "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
-     "followup": "核心线程能被回收吗？allowCoreThreadTimeOut 了解吗？"
+     "roundNo": 2,
+     "tier": "mid",
+     "question": "消息队列消息积压了百万条，怎么办？",
+     "followup": "扩队列转发方案的实现细节是什么？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "question": "消息队列消息积压了百万条，怎么办？",
+     "followup": "怎么保证重复消费不出问题？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "question": "消息队列消息积压了百万条，怎么办？",
+     "followup": "扩队列转发方案的实现细节是什么？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "question": "你的项目中遇到过最棘手的 bug 是什么？讲讲排查过程",
+     "followup": "如果日志不足以定位，你还有什么手段？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "question": "你的项目中遇到过最棘手的 bug 是什么？讲讲排查过程",
+     "followup": "这个 bug 暴露了设计上的什么问题？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "question": "你的项目中遇到过最棘手的 bug 是什么？讲讲排查过程",
+     "followup": "如果日志不足以定位，你还有什么手段？"
     },
     {
      "roundNo": 4,
      "tier": "poor",
-     "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
-     "followup": "你项目里线程池参数怎么定的？出过什么问题？"
+     "question": "synchronized 和 ReentrantLock 的区别与选择",
+     "followup": "Condition 相比 wait/notify 好在哪？举个例子。"
     },
     {
      "roundNo": 4,
      "tier": "poor",
-     "question": "线程池的核心参数有哪些？任务提交后的执行流程是什么？",
-     "followup": "核心线程能被回收吗？allowCoreThreadTimeOut 了解吗？"
+     "question": "synchronized 和 ReentrantLock 的区别与选择",
+     "followup": "什么是可重入？如果锁不可重入会出什么问题？"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
+     "question": "synchronized 和 ReentrantLock 的区别与选择",
+     "followup": "Condition 相比 wait/notify 好在哪？举个例子。"
     }
    ]
   },
   "audio": {
-   "sessionId": 28,
+   "sessionId": 399,
    "status": "FINISHED",
-   "totalScore": 75.59,
+   "totalScore": 75.96,
    "dimensionScores": {
-    "depth": 77.2,
+    "depth": 79.0,
     "logic": 76.4,
     "match": 73.0,
     "voice": 56.2,
-    "technical": 70.0,
+    "technical": 70.2,
     "communication": 82.6
    },
    "audioUploads": 20,
@@ -205,77 +206,77 @@
     {
      "roundNo": 0,
      "tier": "good",
-     "followup": "怎么设计白屏的自动检测与兜底？"
+     "followup": "回流和重绘的区别？怎么减少回流？"
     },
     {
      "roundNo": 0,
      "tier": "good",
-     "followup": "错误上报要注意什么（采样/去重/源码映射）？"
+     "followup": "defer 和 async 的具体执行时机差别？"
     },
     {
      "roundNo": 0,
      "tier": "good",
-     "followup": "怎么设计白屏的自动检测与兜底？"
+     "followup": "回流和重绘的区别？怎么减少回流？"
     },
     {
      "roundNo": 1,
      "tier": "good",
+     "followup": "不定高列表的虚拟滚动怎么处理？"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "followup": "content-visibility 和虚拟滚动区别？"
+    },
+    {
+     "roundNo": 1,
+     "tier": "good",
+     "followup": "不定高列表的虚拟滚动怎么处理？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "followup": "这个组件的状态如果不用全局管理会怎样？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "followup": "性能问题你是发现还是用户反馈的？怎么解决的？"
+    },
+    {
+     "roundNo": 2,
+     "tier": "mid",
+     "followup": "这个组件的状态如果不用全局管理会怎样？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "followup": "watch 一个 getter 与直接 watch reactive 对象有什么差别？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "followup": "怎么停止一个 watchEffect？"
+    },
+    {
+     "roundNo": 3,
+     "tier": "mid",
+     "followup": "watch 一个 getter 与直接 watch reactive 对象有什么差别？"
+    },
+    {
+     "roundNo": 4,
+     "tier": "poor",
      "followup": "防抖函数里闭包保存了什么？手写思路讲一下"
     },
     {
-     "roundNo": 1,
-     "tier": "good",
-     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
-    },
-    {
-     "roundNo": 1,
-     "tier": "good",
-     "followup": "你的回答偏简略，能结合一个具体的例子说明吗？"
-    },
-    {
-     "roundNo": 2,
-     "tier": "mid",
-     "followup": "LCP 慢一般查什么？"
-    },
-    {
-     "roundNo": 2,
-     "tier": "mid",
-     "followup": "路由懒加载为什么能提升首屏？代价是什么？"
-    },
-    {
-     "roundNo": 2,
-     "tier": "mid",
-     "followup": "LCP 慢一般查什么？"
-    },
-    {
-     "roundNo": 3,
-     "tier": "mid",
-     "followup": "为什么生产构建不直接用原生 ESM？"
-    },
-    {
-     "roundNo": 3,
-     "tier": "mid",
-     "followup": "预构建缓存什么时候会失效？"
-    },
-    {
-     "roundNo": 3,
-     "tier": "mid",
-     "followup": "为什么生产构建不直接用原生 ESM？"
+     "roundNo": 4,
+     "tier": "poor",
+     "followup": "Vue/React 里你遇到过闭包导致的旧值问题吗？"
     },
     {
      "roundNo": 4,
      "tier": "poor",
-     "followup": "作用域插槽解决什么问题？举个你的用例"
-    },
-    {
-     "roundNo": 4,
-     "tier": "poor",
-     "followup": "什么时候该拆组件、什么时候不该拆？"
-    },
-    {
-     "roundNo": 4,
-     "tier": "poor",
-     "followup": "作用域插槽解决什么问题？举个你的用例"
+     "followup": "防抖函数里闭包保存了什么？手写思路讲一下"
     }
    ]
   }

@@ -28,6 +28,14 @@ done
 [ "$READY" = "1" ] && ok "五服务就绪（frontend Exited(0) 产物已入卷，nginx 80 可达）" \
                 || { bad "120s 未就绪"; docker compose -p "$PROJECT" -f docker-compose.yml ps; }
 
+BACKEND_UP=0
+for _ in $(seq 1 60); do
+  curl -s --max-time 5 "$BASE/api/positions" 2>/dev/null | head -c 200 | grep -q '"code":40101' && BACKEND_UP=1 && break
+  sleep 2
+done
+[ "$BACKEND_UP" = "1" ] && ok "backend 经 Nginx 反代就绪（无 token → 40101）" \
+                     || bad "backend 120s 未就绪（/api 持续非 40101）"
+
 # ---------- 2) 页面内容断言（P9 教训：默认欢迎页也是 200） ----------
 PAGE=$(curl -s --max-time 5 "$BASE/" | head -c 6000)
 echo "$PAGE" | grep -q "AI 模拟面试与能力提升平台" \
@@ -164,7 +172,7 @@ FORGED=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/api/auth/login" \
   -H 'Content-Type: application/json' -H 'X-Forwarded-For: 198.51.100.7' \
   -d '{"username":"demo01","password":"wrong-password"}')
 [ "$FORGED" = "429" ] && ok "伪造 X-Forwarded-For 不能绕过（后端只信 Nginx 的 X-Real-IP）" \
-                    || bad "伪造 XFF 绕过成功（HTTP $FORGED）"
+                    || bad "伪造 XFF 绕过成功（HTTP ${FORGED}）"
 
 # ---------- 6) 日志无 token（FIX-10） ----------
 FAKE_TOKEN="FAKE-JWT-e2e-should-never-appear"

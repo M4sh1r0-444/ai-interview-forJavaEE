@@ -8,5 +8,6 @@
   "internalRedisOk": 1,
   "nginxToBackendOk": 1,
   "hostViaNginxHttp": "200",
-  "verifiedAt": "2026-10-15 14:17:05"
+  "hostPageContentOk": 1,
+  "verifiedAt": "2026-10-18 18:08:50"
 }
