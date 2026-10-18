@@ -32,6 +32,7 @@ import com.example.interview.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DeadlockLoserDataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -135,16 +136,19 @@ public class ReportService {
                 upd.setTotalScore(report.getTotalScore());
                 sessionMapper.updateById(upd);
             });
-        } catch (DuplicateKeyException e) {
-            // 并发生成（如轮次用尽与 finish 重试同时触发）：以先落库者为准
-            log.info("报告并发写入，取已有报告 session={}", sessionId);
+        } catch (DuplicateKeyException | DeadlockLoserDataAccessException e) {
+            // 并发生成（如轮次用尽与 finish 重试同时触发）：以先落库者为准，
+            // 下方统一 findBySessionId 加载已有报告并推 REPORT_READY（FIX-12）；
+            // 掌握度由 uk_ability_source_skill + 逐条捕获冲突/死锁重试保证败者安全重入
+            log.info("报告并发写入（{}），取已有报告 session={}", e.getClass().getSimpleName(), sessionId);
         }
         // 掌握度更新：报告事务提交后独立事务追加 ability_record（计划 §4.4/§6.6；
         // 以 source_session_id 幂等，并发生成路径不会重复折算）
         masteryUpdater.applyForSession(s.getUserId(), s.getPositionId(), sessionId,
                 masteryUpdater.sessionSkillScores(agg.skillTurns));
         evaluationStore.clear(sessionId);
-        EvaluationReport saved = findBySessionId(sessionId);
+        // 败者路径下胜者可能尚未提交，短暂有界等待后取已有报告（FIX-12），正常路径立即命中
+        EvaluationReport saved = waitForReport(sessionId, 2_000);
         if (saved != null) {
             wsHandler.push(sessionId, WsMessageType.REPORT_READY, Map.of("reportId", saved.getId()));
             log.info("报告生成完成 session={} reportId={} total={} rounds={}",
@@ -421,5 +425,21 @@ public class ReportService {
     private EvaluationReport findBySessionId(Long sessionId) {
         return reportMapper.selectOne(Wrappers.<EvaluationReport>lambdaQuery()
                 .eq(EvaluationReport::getSessionId, sessionId));
+    }
+
+    /** 最多等 timeoutMs 毫秒取该会话报告（100ms 轮询）；并发败者等胜者提交用，正常路径首轮命中。 */
+    private EvaluationReport waitForReport(Long sessionId, long timeoutMs) {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        EvaluationReport report = findBySessionId(sessionId);
+        while (report == null && System.currentTimeMillis() < deadline) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+            report = findBySessionId(sessionId);
+        }
+        return report;
     }
 }

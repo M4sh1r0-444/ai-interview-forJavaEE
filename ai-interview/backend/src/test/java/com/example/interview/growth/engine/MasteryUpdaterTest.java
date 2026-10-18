@@ -24,7 +24,10 @@ import static org.mockito.Mockito.when;
 class MasteryUpdaterTest {
 
     private final AbilityRecordMapper mapper = mock(AbilityRecordMapper.class);
-    private final MasteryUpdater updater = new MasteryUpdater(mapper);
+    // FIX-12 后 applyForSession 用 TransactionTemplate（事务外死锁重试）；单测仅走纯逻辑路径
+    private final MasteryUpdater updater = new MasteryUpdater(mapper,
+            new org.springframework.transaction.support.TransactionTemplate(
+                    mock(org.springframework.transaction.PlatformTransactionManager.class)));
 
     // ==================== 公式（方案 §8.1 / 计划 §3.8） ====================
 

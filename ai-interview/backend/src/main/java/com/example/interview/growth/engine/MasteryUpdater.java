@@ -5,8 +5,10 @@ import com.example.interview.growth.entity.AbilityRecord;
 import com.example.interview.growth.mapper.AbilityRecordMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DeadlockLoserDataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -24,6 +26,9 @@ import java.util.Map;
  *
  * ability_record 只追加不更新；applyForSession 以 source_session_id 幂等
  * （报告重试/并发生成不会重复折算），供 ReportService 在报告落库后调用。
+ * 并发安全（FIX-12）：V7 唯一键 uk_ability_source_skill 兜底 + 败者逐条跳过
+ * DuplicateKeyException；并发插入同一唯一键范围可能触发 InnoDB 死锁，
+ * 死锁败者在**事务外**退避重试（重试时快路径按已提交记录跳过）。
  */
 @Slf4j
 @Component
@@ -33,7 +38,12 @@ public class MasteryUpdater {
     public static final double OLD_WEIGHT = 0.7;
     public static final double CURRENT_WEIGHT = 0.3;
 
+    /** 死锁重试上限与退避（并发报告生成在唯一键/会话行上互等的收敛手段）。 */
+    private static final int DEADLOCK_MAX_ATTEMPTS = 3;
+    private static final long DEADLOCK_BACKOFF_MS = 150;
+
     private final AbilityRecordMapper abilityRecordMapper;
+    private final TransactionTemplate transactionTemplate;
 
     /** 一轮的技能命中与得分（ReportService 聚合产出）。 */
     public record SkillTurn(List<String> skillTags, double weight, double score) {
@@ -72,14 +82,30 @@ public class MasteryUpdater {
 
     /**
      * 报告落库后追加本次面试的能力记录（计划 §6.6 finish 编排的掌握度环节）。
-     * 该会话已有记录时幂等跳过；每次面试对每个命中技能插入一条。
+     * 幂等：快路径按 source_session_id 已有记录跳过；并发窗口由唯一键兜底。
      */
-    @Transactional
     public void applyForSession(Long userId, Long positionId, Long sessionId,
                                 Map<String, Double> skillScores) {
         if (skillScores == null || skillScores.isEmpty()) {
             return;
         }
+        for (int attempt = 1; ; attempt++) {
+            try {
+                transactionTemplate.executeWithoutResult(
+                        tx -> doApplyForSession(userId, positionId, sessionId, skillScores));
+                return;
+            } catch (DeadlockLoserDataAccessException e) {
+                if (attempt >= DEADLOCK_MAX_ATTEMPTS) {
+                    throw e;
+                }
+                log.warn("掌握度更新遭遇死锁（第 {} 次），退避重试 session={}", attempt, sessionId);
+                sleep(DEADLOCK_BACKOFF_MS);
+            }
+        }
+    }
+
+    private void doApplyForSession(Long userId, Long positionId, Long sessionId,
+                                   Map<String, Double> skillScores) {
         Long existing = abilityRecordMapper.selectCount(Wrappers.<AbilityRecord>lambdaQuery()
                 .eq(AbilityRecord::getSourceSessionId, sessionId));
         if (existing != null && existing > 0) {
@@ -94,7 +120,12 @@ public class MasteryUpdater {
             record.setSourceSessionId(sessionId);
             record.setScore(BigDecimal.valueOf(nextMastery(currentMastery(userId, positionId, e.getKey()),
                     e.getValue())).setScale(2, RoundingMode.HALF_UP));
-            abilityRecordMapper.insert(record);
+            try {
+                abilityRecordMapper.insert(record);
+            } catch (DuplicateKeyException ex) {
+                log.info("掌握度并发冲突跳过（uk_ability_source_skill）session={} skill={}",
+                        sessionId, e.getKey());
+            }
         }
         log.info("掌握度更新完成 session={} userId={} skills={}", sessionId, userId, skillScores.keySet());
     }
@@ -109,6 +140,14 @@ public class MasteryUpdater {
                 .orderByDesc(AbilityRecord::getId)
                 .last("LIMIT 1"));
         return latest != null ? latest.getScore().doubleValue() : null;
+    }
+
+    private void sleep(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private double clamp(double v) {
