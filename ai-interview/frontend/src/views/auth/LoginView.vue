@@ -158,6 +158,7 @@ async function handleSubmit(): Promise<void> {
           autocomplete="username"
           maxlength="50"
           clearable
+          data-testid="login-username"
         />
       </el-form-item>
 
@@ -170,6 +171,7 @@ async function handleSubmit(): Promise<void> {
           placeholder="请输入密码"
           autocomplete="current-password"
           maxlength="32"
+          data-testid="login-password"
         />
       </el-form-item>
 
@@ -178,7 +180,7 @@ async function handleSubmit(): Promise<void> {
         <span class="auth-form__hint">不勾选“记住密码”，仅保存用户名</span>
       </div>
 
-      <div v-if="formError" class="auth-form__error" role="alert">
+      <div v-if="formError" class="auth-form__error" role="alert" data-testid="login-error">
         <span>{{ formError }}</span>
       </div>
       <TraceIdText v-if="traceId" :trace-id="traceId" class="auth-form__trace" />
@@ -188,6 +190,7 @@ async function handleSubmit(): Promise<void> {
         native-type="submit"
         size="large"
         class="auth-form__submit"
+        data-testid="login-submit"
         :loading="loading"
         :disabled="cooldown > 0"
       >

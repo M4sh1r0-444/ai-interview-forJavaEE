@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | **后端 M6 ✅ 完成；前端 F5 ✅ 完成，F6 待开始** |
-| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F5 ✅（2026-10-18）；下一里程碑 **F6 质量/部署/验收** |
-| 整体进度 | 后端 6/6；前端 5/6（F1 ✅、F2 ✅、F3 ✅、F4 ✅、F5 ✅，F6 ⬜） |
+| 当前阶段 | **后端 M6 ✅ 完成；前端 F6 ✅ 完成（F1~F6 全部交付）** |
+| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F6 ✅（2026-10-18）；**全部里程碑完成，进入答辩/维护** |
+| 整体进度 | 后端 6/6；前端 6/6（F1 ✅、F2 ✅、F3 ✅、F4 ✅、F5 ✅、F6 ✅） |
 | 上次更新 | 2026-10-18 |
-| 上次更新人 | ZCode（F5 管理端会话） |
+| 上次更新人 | ZCode（F6 质量/部署/验收会话） |
 
 ### 里程碑状态
 
@@ -33,9 +33,9 @@
 | M5 | 个性化 + 管理端补全 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 | M6 | 测试 + 部署 + 验收 | ✅ 已完成 | 2026-10-15 | 2026-10-15 |
 
-### 前端里程碑状态（F1~F6，F1~F5 已完成、F6 待开始）
+### 前端里程碑状态（F1~F6 全部完成）
 
-> 任务明细与验收标准见 [《AI模拟面试与能力提升平台_前端开发计划.md》](AI模拟面试与能力提升平台_前端开发计划.md) §11；F1 任务粒度已回填，F2 起逐里程碑回填。
+> 任务明细与验收标准见 [《AI模拟面试与能力提升平台_前端开发计划.md》](AI模拟面试与能力提升平台_前端开发计划.md) §11；F1~F6 任务粒度均已回填（F6 见 §3 F6 任务明细）。
 
 | 里程碑 | 内容 | 状态 | 开始日期 | 完成日期 |
 |---|---|---|---|---|
@@ -44,10 +44,10 @@
 | F3 | 报告 + 历史 | ✅ 已完成 | 2026-10-17 | 2026-10-17 |
 | F4 | 语音 + 成长 + 推荐 + 个人中心 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
 | F5 | 管理端 7 页 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
-| F6 | 质量 + 部署修复 + 验收 | ⬜ 未开始 | — | — |
+| F6 | 质量 + 部署修复 + 验收 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
 
 > ⚠ 2026-10-17 复核：M6-6.3 的"静态页 200"只验证了 HTTP 状态码，**未校验页面内容**；`frontend-dist` 卷实际为 nginx 默认欢迎页（见 P9）。
-> ✅ 2026-10-17 当日已修复（后端修复 FIX-02）：frontend 改为初始化容器，启动时把产物强制覆盖进卷；独立 compose 项目验证页面含产品名（新卷/旧卷双场景），P9 关闭。
+> ✅ 2026-10-17 FIX-02 先修复卷挂载（占位页）；2026-10-18 F6-4 用真实 Vue3 产物复验：80 页面含产品名、assets 200、gzip、/api、/ws 101，P9 最终关闭。
 
 ---
 
@@ -77,6 +77,7 @@
 | 20 | **前端 F3 报告与历史（F3-1~F3-6）** | `frontend/src/{views/interview/ReportView.vue,views/growth/HistoryView.vue,stores/report.ts,components/report,components/charts,components/common/PaginationBar.vue,composables/useEchart.ts,composables/usePagination.ts,composables/useAudioReplay.ts,utils/report.ts,utils/echarts.ts}` + `frontend/e2e/report.spec.ts` + `frontend/docs/F3-验收记录.md` + `frontend/docs/screenshots/f3/` | 2026-10-17 | ✅ 已交付（F3） | 报告页/历史页替换占位；报告缓存 + 10004 轮询（1s→2s→3s，60s 上限，隐藏暂停）+ finish 幂等重试 + 40401/ABORTED/未结束空态 + WS REPORT_READY；SVG 总分环、TEXT 5 维/AUDIO 6 维雷达（ECharts 按需注册）、维度条、逐题证据折叠、受保护音频回放、亮点/不足/建议、推荐 Top2、打印；历史服务端分页 10/20/50 + 当前页状态筛选 + page/size/status URL 同步；`lint/type-check` 0/0，单测 **133/133**（27 文件，F3 新增 42），coverage **68.31%**，build 成功，Playwright E2E **10/10**（F2 6 + F3 4）；16 张截图；测试数据已清理（demo01 历史 7 场） |
 | 21 | **前端 F4 语音 + 成长 + 推荐 + 个人中心（F4-1~F4-7）** | `frontend/src/{composables/useAudioRecorder.ts,composables/useSpeechRecognition.ts,components/interview/AudioRecorder.vue,TranscriptPanel.vue,AudioAnswerPanel.vue,components/charts/GrowthLineChart.vue,views/growth/GrowthView.vue,RecommendationView.vue,views/user/ProfileView.vue,utils/audio.ts,growth.ts,url.ts}` + `frontend/e2e/audio-flow.spec.ts` + `frontend/scripts/f4-screenshots.mjs` + `frontend/docs/F4-验收记录.md` + `frontend/docs/screenshots/f4/` | 2026-10-18 | ✅ 已交付（F4） | 语音房间录音/转写/音频提交/受保护回放（MediaRecorder + Web Speech + 手工降级）；成长曲线（time 轴多技能/岗位切换/空态/dispose）；学习推荐（Top3/理由/资源/错题/下场建议/外链安全）；个人中心（资料回显保存/退出/不展示密码）；`lint/type-check` 0/0，单测 **176/176**（35 文件，F4 新增 43），coverage **72.13%**，build 成功，Playwright E2E **15/15**（F2 6 + F3 4 + F4 5）；9 张截图；测试数据清理后 demo01 历史 7 场 |
 | 22 | **前端 F5 管理端 7 页（F5-1~F5-8）** | `frontend/src/{layouts/AdminLayout.vue,components/admin,components/charts/TrendBarLineChart.vue,views/admin,utils/admin.ts,utils/echarts.ts,styles/admin.scss}` + `frontend/e2e/admin.spec.ts` + `frontend/scripts/f5-screenshots.mjs` + `frontend/docs/F5-验收记录.md` + `frontend/docs/screenshots/f5/` | 2026-10-18 | ✅ 已交付（F5） | 看板四卡 + 近 7 日柱线（null 断点/双轴）；题库 CRUD + 筛选分页 URL 同步 + 40003 冲突覆盖/放弃 + 逻辑删；岗位/技能权重动态行 + 三组评分权重实时校验/回读 + `?tab=weights` 与 `/admin/evaluation` 别名；资源 CRUD/下架；用户搜索/启停/自禁用保护；知识库新增/重建并明确无列表；管理端菜单 query 高亮 + 移动端提示；`lint/type-check/format:check` 0/0，单测 **214/214**（40 文件，F5 新增 38），coverage **76.54%**，build 成功，Playwright E2E **20/20**（F2 6 + F3 4 + F4 5 + F5 5）；10 张截图、0 pageerror；测试数据清理后 demo01 历史 7 场 |
+| 23 | **前端 F6 质量/部署/验收（F6-1~F6-6）** | `frontend/src/api/__tests__/modules.spec.ts`、`frontend/e2e/auth.spec.ts`、`frontend/scripts/contract-check.mjs`、`frontend/artifacts/contract-check.json`、`frontend/Dockerfile`、`docker-compose.yml`、`nginx/nginx.conf`、`frontend/README.md`、`qa/cleanup_e2e_data.sh`、`frontend/docs/F6-验收记录.md`、`frontend/docs/screenshots/f6/` | 2026-10-18 | ✅ 已交付（F6） | 单测 **231/231**（41 文件，F6 新增 17）、覆盖率行 **90.09%**/分支 **82.85%**（阈值 70/60 固化）；E2E **21/21**（新增 E2E-01）；契约 **39/39 REST + 7/7 错误码**；Dockerfile 多阶段构建 + 产物写 `frontend-dist` 卷，Nginx gzip/缓存，80 端口页面含产品名、assets 200、gzip、`/api`、`/ws` 101、离线栈可启动；frontend README/根 README/答辩脚本（P10 修正）/15 张 f6 截图；`qa/cleanup_e2e_data.sh` 清理后 2 岗位/demo01 7 场；修复首页 404（nginx root 继承）与 favicon 403（镜像权限） |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。前端产物的任务编号使用 F1~F6（见前端开发计划 §11），不占用 M 编号。
 
@@ -159,9 +160,9 @@
 | 6.5 | 验收自检（对照表 15 条） | ✅ | 2026-10-15 | 计划 §12 逐条 ✅ 并附验证方式与实测证据（双岗/题量/题型比例 SQL、追问消息表实录、知识检索 DEBUG 日志、报告六维与五要素实录、两场后成长曲线 5 条全 2 点、推荐 Top3 实录、管理端 IT、双模式、compose 一键+15 步映射），产出《AI模拟面试与能力提升平台_验收自检_M6.md》 |
 | 6.6 | README + 答辩演示脚本 | ✅ | 2026-10-15 | backend/README.md（环境→快速开始→一场面试→测试门禁→配置→模块→接口与联调契约→部署→FAQ，新人 30 分钟启动路径）；ai-interview/答辩演示脚本.md（方案 §19 15 步逐条映射可执行命令 + 演示前准备清单 + 故障预案） |
 
-### F1~F6 前端阶段（F1~F5 ✅，F6 待开始）
+### F1~F6 前端阶段（F1~F6 ✅ 全部完成）
 
-> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。F1~F5 已按任务粒度回填，详见下方任务表与《F1-验收记录》《F2-验收记录》《F3-验收记录》《F4-验收记录》《F5-验收记录》。
+> 任务编号、产出物、完成标准（DoD）见 [前端开发计划 §11](AI模拟面试与能力提升平台_前端开发计划.md)。F1~F6 已按任务粒度回填，详见下方任务表与《F1-验收记录》~《F6-验收记录》。
 
 | 里程碑 | 任务数 | 状态 | 开工条件 | 备注 |
 |---|---|---|---|---|
@@ -170,9 +171,9 @@
 | F3 报告 + 历史 | 6（F3-1~F3-6） | ✅ 已完成（2026-10-17） | F2 完成 | 报告轮询/雷达/证据/历史 |
 | F4 语音 + 成长 + 推荐 + 个人中心 | 7（F4-1~F4-7） | ✅ 已完成（2026-10-18） | F2、F3 完成 | 录音/ASR/回放/成长/推荐/资料 |
 | F5 管理端 | 8（F5-1~F5-8） | ✅ 已完成（2026-10-18） | F1 完成；F3 可并行 | 看板/题库/岗位/权重/知识库/资源/用户 |
-| F6 质量 + 部署 + 验收 | 6（F6-1~F6-6） | ⬜ 未开始 | F1~F5 完成 | 单测/E2E/契约/产物卷修复/文档/验收 |
+| F6 质量 + 部署 + 验收 | 6（F6-1~F6-6） | ✅ 已完成（2026-10-18） | F1~F5 完成 | 单测/E2E/契约/产物卷修复/文档/验收 |
 
-> **前置阻塞**：F6-4 依赖 P9 修复（frontend 产物写入 `frontend-dist` 卷）；F6-6 依赖 P11（清理 `ACC_*` 测试岗位/数据）与 P10（修正答辩脚本权重 payload）。F1~F5 本身不依赖上述修复，已完成；下一里程碑 F6。
+> **前置阻塞已解除**：F6-4 已用真实 Vue 产物替换占位页并验证 `frontend-dist` 卷（P9 关闭）；F6-5 修正答辩脚本 `scoreWeights`（P10 关闭）；F6-6 清理测试残留（P11 关闭）。F1~F6 全部完成。
 
 #### F1 任务明细（2026-10-17 ✅）
 
@@ -244,6 +245,19 @@
 
 > F5 验收细节、口径偏差与截图见 [`frontend/docs/F5-验收记录.md`](../ai-interview/frontend/docs/F5-验收记录.md)。
 
+#### F6 任务明细（2026-10-18 ✅）
+
+| 任务 | 内容 | 状态 | 完成日期 | 验证记录 |
+|---|---|---|---|---|
+| F6-1 | 单测/组件覆盖率达标 | ✅ | 2026-10-18 | 新增 `src/api/__tests__/modules.spec.ts` 17 用例覆盖 39 API 函数（URL/method/data/params/timeout/FormData/Blob/cleanParams）；`vite.config.ts` 固化 70/60 阈值；单测 **231/231**（41 文件）、行 **90.09%**、分支 **82.85%**、函数 **89.90%**；`test:coverage` 通过 |
+| F6-2 | E2E 全量套件 | ✅ | 2026-10-18 | 新增 `e2e/auth.spec.ts`（E2E-01 错误密码/学生登录/登出/管理员跳转）；全套 **21/21**（F1 1 + F2 6 + F3 4 + F4 5 + F5 5），首轮 49.2s、`verify` 复跑 42.7s；15 个用例断言 pageerror 为空；测试环境放宽登录限流（R-F7） |
+| F6-3 | 契约检查脚本 | ✅ | 2026-10-18 | `scripts/contract-check.mjs`（Node 22 fetch，零依赖）覆盖 **39/39 REST + 7/7 错误码**；输出 `artifacts/contract-check.json`；覆盖注册/登录/登出、岗位、面试 10、成长 3、管理端 18 与 10002/40101/40301/40001/10005/40401/10004 |
+| F6-4 | Docker 产物卷修复 + gzip | ✅ | 2026-10-18 | Dockerfile 改 node:20 多阶段 + alpine 初始化容器 + `chmod`；compose 卷 `frontend-dist:/usr/share/nginx/html` + build arg NPM_REGISTRY；nginx gzip/index no-cache/assets 长缓存；80 页面含产品名、JS/CSS 200 + gzip、SPA fallback、favicon 200、/api code=0、/ws 101；frontend `Exited (0)`、nginx Up；离线叠加栈页面/API 正常且 backend 外网不通；修复首页 404（root 继承）与 favicon 403（0600 权限） |
+| F6-5 | 文档/答辩/截图 | ✅ | 2026-10-18 | `frontend/README.md`（30 分钟上手/门禁/E2E 限流/契约/部署/FAQ/已知限制）；根 README 更新到前端 6/6；答辩脚本 15 步改 UI 主路径 + API 兜底，P10 权重 payload 修正为完整 `scoreWeights` 三组；`docs/screenshots/f6/` 15 张 + 15 步索引 |
+| F6-6 | 验收自检与数据清理 | ✅ | 2026-10-18 | `qa/cleanup_e2e_data.sh` 清理 E2E/契约/历史冒烟数据与 Redis `rec:*`/限流键；清理后 `GET /positions` 仅 2 个种子岗位、启用 2、demo01 历史 7 场、总场次 30；§12.1 26 条逐项 ✅（F6 记录 §7.3）；残留：真实麦克风手工复验（P19）、ECharts moderate 审计项（无修复） |
+
+> F6 验收细节、部署验证命令与 §12 对照见 [`frontend/docs/F6-验收记录.md`](../ai-interview/frontend/docs/F6-验收记录.md)。
+
 ---
 
 ## 4. 变更与决策记录
@@ -301,6 +315,9 @@
 | 2026-10-18 | 决策 | **D44：F4 成长/推荐/个人中心口径**——成长曲线用 time 轴（同日多场生成多点、`connectNulls:false`），岗位切换写 `?positionId=` 并回退首个启用岗位；推荐只把 http(s) 渲染为外链（`target=_blank rel=noopener noreferrer`），无 contentUrl 显示站内资源文案；`nextInterviewSuggested` 只解析"难度 1~5"，解析失败仅带岗位；设置页读取 `?difficulty=` 作为建议难度；个人中心保存后 `auth.applyUser` 更新内存 + localStorage，不展示密码/散列 | F4-4~F4-6 / 计划 §5.10~§5.12 |
 | 2026-10-18 | 决策 | **D45：F4 测试与清理口径**——E2E 在 Chromium 注入假 MediaStream/MediaRecorder + SpeechRecognition stub（本机 macOS Chrome 即使加 fake-device 参数 `getUserMedia` 仍超时，按计划允许的"伪造麦克风或手工转写"路径）；音频提交后等待服务端 USER 消息落库再 finish，避免乐观气泡导致报告 0 题；截图用临时 `shots_f4_*` 账号 + 独立脚本；验收后删除全部 `e2e_*`/`shots_f4_*` 用户及关联会话（多轮合计，含最终回归），demo01 历史恢复 7 场、2 个种子岗位不变，清理 `rec:*` 缓存 | F4-7 / 计划 §5.7.5/§9.4/§9.7 |
 | 2026-10-18 | 决策 | **D46：F5 管理端口径**——管理端 7 页按计划 §5.13~§5.19 落地；菜单“评分权重”指向 `/admin/positions?tab=weights`，`AppShell` 增加 activeMenu 支持 query 高亮，`/admin/evaluation` 重定向该地址；评分权重独立页与岗位 tab 复用 `WeightsEditorPanel`，默认权重与后端 `ScoreCalculator`/V2 种子一致，未配置时提示并允许保存写入；题库 40003 因后端无单题 GET，改为按 positionId 分页查找最新版本，弹窗展示版本/时间/题干，支持覆盖或放弃；知识库只做新增+重建（D33），页面明确边界；管理端 E2E 使用 admin storageState、F5 describe 串行；<768 管理端顶部提示但不阻塞，表格在卡片内部横向滚动 | F5-1~F5-8 / 计划 §5.13~§5.19、§7.10 |
+| 2026-10-18 | 决策 | **D47：F6 质量门禁与契约检查口径**——覆盖率统计范围固定为 `src/api`/`src/stores`/`src/utils`，阈值 70%/60% 写入 `vite.config.ts`（低于即失败）；补齐 39 个 API 函数的单测（URL/method/payload/FormData/Blob/cleanParams），组件测试不计入该阈值；E2E 新增 E2E-01 登录/错误密码/角色跳转/登出，测试环境用 `APP_SECURITY_LOGIN_RATE_LIMIT_PER_MINUTE=1000` 启动后端避免并行登录 429（生产仍 5/次/分）；契约检查独立为 `scripts/contract-check.mjs`（Node 22 fetch，零依赖），覆盖 39 REST + 7 错误码并输出 `artifacts/contract-check.json`，临时数据由 `qa/cleanup_e2e_data.sh` 清尾 | F6-1~F6-3 / 计划 §9.1/§9.4/§9.5 |
+| 2026-10-18 | 决策 | **D48：F6 部署与产物口径**——frontend 改为 node:20 多阶段构建 + alpine 初始化容器，产物经 `frontend-dist` 卷交给 nginx（不把 dist 打进 nginx 镜像）；compose 增加 `NPM_REGISTRY` build arg（默认 npmmirror，可 .env 覆盖）；Nginx server 级 `root` + gzip + index no-cache + assets 长缓存 + SPA fallback；镜像内 `chmod -R a+rX` 保证非 root worker 可读；验收必须校验页面内容/assets/gzip/`/api`/`/ws` 101，并跑离线叠加栈。实测修复两个部署缺陷：`location = /index.html` 缺 root 导致首页 404、宿主机 0600 文件导致 favicon 403 | F6-4 / 计划 §10.3/§10.4 |
+| 2026-10-18 | 决策 | **D49：F6 验收数据基线**——清理脚本只按测试前缀删除（`e2e_*`/`acc_*`/`race_*`/`dis_*`/`shots2_*`、`E2E-*`/`E2E_*`/`ACC_*`、`离线演练-*`、`冒烟：*`），demo01 保留 id ≤21 的 7 场基线；种子题 61 恢复 ENABLED；Redis 清 `rec:*` 与 `rl:login:*`；验收后 `GET /positions` 必须仅 2 个种子岗位、启用 2、demo01 历史 7 场。真实麦克风（P19）与 ECharts moderate 审计项作为已知残留，不阻塞课程交付 | F6-6 / 计划 §9.7/§12 |
 
 
 ## 5. 问题与风险跟踪
@@ -318,9 +335,9 @@
 | R3 | 2026-10-14 | 预置风险：ngram token=2，单字/单英文查询不命中 FULLTEXT | ✅ 已验证防护 | KeywordExtractor 过滤词长 <2 与停用词、查询词超 4 取前 4；V5 内容均为完整技术词。手验时另发现：docker exec mysql 客户端默认字符集非 utf8mb4 会把中文查询条件转码失配（M4 SQL 手验需加 `--default-character-set=utf8mb4`），应用侧 JDBC 无此问题 |
 | P7 | 2026-10-15 | Docker `internal: true` 网络上的发布端口宿主机不可达（curl 000），纯 internal 网络方案无法从宿主机驱动离线演练 | ✅ 已解决 | nginx 双网络：`networks: [edge, svc]`（edge 普通网络在前，80 端口发布在边缘网；svc 为 internal 承载服务间通信），宿主机恢复 200 访问；核心服务仍只挂 svc 保持零外网出口（方案见 D30） |
 | P8 | 2026-10-15 | bash 脚本中 `$VAR` 后紧跟全角字符（如 `$BASE）`）会把多字节字符并入变量名，`set -u` 下报 unbound variable | ✅ 已解决 | 变量与中文之间一律 `${VAR}` 显式定界（qa/m6_offline_drill.sh 三处）；教训随 6.4 交付记录 |
-| P9 | 2026-10-17 | **frontend-dist 卷未接前端产物**：`frontend` 服务未挂载该卷，Dockerfile 只把占位 index.html 拷进镜像内；nginx 挂载空卷后被初始化成 nginx 默认欢迎页。M6-6.3 只验证 HTTP 200，未验证内容；本次复核 80 端口实际为 `Welcome to nginx!`，frontend 容器 `Exited (0)` | ✅ 已修复（2026-10-17 后端修复 FIX-02，commit 16b6c51） | frontend 改为初始化容器：产物 COPY 到 /opt/frontend，compose 启动时 `rm -rf /site/* && cp -a /opt/frontend/. /site/` 强制覆盖卷（新卷/旧卷均生效）；独立 compose 项目验证页面含「AI 模拟面试与能力提升平台」+ /api 401 JSON。真实 Vue3 产物落地后仅替换 /opt/frontend 内容，编排不变 |
-| P10 | 2026-10-17 | `答辩演示脚本.md` §14 的评分权重请求体为 `{"weights":{"technical":...}}`，与后端 `WeightsUpdateRequest`（`{"scoreWeights":{content/expression/total}}`）不一致；照脚本执行会 40001 | ⬜ 待修正（FIX-19 / F6-5，Phase 3） | 前端按真实契约调用；FIX-19/F6-5 修正演示脚本 §14 并补 curl 示例 |
-| P11 | 2026-10-17 | dev 库存在测试残留：`GET /api/positions` 返回第 3 个启用岗位 `ACC_c4b462`（defaultRounds=100）；管理端题库/资源/用户含 `acc_*` 数据。演示选择岗位页会出现异常项 | ⬜ 待清理（FIX-19 / F6-6，Phase 3） | `ACC_*` 岗位与 `acc_*`/`race_*`/`dis_*` 用户已被 2026-10-17 验收检查会话清理（报告 §9，当前 2 岗位）；历史残留（61 题/45 知识/29 资源）仍在，演示前建议全新迁移库；qa/cleanup_e2e_data.sh 随 FIX-19 交付 |
+| P9 | 2026-10-17 | **frontend-dist 卷未接前端产物**：`frontend` 服务未挂载该卷，Dockerfile 只把占位 index.html 拷进镜像内；nginx 挂载空卷后被初始化成 nginx 默认欢迎页。M6-6.3 只验证 HTTP 200，未验证内容；本次复核 80 端口实际为 `Welcome to nginx!`，frontend 容器 `Exited (0)` | ✅ 已修复（FIX-02 + F6-4 真实 Vue 产物，2026-10-18 复验） | F6-4：frontend 改为 node:20 多阶段构建，产物写 `frontend-dist:/usr/share/nginx/html` 卷，nginx 等 `service_completed_successfully`；80 端口验证页面含产品名、assets 200、JS/CSS gzip、SPA fallback、/api code=0、/ws 101、frontend `Exited (0)`；离线叠加栈同样通过 |
+| P10 | 2026-10-17 | `答辩演示脚本.md` §14 的评分权重请求体为 `{"weights":{"technical":...}}`，与后端 `WeightsUpdateRequest`（`{"scoreWeights":{content/expression/total}}`）不一致；照脚本执行会 40001 | ✅ 已修复（F6-5，2026-10-18） | 答辩脚本 §14 改为 UI 主路径 + API 兜底，curl 示例使用完整 `scoreWeights` 三组（content/expression/total，组内和=1）；前端 `adminUpdateWeights` 单测断言该 payload |
+| P11 | 2026-10-17 | dev 库存在测试残留：`GET /api/positions` 返回第 3 个启用岗位 `ACC_c4b462`（defaultRounds=100）；管理端题库/资源/用户含 `acc_*` 数据。演示选择岗位页会出现异常项 | ✅ 已清理（F6-6，2026-10-18） | `qa/cleanup_e2e_data.sh` 清理 `e2e_*`/`acc_*`/`race_*`/`dis_*`/`shots2_*`、`E2E-*` 题目/资源/知识、`E2E_*`/`ACC_*` 岗位、demo01 基线后新增会话与关联数据；清理后 2 岗位/启用 2/demo01 历史 7 场/30 场总；恢复种子题 61 启用；Redis `rec:*`/`rl:login:*` 清理 |
 | P12 | 2026-10-17 | 方案 §11 的 `/admin/evaluation` 无独立后端接口（只有岗位权重接口） | ✅ 已决策（D33） | 复用 `PUT /admin/positions/{id}/weights`，实现评分权重页；`/admin/evaluation` 重定向到岗位权重页 |
 | P13 | 2026-10-17 | 方案 §10.5 只列 7 个管理接口，实际后端 18 个（新增岗位/权重/资源/用户/看板） | ✅ 已按实际契约记录（D31） | 前端按 39 REST 开发；管理端菜单覆盖 18 个接口对应能力；差异见前端计划 §2.5 |
 | P14 | 2026-10-17 | jsdom 25 的 `Blob` 没有 `text()`，导致受保护音频的“HTTP 200 + JSON 业务错误”检测在单测中失效（真实 Chrome 具备该方法） | ✅ 已解决 | `fetchBlob` 增加 FileReader 兜底；单测覆盖成功 blob 与 40401 JSON 两条路径 |
@@ -331,24 +348,27 @@
 | P19 | 2026-10-18 | 本机 macOS + 系统 Chrome（headless/headed）即使加 `--use-fake-device-for-media-stream --use-fake-ui-for-media-stream`，`getUserMedia` 仍 5s 超时，无法在 E2E 使用真实/假麦克风采集 | ⚠ 部分规避（真机待复验） | F4-7 按计划允许路径注入假 MediaStream + MediaRecorder（录音 UI/计时/提交/回放请求均覆盖）；真实麦克风权限与声音采集需答辩机 Chrome 手工复验一次（F6 手工验收项） |
 | P20 | 2026-10-18 | F4 E2E 失败重跑与调试脚本在 dev 库留下 `e2e_*`/`shots_f4_*` 用户与 demo01 调试会话 | ✅ 已清理（F4） | SQL 删除全部关联 session 及 messages/reports/ability（最后一轮 20 场），清理全部 e2e/截图用户；demo01 历史恢复 7 场；Redis `rec:*` 清空；截图脚本保留 `scripts/f4-screenshots.mjs` 可复跑 |
 | P21 | 2026-10-18 | F5 E2E 需要创建岗位/题目/资源/用户/知识片段，但后端无岗位与知识片段删除接口，E2E 无法完全自清理 | ✅ 已清理（F5） | 验收后 SQL 删除 `E2E_F5_*` 岗位、`E2E-F5%` 题目/资源/知识片段、`e2e_f5_*` 用户；同时清理 F3/F4 回归残留 `e2e_*` 用户与 demo01 本轮 4 场会话；Redis `rec:*` 清空；demo01 恢复 7 场、2 岗位/61 题/29 资源/45 知识/11 用户/30 场；F6-6 固化为 `qa/cleanup_e2e_data.sh` |
+| P22 | 2026-10-18 | F6-4 首次起正式栈，80 端口返回 404：`location = /index.html` 只写 `add_header`，未继承 `root`；`try_files` 内部跳转 `/index.html` 时按默认路径查找 | ✅ 已修复（F6-4） | `root /usr/share/nginx/html` 提到 server 级，所有 location 继承；`nginx -t` + 80 页面/SPA fallback 复验通过 |
+| P23 | 2026-10-18 | 正式栈 favicon 403：宿主机 `public/favicon.svg` 权限 0600，Docker `COPY` 保留权限，nginx worker（非 root）不可读 | ✅ 已修复（F6-4） | Dockerfile 产物层 `RUN chmod -R a+rX /opt/frontend-dist`；重建镜像并重新初始化卷后 favicon 200 |
+| P24 | 2026-10-18 | Docker 构建内 `npm ci` 直连 registry.npmjs.org 长时间无进展（容器可 DNS/连通但卡在下载层） | ✅ 已规避（F6-4） | Dockerfile 暴露 `NPM_REGISTRY` build arg，compose 默认 `https://registry.npmmirror.com`；实测 414 packages/12s 完成；`.env.example` 可覆盖 |
 
 > 开发中新遇到的问题在此追加；已解决的把状态改为 ✅ 并填解决方式。计划 §11 的 R1~R12 作为预置风险清单，触发时在此登记。
 
 ## 6. 环境状态备忘
 
-| 组件 | 状态（2026-10-17 前端计划核对） | 备注 |
+| 组件 | 状态（2026-10-18 F6 验收核对） | 备注 |
 |---|---|---|
 | JDK 17 | ✅ Temurin 17.0.20（`~/tools/jdk-17.0.20.1+1`，tarball 安装） | 运行/测试统一 `JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home` |
 | JDK 25 | 仍存在（系统默认） | 仅做兜底；编译由 `maven.compiler.release=17` 保证 |
 | Maven | 3.9.16（~/tools/apache-maven-3.9.16） | settings.xml 已配阿里云镜像 |
-| Docker | ✅ colima 运行中（实测可用内存 ~3.8G，非默认 2G） | 镜像经 daocloud 源拉取（D7）；M6 部署镜像已本地化（maven/temurin-jre/nginx/alpine） |
-| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库 **V7**（2026-10-17 验收修复迁移：question_evidence_json / planned_duration_minutes / uk_ability_source_skill）+ 演示数据；`ACC_*` 岗位已被验收检查会话清理，历史残留仍见 P11；测试库 ai_interview_test 同步 V7 |
+| Docker | ✅ colima 运行中（4C/4G） | 镜像经 daocloud 源拉取（D7）；node:20-alpine/nginx:1.27-alpine 已本地化；前端构建 npm 默认走 npmmirror（D48/P24） |
+| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库 **V7**（2026-10-17 验收修复迁移：question_evidence_json / planned_duration_minutes / uk_ability_source_skill）+ 演示数据；F6-6 清理后 2 岗位/启用 2/demo01 历史 7 场/30 场总/61 题/28 资源/43 知识（P11 关闭）；测试库 ai_interview_test 同步 V7 |
 | aiinterview-redis | ✅ healthy，宿主机端口 6380 | 6379 被其他项目占用（D6） |
 | 本机 8080 | ⚠ 2026-10-17 检测空闲；历史 P6 曾被其他项目占用 | 当前 dev 后端跑在 18080（health 200）；前端代理默认 8080，可用 `.env.development.local` 指 18080 |
 | 本机 18080 | ✅ 本项目 dev 后端（health 200） | 前端联调临时用；正式演示用 compose 80 |
 | 本机 5173 | ✅ F1 起由 Vite dev 占用（`npm run dev`） | 固定端口 + `strictPort: true`；后端 18080 通过 `.env.development.local` 代理；F4 语音 E2E 使用注入假麦克风（P19） |
-| 本机 80 | ⚠ 2026-10-17 核对时由临时验收栈占用并返回 nginx 默认页，现已释放 | 前端 F6-4 修复产物卷后由本项目 compose 的 nginx 占用；修复前不可作为演示入口 |
-| frontend 工程 | ✅ Vue3 + Vite + TS 工程（F5 完成，2026-10-18） | `npm install && npm run dev`；学生端 12 页 + 管理端 7 页全部完成（看板/岗位/权重/题库/知识库/资源/用户）；E2E 20/20；Dockerfile 仍为占位版，F6-4 替换并修复卷（P9） |
+| 本机 80 | ✅ F6-4 已用正式 compose 栈验证真实 Vue 页面（nginx/1.27.5） | 验证后已撤栈，当前空闲；答辩时 `docker compose up -d` 重新占用，入口 `http://127.0.0.1` |
+| frontend 工程 | ✅ Vue3 + Vite + TS 工程（F6 完成，2026-10-18） | `npm ci && npm run dev`；学生端 12 页 + 管理端 7 页；E2E 21/21、单测 231/231、覆盖率 90.09%/82.85%；Dockerfile 已替换为 node:20 多阶段并验证 `frontend-dist` 卷（P9 关闭） |
 | Node / npm | v22.23.3 / npm 10.9.9（pnpm 12.11.2 可用） | F1 实测 412 packages 安装成功；计划按 Node 20 LTS 兼容写法，Docker 用 node:20-alpine |
 
 **日常启动（M1 之后继续开发时）：**
@@ -394,3 +414,4 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-17 | **F3 完成（报告与历史）**：F3-1~F3-6 全部 ✅（产物 #20 交付）；新增报告页/历史页、`stores/report`（缓存 + 10004 轮询 1s→2s→3s/60s + finish 幂等重试 + 隐藏暂停/恢复 + 账号切换清空）、`useEchart`/`usePagination`/`useAudioReplay`、`utils/report`、ScoreRing/RadarScoreChart/DimensionBars/EvidenceAccordion/PaginationBar；历史服务端分页 10/20/50 + 当前页状态筛选 + page/size/status URL 同步；`lint/type-check` 0/0，单测 **133/133**（27 文件，F3 新增 42），coverage **68.31%**，build 成功（ReportView 懒加载 157.58KB gzip），Playwright E2E **10/10**（F2 6 + F3 4：完整报告/10004 自动恢复/clock 60s 重试/历史分页筛选）；16 张截图；测试数据清理后 demo01 历史 7 场；登记 D41/D42、P18；F3 ✅，下一里程碑 F4 | ZCode（F3 开发会话） |
 | 2026-10-18 | **F4 完成（语音 + 成长 + 推荐 + 个人中心）**：F4-1~F4-7 全部 ✅（产物 #21 交付）；新增 `useAudioRecorder`/`useSpeechRecognition`、AudioRecorder/TranscriptPanel/AudioAnswerPanel、GrowthLineChart/GrowthView、RecommendationView、ProfileView、`utils/audio|growth|url`；房间支持录音/实时转写/手工降级/音频提交/受保护回放与录音离开确认；成长曲线 time 轴多技能 + 岗位切换；推荐 Top3/资源/错题/外链安全/下场建议；个人中心资料保存与退出；`lint/type-check` 0/0、单测 **176/176**（35 文件，F4 新增 43）、coverage **72.13%**、build 成功、Playwright E2E **15/15**（F2 6 + F3 4 + F4 5）；9 张截图、0 pageerror、1440/390 无横向滚动；测试数据清理（e2e/截图用户全部删除，最后一轮 20 场会话，demo01 历史 7 场）；登记 D43~D45、P19（真实麦克风待人工复验）/P20（测试数据清理）；F4 ✅，下一里程碑 F5 管理端 | ZCode（F4 开发会话） |
 | 2026-10-18 | **F5 完成（管理端 7 页）**：F5-1~F5-8 全部 ✅（产物 #22 交付）；看板四卡 + 近 7 日柱线（null 断点/双轴）；题库 CRUD + 筛选分页 URL 同步 + 40003 冲突覆盖/放弃 + 逻辑删；岗位/技能权重动态行 + 三组评分权重实时校验/回读 + `?tab=weights` 与 `/admin/evaluation` 别名；资源 CRUD/下架；用户搜索/启停/自禁用保护；知识库新增/重建并明确无列表；`lint/type-check/format:check` 0/0、单测 **214/214**（40 文件，F5 新增 38）、coverage **76.54%**、build 成功、Playwright E2E **20/20**（F2 6 + F3 4 + F4 5 + F5 5）；10 张截图、0 pageerror、1440/390 无横向滚动；登记 D46、P21；测试数据清理后 demo01 历史 7 场；F5 ✅，下一里程碑 F6 | ZCode（F5 开发会话） |
+| 2026-10-18 | **F6 完成（质量/部署/验收，F1~F6 全部交付）**：F6-1~F6-6 全部 ✅（产物 #23 交付）；新增 API 模块单测 17 用例（39 函数），单测 **231/231**（41 文件）、覆盖率行 **90.09%**/分支 **82.85%**（70/60 阈值固化）；E2E 新增 E2E-01 并全套 **21/21**（首轮 49.2s、verify 42.7s）；契约检查 **39/39 REST + 7/7 错误码**（`artifacts/contract-check.json`）；Dockerfile 多阶段 + 产物卷 + Nginx gzip/缓存：80 页面含产品名、JS/CSS 200+gzip、SPA fallback、favicon 200、`/api` code=0、`/ws` 101、frontend `Exited (0)`、离线叠加栈可启动；frontend README/根 README/答辩脚本（P10 修正）/f6 15 张截图；`qa/cleanup_e2e_data.sh` 后 2 岗位/启用 2/demo01 7 场/30 场；修复 P22/P23（nginx root、favicon 权限）、规避 P24（npm 源）；登记 D47~D49；`npm run verify` 全绿，`npm audit --omit=dev` 1 moderate ECharts（无修复，记录） | ZCode（F6 质量/部署/验收会话） |

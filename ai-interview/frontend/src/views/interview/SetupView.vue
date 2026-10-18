@@ -871,7 +871,8 @@ onMounted(() => {
 
 .setup__aside {
   position: sticky;
-  top: calc(var(--topbar-height) + var(--space-4));
+  /* 滚动发生在 AppShell 的 .content 内：top 相对内容盒顶部，0 即与内容区上留白对齐。 */
+  top: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);

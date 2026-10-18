@@ -45,11 +45,13 @@ services:
     mem_limit: 768m                        # colima 2C/2G 约束（计划 §11-R2 应对）
 
   frontend:
-    build: ./frontend                      # 初始化容器（FIX-02 方案 A）：启动时把 /opt/frontend 强制覆盖到卷
+    build:
+      context: ./frontend                  # node:20 多阶段构建 dist → 初始化容器写入 frontend-dist 卷（F6-4/P9）
+      args:
+        # 网络受限时用 NPM_REGISTRY 覆盖；中国大陆默认走 npmmirror（可在 .env 覆盖）
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
     volumes:
-      - frontend-dist:/site
-    entrypoint: ["/bin/sh", "-c"]
-    command: ["rm -rf /site/* /site/.[!.]*; cp -a /opt/frontend/. /site/"]
+      - frontend-dist:/usr/share/nginx/html  # 关键：产物写入共享卷（不要 :ro）
     restart: "no"
 
   nginx:

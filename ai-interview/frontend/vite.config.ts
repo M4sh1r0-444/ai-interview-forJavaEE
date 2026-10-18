@@ -73,6 +73,13 @@ export default defineConfig(({ mode }) => {
         include: ['src/api/**/*.ts', 'src/stores/**/*.ts', 'src/utils/**/*.ts'],
         exclude: ['src/**/__tests__/**', 'src/**/*.d.ts'],
         reportsDirectory: './coverage',
+        // F6-1 门禁（计划 §9.1/§11.7）：核心目录行 ≥70%、分支 ≥60%，不达标时 test:coverage 直接失败。
+        thresholds: {
+          lines: 70,
+          statements: 70,
+          functions: 70,
+          branches: 60,
+        },
       },
     },
   }

@@ -594,7 +594,8 @@ onBeforeUnmount(() => {
 .room {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--topbar-height) - 48px);
+  /* 内容区独立滚动后，用 AppShell 提供的可视高度；外层兜底兼容独立挂载。 */
+  height: var(--content-viewport-height, calc(100vh - var(--topbar-height) - 48px));
   min-height: 600px;
   gap: var(--space-3);
 }

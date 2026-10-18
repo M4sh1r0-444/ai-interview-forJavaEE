@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowDown, ChatDotRound, Expand, Fold } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -32,6 +32,8 @@ const ui = useUiStore()
 const mobileOpen = ref(false)
 const isMobile = ref(false)
 const isNarrow = ref(false)
+/** 视口锁定布局下，页面滚动发生在内容区而不是 window。 */
+const contentEl = ref<HTMLElement | null>(null)
 
 const pageTitle = computed(() => route.meta.title ?? '')
 const activeMenu = computed(() => props.activeMenu ?? route.meta.activeMenu ?? route.path)
@@ -56,8 +58,11 @@ onBeforeUnmount(() => {
 
 watch(
   () => route.fullPath,
-  () => {
+  async () => {
     mobileOpen.value = false
+    // window 不再滚动，路由切换后需要手动把内容区拉回顶部。
+    await nextTick()
+    if (contentEl.value) contentEl.value.scrollTop = 0
   },
 )
 
@@ -167,7 +172,7 @@ async function handleCommand(command: string): Promise<void> {
           </el-tooltip>
 
           <el-dropdown trigger="click" @command="handleCommand">
-            <button type="button" class="user-trigger">
+            <button type="button" class="user-trigger" data-testid="user-trigger">
               <el-avatar :size="30" class="user-trigger__avatar">{{ avatarText }}</el-avatar>
               <span class="user-trigger__name">{{ auth.displayName }}</span>
               <el-icon :size="12"><ArrowDown /></el-icon>
@@ -186,7 +191,7 @@ async function handleCommand(command: string): Promise<void> {
         </div>
       </header>
 
-      <main class="content">
+      <main ref="contentEl" class="content">
         <div
           v-if="variant === 'admin' && isNarrow"
           class="admin-mobile-hint"
@@ -204,26 +209,34 @@ async function handleCommand(command: string): Promise<void> {
 </template>
 
 <style scoped>
+/*
+ * 视口锁定布局：外层只负责留白与间距，滚动全部交给 .content。
+ * 侧栏与主区各自是一块圆角玻璃面板，避免圆角与直角直接相接。
+ */
 .app-layout {
   display: flex;
-  min-height: 100vh;
+  gap: var(--space-3);
   width: 100%;
-  overflow-x: hidden;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  padding: var(--space-3);
+  overflow: hidden;
   background: transparent;
 }
 
 /* ===== 侧栏 ===== */
 .sidebar {
-  position: sticky;
-  top: 0;
+  position: relative;
   display: flex;
   flex: 0 0 var(--sidebar-width);
   flex-direction: column;
   width: var(--sidebar-width);
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
-  border-right: 1px solid var(--glass-border);
-  border-radius: 0 var(--glass-radius-lg) var(--glass-radius-lg) 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-lg);
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.42));
   box-shadow:
     var(--glass-shadow),
@@ -299,6 +312,30 @@ async function handleCommand(command: string): Promise<void> {
   padding: 0;
 }
 
+/*
+ * Element Plus 折叠态默认按 64px 宽的菜单项、左右 20px 内边距居中图标；
+ * 面板有 1px 边框且菜单项带外边距，图标会偏右。这里改为按面板内宽重新居中。
+ */
+.sidebar--collapsed .sidebar__menu {
+  width: 100%;
+}
+
+.sidebar--collapsed .sidebar__menu .el-menu-item {
+  justify-content: center;
+  padding: 0;
+  margin: 2px 7px;
+}
+
+/* 折叠时 Element Plus 会把图标包进内部 trigger（无 scoped 属性），需用 :deep 命中。 */
+.sidebar--collapsed .sidebar__menu :deep(.el-menu-tooltip__trigger) {
+  justify-content: center;
+  padding: 0;
+}
+
+.sidebar--collapsed .sidebar__menu .el-menu-item .el-icon {
+  margin: 0;
+}
+
 .sidebar__menu {
   flex: 1;
   padding-top: var(--space-3);
@@ -331,12 +368,19 @@ async function handleCommand(command: string): Promise<void> {
   flex: 1;
   flex-direction: column;
   min-width: 0;
-  min-height: 100vh;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-lg);
+  background: var(--glass-bg-strong);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturate));
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
   display: flex;
   flex: none;
   align-items: center;
@@ -345,12 +389,8 @@ async function handleCommand(command: string): Promise<void> {
   height: var(--topbar-height);
   padding: 0 var(--space-5) 0 var(--space-3);
   border-bottom: 1px solid var(--glass-border);
-  background: var(--glass-bg-strong);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.55) inset,
-    0 8px 28px rgba(15, 23, 42, 0.04);
-  backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturate));
+  /* 磨砂由 .main 面板统一承担，顶栏只做一层更轻的色差。 */
+  background: rgba(255, 255, 255, 0.34);
   z-index: 900;
 }
 
@@ -434,12 +474,33 @@ async function handleCommand(command: string): Promise<void> {
 }
 
 .content {
+  /*
+   * 供 RoomView 等需要占满内容区的页面使用：
+   * 可视高度 = 视口 - 外层上下留白 - 主面板上下边框 - 顶栏 - 内容区上下内边距。
+   */
+  --content-viewport-height: calc(
+    100vh - var(--space-3) - var(--space-3) - var(--topbar-height) - var(--space-5) -
+      var(--space-5) - 2px
+  );
+
   position: relative;
   flex: 1;
   width: 100%;
   min-width: 0;
+  min-height: 0;
   padding: var(--space-5);
   overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@supports (height: 100dvh) {
+  .content {
+    --content-viewport-height: calc(
+      100dvh - var(--space-3) - var(--space-3) - var(--topbar-height) - var(--space-5) -
+        var(--space-5) - 2px
+    );
+  }
 }
 
 .sidebar-mask {
@@ -464,7 +525,8 @@ async function handleCommand(command: string): Promise<void> {
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .sidebar,
-  .topbar {
+  .topbar,
+  .main {
     background: var(--glass-bg-fallback);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -473,7 +535,8 @@ async function handleCommand(command: string): Promise<void> {
 
 @media (prefers-reduced-transparency: reduce) {
   .sidebar,
-  .topbar {
+  .topbar,
+  .main {
     background: var(--glass-bg-fallback);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -483,11 +546,13 @@ async function handleCommand(command: string): Promise<void> {
 @media (max-width: 899px) {
   .sidebar {
     position: fixed;
-    left: 0;
-    top: 0;
+    top: var(--space-3);
+    bottom: var(--space-3);
+    left: var(--space-3);
     width: var(--sidebar-width);
+    height: auto;
     flex-basis: var(--sidebar-width);
-    transform: translateX(-100%);
+    transform: translateX(calc(-100% - var(--space-3)));
     transition: transform var(--transition-base);
   }
 
@@ -509,7 +574,21 @@ async function handleCommand(command: string): Promise<void> {
   }
 
   .content {
+    --content-viewport-height: calc(
+      100vh - var(--space-3) - var(--space-3) - var(--topbar-height) - var(--space-4) -
+        var(--space-4) - 2px
+    );
+
     padding: var(--space-4);
+  }
+
+  @supports (height: 100dvh) {
+    .content {
+      --content-viewport-height: calc(
+        100dvh - var(--space-3) - var(--space-3) - var(--topbar-height) - var(--space-4) -
+          var(--space-4) - 2px
+      );
+    }
   }
 }
 

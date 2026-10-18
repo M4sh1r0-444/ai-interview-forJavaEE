@@ -7,7 +7,7 @@
 
 ## 1. 项目简介
 
-面向学生求职场景的 **AI 模拟面试与能力提升平台**（当前交付后端 M1~M6 + 前端 F5）。学生选择目标岗位后，系统自动组卷并驱动大模型进行**多轮模拟面试**（支持动态追问、追问难度/提示强度自适应；主问题在组卷时按目标难度一次锁定、回答期间不漂移），面试结束后产出**六维评估报告**，并基于能力短板给出**学习资源推荐与成长曲线**。
+面向学生求职场景的 **AI 模拟面试与能力提升平台**（当前交付后端 M1~M6 + 前端 F1~F6）。学生选择目标岗位后，系统自动组卷并驱动大模型进行**多轮模拟面试**（支持动态追问、追问难度/提示强度自适应；主问题在组卷时按目标难度一次锁定、回答期间不漂移），面试结束后产出**六维评估报告**，并基于能力短板给出**学习资源推荐与成长曲线**。
 
 业务闭环：
 
@@ -41,7 +41,7 @@
 | 实时 | Spring WebSocket | 面试过程推送 |
 | AI | OpenAI 兼容 Chat API / Mock | 默认 `ai.provider=mock` 离线可演示；qwen 模式含三级容错 |
 | HTTP 客户端 | Spring WebClient | 调用大模型（30s 超时、API Key 日志脱敏） |
-| 前端 | Vue 3.5 + TypeScript + Vite 5 + Element Plus + Pinia + Vue Router + Axios + ECharts | F1 基座/认证/布局 + F2 面试主流程 + F3 报告与历史 + F4 语音/成长/推荐/个人中心、F5 管理端 7 页已交付；F6 按计划推进 |
+| 前端 | Vue 3.5 + TypeScript + Vite 5 + Element Plus + Pinia + Vue Router + Axios + ECharts | F1 基座/认证/布局 + F2 面试主流程 + F3 报告与历史 + F4 语音/成长/推荐/个人中心 + F5 管理端 7 页 + F6 质量/部署/验收，全部交付 |
 | 迁移 | Flyway | V1 建表 + V2~V6 种子数据 |
 | 构建 | Maven 3.9 | |
 
@@ -60,7 +60,7 @@
     ├── docker-compose.offline.yml   # 离线（断网）演练叠加编排（M6-6.4）
     ├── .env(.example)               # 部署环境变量（AI_PROVIDER/AI_API_KEY 等）
     ├── nginx/nginx.conf             # 静态页 + /api 反代 + /ws 升级
-    ├── frontend/                    # Vue3 工程（F5 已完成）：Vite + TS + Element Plus + ECharts；F6 按计划推进
+    ├── frontend/                    # Vue3 工程（F1~F6 已完成）：Vite + TS + Element Plus + ECharts；README/验收/截图
     ├── 答辩演示脚本.md              # 方案 §19 15 步逐条映射（M6-6.6）
     ├── qa/                          # 质量与演练脚本（AI 抽测 / 离线演练 + 结果留存）
     └── backend/                     # Spring Boot 后端（10 个业务包 + common）
@@ -83,7 +83,7 @@
             └── main/resources/db/migration/  # Flyway V1~V6
 ```
 
-## 4. 当前进度（后端 6/6；前端 5/6，F5 已完成）
+## 4. 当前进度（后端 6/6；前端 6/6，F6 已完成）
 
 > 实时进度以 [`开发计划/AI模拟面试与能力提升平台_进度记录.md`](开发计划/AI模拟面试与能力提升平台_进度记录.md) 为准。
 > 前端执行计划见 [`开发计划/AI模拟面试与能力提升平台_前端开发计划.md`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md)。
@@ -101,7 +101,7 @@
 | F3 | 前端报告与历史（总分环/雷达/逐题证据/10004 轮询/历史分页） | ✅ 2026-10-17 |
 | F4 | 前端语音 + 成长 + 推荐 + 个人中心（录音/转写/音频回放/成长曲线/推荐/资料） | ✅ 2026-10-18 |
 | F5 | 前端管理端 7 页（看板/岗位/权重/题库/知识库/资源/用户） | ✅ 2026-10-18 |
-| F6 | 前端质量 + 部署修复 + 验收 | ⬜ 待开始 |
+| F6 | 前端质量 + 部署修复 + 验收（覆盖率/E2E/契约/产物卷/gzip/文档） | ✅ 2026-10-18 |
 
 **当前已交付（M1~M6 全部）：**
 
@@ -127,7 +127,9 @@
 
 **前端 F5（2026-10-18）**：管理端 7 页（看板/岗位与技能权重/评分权重/题库/知识库/学习资源/用户）替换占位；看板四卡 + 近 7 日柱线组合（null 均分断点、双轴）；题库 CRUD + 筛选分页 URL 同步 + 40003 冲突恢复 + 逻辑删；岗位/技能权重/三组评分权重实时校验与回读；资源 CRUD/下架、用户搜索/启停/自禁用保护、知识库新增/重建（明确无列表接口）；管理端菜单/路由守卫/`/admin/evaluation` 别名与移动端提示；`lint/type-check/format:check` 0/0，单测 **214/214**（40 文件，F5 新增 38）、coverage **76.54%**、build 成功，Playwright E2E **20/20**（F2 6 + F3 4 + F4 5 + F5 5：权限 403、看板、题库 40003、岗位权重、资源/用户、知识库），验收记录与 10 张截图见 [`frontend/docs/F5-验收记录.md`](ai-interview/frontend/docs/F5-验收记录.md)。
 
-**后续工作**：按 [`前端开发计划`](开发计划/AI模拟面试与能力提升平台_前端开发计划.md) 完成 F6（质量/部署/验收）；F6-4 修复前端产物卷（P9）、F6-5 修正演示脚本（P10）、F6-6 清理开发库测试残留（P11）；其余后端开发计划任务已全部交付。
+**前端 F6（2026-10-18）**：质量、部署与验收收口。**F6-1** 新增 API 模块契约单测（39 函数 + FormData/Blob/cleanParams），单测 **231/231**（41 文件）、核心目录行覆盖 **90.09%** / 分支 **82.85%**，`test:coverage` 固化 70%/60% 阈值；**F6-2** Playwright E2E **21/21**（F1 认证 1 + F2 6 + F3 4 + F4 5 + F5 5，49.2s），新增 E2E-01 登录/错误密码/角色跳转/登出；**F6-3** `scripts/contract-check.mjs` 覆盖 **39/39 REST + 7/7 错误码**，报告 `frontend/artifacts/contract-check.json`；**F6-4** `frontend/Dockerfile` 改为 node:20 多阶段构建 + 产物写入 `frontend-dist` 卷，Nginx 增加 gzip/no-cache/长缓存：80 端口页面含产品名、JS/CSS 200 且 `Content-Encoding: gzip`、`/api` 登录与 `/ws` 101 全通，frontend `Exited (0)`、nginx Up，离线叠加栈可启动（核心服务外网不通）；**F6-5** 交付 `frontend/README.md`（30 分钟上手/八条铁律/部署/FAQ）、更新根 README 与答辩脚本（P10 权重 payload 修正为 `scoreWeights` 完整三组）、新增 `docs/screenshots/f6/` 15 张答辩索引图；**F6-6** `qa/cleanup_e2e_data.sh` 清理后 `GET /positions` 仅 2 个种子岗位、demo01 历史 7 场、启用岗位 2；`npm run check` 全绿（lint/type-check/coverage/build），`npm audit --omit=dev` 仅 1 个 ECharts moderate（无可用修复，已记录并避免未过滤 HTML 注入）。验收记录见 [`frontend/docs/F6-验收记录.md`](ai-interview/frontend/docs/F6-验收记录.md)。
+
+**后续工作**：F1~F6 与后端 M1~M6 已全部交付；答辩前按 [`答辩演示脚本`](ai-interview/答辩演示脚本.md) 复跑一次正式栈与演示数据清理（`bash ai-interview/qa/cleanup_e2e_data.sh`）。真实大模型 qwen 需自备 key 现场验证（默认 mock 离线可演示）。
 
 ## 5. 快速开始
 
@@ -149,16 +151,19 @@ curl http://127.0.0.1:8080/actuator/health
 
 种子账号：`admin / Admin@123456`（管理员）、`demo01 / 123456`（演示学生）。
 
-前端（F5 已交付，v1.1 液态玻璃；详见 [`ai-interview/frontend/docs/F5-验收记录.md`](ai-interview/frontend/docs/F5-验收记录.md)）：
+前端（F1~F6 已交付，v1.1 液态玻璃；30 分钟上手见 [`ai-interview/frontend/README.md`](ai-interview/frontend/README.md)，验收记录见 [`F6-验收记录`](ai-interview/frontend/docs/F6-验收记录.md)）：
 
 ```bash
 cd ai-interview/frontend
-npm install
+npm ci
 npm run dev       # http://127.0.0.1:5173；/api 与 /ws 代理到 127.0.0.1:8080
 # 若后端跑在 18080：echo 'VITE_PROXY_TARGET=http://127.0.0.1:18080' > .env.development.local
-# 质量门禁：npm run lint && npm run type-check && npm run test:coverage && npm run build
-# E2E（需后端可达；globalSetup 会校验 health 并单次登录 demo01/admin；F2 6 + F3 4 + F4 5 + F5 5 = 20 条）：
+# 质量门禁：npm run check（lint + type-check + coverage + build）
+# E2E（需后端可达；globalSetup 校验 health 并单次登录 demo01/admin；F1 1 + F2 6 + F3 4 + F4 5 + F5 5 = 21 条）
+# E2E/契约并行登录会超过默认 5 次/分限流，测试环境请加：APP_SECURITY_LOGIN_RATE_LIMIT_PER_MINUTE=1000
 npm run test:e2e
+# 契约检查（39 REST + 7 错误码，输出 artifacts/contract-check.json）
+npm run test:contract
 ```
 
 核心流程演示（详见 `ai-interview/backend/api.http`，用例 1~32）：
@@ -196,7 +201,7 @@ curl -s "$BASE/api/users/me/recommendations?positionId=1" -H "$AUTH"
 # node -e 'const ws=new WebSocket(`ws://127.0.0.1:8080/ws/interviews/'$SID'?token='$TOKEN'`);ws.onmessage=e=>console.log(e.data)'
 ```
 
-运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 114 用例全绿）。全量质量门禁：`mvn verify`（含 JaCoCo 行覆盖率检查，核心代码 ≥60% 门禁固化，当前 89.0%，报告见 `backend/target/site/jacoco/`）。
+运行测试：`cd ai-interview/backend && mvn test`（使用独立测试库 `ai_interview_test`，不影响开发库；当前 134 用例全绿）。全量质量门禁：`mvn verify`（含 JaCoCo 行覆盖率检查，核心代码 ≥60% 门禁固化，当前 89.4%，报告见 `backend/target/site/jacoco/`）。
 
 **切换真实大模型**（可选，默认 mock 离线可演示）：
 
@@ -212,8 +217,8 @@ AI_API_KEY=<your-key> AI_MODEL=qwen-plus mvn spring-boot:run
 ```bash
 cd ai-interview
 cp .env.example .env          # 按需改 MYSQL_PASSWORD / JWT_SECRET / AI_*（默认 mock）
-docker compose up -d --build  # mysql + redis + backend(多阶段构建) + frontend(构建期) + nginx
-# 演示入口：http://127.0.0.1:80（静态页 + /api 反代 + /ws 升级）
+docker compose up -d --build  # mysql + redis + backend(多阶段构建) + frontend(node:20 构建 + 产物卷) + nginx
+# 演示入口：http://127.0.0.1:80（真实 Vue 页面 + /api 反代 + /ws 升级；页面含产品名，P9 已修复）
 docker compose down           # 收栈（卷保留；正式栈与 dev 栈共用 mysql-data 卷，勿同时运行两个 mysql）
 ```
 

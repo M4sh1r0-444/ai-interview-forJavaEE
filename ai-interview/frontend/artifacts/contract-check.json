@@ -1,0 +1,549 @@
+{
+  "baseUrl": "http://127.0.0.1:18080",
+  "startedAt": "2026-10-18T03:21:17.188Z",
+  "finishedAt": "2026-10-18T03:21:19.199Z",
+  "endpoints": {
+    "total": 39,
+    "passed": 39
+  },
+  "errorCodes": {
+    "total": 7,
+    "passed": 7
+  },
+  "failed": 0,
+  "temporaryData": {
+    "username": "e2e_contract_mvd9do5gehc1",
+    "positionCode": "E2E_CONTRACT_MVD9DO5GEHC1",
+    "questionId": 71,
+    "resourceId": 37,
+    "textSessionId": 330,
+    "audioSessionId": 331
+  },
+  "results": [
+    {
+      "id": "01",
+      "name": "注册返回 UserVO（不含 token）",
+      "endpoint": "POST /api/auth/register",
+      "ok": true,
+      "ms": 106,
+      "detail": {
+        "id": 63,
+        "username": "e2e_contract_mvd9do5gehc1",
+        "role": "STUDENT"
+      }
+    },
+    {
+      "id": "02",
+      "name": "登录返回 token/expiresAt/user",
+      "endpoint": "POST /api/auth/login",
+      "ok": true,
+      "ms": 102,
+      "detail": {
+        "role": "STUDENT",
+        "expiresAt": 1792380077000
+      }
+    },
+    {
+      "id": "04",
+      "name": "当前用户字段",
+      "endpoint": "GET /api/users/me",
+      "ok": true,
+      "ms": 10,
+      "detail": {
+        "username": "e2e_contract_mvd9do5gehc1",
+        "role": "STUDENT"
+      }
+    },
+    {
+      "id": "05",
+      "name": "修改资料回显",
+      "endpoint": "PUT /api/users/me",
+      "ok": true,
+      "ms": 17,
+      "detail": {
+        "realName": "E2E 契约（已改）",
+        "major": "计算机科学与技术"
+      }
+    },
+    {
+      "id": "06",
+      "name": "启用岗位数组",
+      "endpoint": "GET /api/positions",
+      "ok": true,
+      "ms": 9,
+      "detail": {
+        "count": 2,
+        "codes": [
+          "JAVA_BACKEND",
+          "WEB_FRONTEND"
+        ]
+      }
+    },
+    {
+      "id": "07",
+      "name": "岗位详情含 skillCount",
+      "endpoint": "GET /api/positions/1",
+      "ok": true,
+      "ms": 10,
+      "detail": {
+        "id": 1,
+        "skillCount": 7
+      }
+    },
+    {
+      "id": "08",
+      "name": "岗位技能权重字段",
+      "endpoint": "GET /api/positions/1/skills",
+      "ok": true,
+      "ms": 10,
+      "detail": {
+        "count": 7,
+        "first": "java_basics"
+      }
+    },
+    {
+      "id": "09",
+      "name": "创建 TEXT 会话（CREATED）",
+      "endpoint": "POST /api/interviews",
+      "ok": true,
+      "ms": 23,
+      "detail": {
+        "id": 330,
+        "status": "CREATED",
+        "plannedRounds": 5
+      }
+    },
+    {
+      "id": "10",
+      "name": "start 返回首题 MessageVO",
+      "endpoint": "POST /api/interviews/{id}/start",
+      "ok": true,
+      "ms": 30,
+      "detail": {
+        "messageId": 2547,
+        "roundNo": 0,
+        "speaker": "AI"
+      }
+    },
+    {
+      "id": "16",
+      "name": "会话详情含 remainSeconds/currentRound",
+      "endpoint": "GET /api/interviews/{id}",
+      "ok": true,
+      "ms": 8,
+      "detail": {
+        "status": "WAITING_USER",
+        "currentRound": 0,
+        "remainSeconds": 899
+      }
+    },
+    {
+      "id": "17",
+      "name": "消息列表（可按 roundNo 过滤）",
+      "endpoint": "GET /api/interviews/{id}/messages",
+      "ok": true,
+      "ms": 10,
+      "detail": {
+        "count": 1
+      }
+    },
+    {
+      "id": "11",
+      "name": "文字回答异步受理",
+      "endpoint": "POST /api/interviews/{id}/messages/text",
+      "ok": true,
+      "ms": 19,
+      "detail": {
+        "accepted": true,
+        "roundNo": 0
+      }
+    },
+    {
+      "id": "14",
+      "name": "finish 异步受理",
+      "endpoint": "POST /api/interviews/{id}/finish",
+      "ok": true,
+      "ms": 13,
+      "detail": {
+        "accepted": true,
+        "status": "FINISHED"
+      }
+    },
+    {
+      "id": "18",
+      "name": "报告关键 shape（10004 → 就绪）",
+      "endpoint": "GET /api/interviews/{id}/report",
+      "ok": true,
+      "ms": 534,
+      "detail": {
+        "reportId": 124,
+        "totalScore": 47.63,
+        "dimensions": [
+          "depth",
+          "logic",
+          "match",
+          "technical",
+          "communication"
+        ],
+        "evidenceCount": 1
+      }
+    },
+    {
+      "id": "12",
+      "name": "音频回答 multipart 受理",
+      "endpoint": "POST /api/interviews/{id}/messages/audio",
+      "ok": true,
+      "ms": 98,
+      "detail": {
+        "accepted": true,
+        "sessionId": 331
+      }
+    },
+    {
+      "id": "13",
+      "name": "受保护音频回放（binary）",
+      "endpoint": "GET /api/interviews/{id}/messages/{mid}/audio",
+      "ok": true,
+      "ms": 23,
+      "detail": {
+        "messageId": 2558,
+        "contentType": "audio/webm",
+        "bytes": 2048
+      }
+    },
+    {
+      "id": "E10004",
+      "name": "报告未生成 → 10004",
+      "endpoint": "GET /api/interviews/{id}/report",
+      "ok": true,
+      "ms": 9,
+      "detail": {
+        "code": 10004
+      }
+    },
+    {
+      "id": "15",
+      "name": "abort 返回 ABORTED 详情",
+      "endpoint": "POST /api/interviews/{id}/abort",
+      "ok": true,
+      "ms": 14,
+      "detail": {
+        "id": 331,
+        "status": "ABORTED"
+      }
+    },
+    {
+      "id": "19",
+      "name": "历史分页 Page shape",
+      "endpoint": "GET /api/users/me/history",
+      "ok": true,
+      "ms": 14,
+      "detail": {
+        "total": 2,
+        "size": 5,
+        "current": 1
+      }
+    },
+    {
+      "id": "20",
+      "name": "成长曲线数组 shape",
+      "endpoint": "GET /api/users/me/growth",
+      "ok": true,
+      "ms": 9,
+      "detail": {
+        "count": 1,
+        "first": "redis_mq"
+      }
+    },
+    {
+      "id": "21",
+      "name": "推荐数组 shape",
+      "endpoint": "GET /api/users/me/recommendations",
+      "ok": true,
+      "ms": 6,
+      "detail": {
+        "count": 3,
+        "top": "java_basics"
+      }
+    },
+    {
+      "id": "28",
+      "name": "看板四卡 + 近 7 日",
+      "endpoint": "GET /api/admin/dashboard",
+      "ok": true,
+      "ms": 42,
+      "detail": {
+        "users": 16,
+        "sessions": 39,
+        "days": 7
+      }
+    },
+    {
+      "id": "29",
+      "name": "管理端岗位 Page（含技能/权重）",
+      "endpoint": "GET /api/admin/positions",
+      "ok": true,
+      "ms": 12,
+      "detail": {
+        "total": 3,
+        "skills": 7
+      }
+    },
+    {
+      "id": "30",
+      "name": "管理端岗位详情",
+      "endpoint": "GET /api/admin/positions/{id}",
+      "ok": true,
+      "ms": 9,
+      "detail": {
+        "id": 1,
+        "code": "JAVA_BACKEND",
+        "enabled": 1
+      }
+    },
+    {
+      "id": "22",
+      "name": "管理端题库 Page",
+      "endpoint": "GET /api/admin/questions",
+      "ok": true,
+      "ms": 14,
+      "detail": {
+        "total": 9,
+        "size": 5
+      }
+    },
+    {
+      "id": "23",
+      "name": "新增题目 version=1",
+      "endpoint": "POST /api/admin/questions",
+      "ok": true,
+      "ms": 32,
+      "detail": {
+        "id": 71,
+        "version": 1,
+        "status": "ENABLED"
+      }
+    },
+    {
+      "id": "24",
+      "name": "更新题目 version+1（旧版本 40003）",
+      "endpoint": "PUT /api/admin/questions/{id}",
+      "ok": true,
+      "ms": 29,
+      "detail": {
+        "version": 2,
+        "conflictCode": 40003
+      }
+    },
+    {
+      "id": "25",
+      "name": "逻辑删除题目（DISABLED）",
+      "endpoint": "DELETE /api/admin/questions/{id}",
+      "ok": true,
+      "ms": 24,
+      "detail": {
+        "id": 71,
+        "status": "DISABLED"
+      }
+    },
+    {
+      "id": "26",
+      "name": "新增知识片段",
+      "endpoint": "POST /api/admin/knowledge",
+      "ok": true,
+      "ms": 20,
+      "detail": {
+        "id": 53,
+        "title": "E2E-CONTRACT 知识片段 mvd9do5gehc1"
+      }
+    },
+    {
+      "id": "27",
+      "name": "重建知识索引",
+      "endpoint": "POST /api/admin/knowledge/rebuild",
+      "ok": true,
+      "ms": 233,
+      "detail": {
+        "rebuilt": true
+      }
+    },
+    {
+      "id": "31",
+      "name": "新增岗位（技能权重和=1）",
+      "endpoint": "POST /api/admin/positions",
+      "ok": true,
+      "ms": 16,
+      "detail": {
+        "id": 11,
+        "code": "E2E_CONTRACT_MVD9DO5GEHC1",
+        "enabled": 1
+      }
+    },
+    {
+      "id": "32",
+      "name": "部分更新岗位",
+      "endpoint": "PUT /api/admin/positions/{id}",
+      "ok": true,
+      "ms": 12,
+      "detail": {
+        "id": 11,
+        "name": "E2E-CONTRACT 岗位 mvd9do5gehc1（更新）",
+        "defaultRounds": 6
+      }
+    },
+    {
+      "id": "33",
+      "name": "调整评分权重 scoreWeights",
+      "endpoint": "PUT /api/admin/positions/{id}/weights",
+      "ok": true,
+      "ms": 20,
+      "detail": {
+        "id": 11,
+        "technical": 0.3,
+        "totalContent": 0.5
+      }
+    },
+    {
+      "id": "34",
+      "name": "管理端资源 Page",
+      "endpoint": "GET /api/admin/resources",
+      "ok": true,
+      "ms": 12,
+      "detail": {
+        "total": 2,
+        "size": 5
+      }
+    },
+    {
+      "id": "35",
+      "name": "新增学习资源",
+      "endpoint": "POST /api/admin/resources",
+      "ok": true,
+      "ms": 16,
+      "detail": {
+        "id": 37,
+        "title": "E2E-CONTRACT 学习资源 mvd9do5gehc1",
+        "enabled": 1
+      }
+    },
+    {
+      "id": "36",
+      "name": "全量更新学习资源",
+      "endpoint": "PUT /api/admin/resources/{id}",
+      "ok": true,
+      "ms": 14,
+      "detail": {
+        "id": 37,
+        "title": "E2E-CONTRACT 学习资源 mvd9do5gehc1（已更新）",
+        "resourceType": "QUESTION"
+      }
+    },
+    {
+      "id": "37",
+      "name": "下架学习资源（enabled=0）",
+      "endpoint": "DELETE /api/admin/resources/{id}",
+      "ok": true,
+      "ms": 18,
+      "detail": {
+        "id": 37,
+        "enabled": 0
+      }
+    },
+    {
+      "id": "38",
+      "name": "管理端用户搜索 Page",
+      "endpoint": "GET /api/admin/users",
+      "ok": true,
+      "ms": 12,
+      "detail": {
+        "total": 1,
+        "userId": 63
+      }
+    },
+    {
+      "id": "39",
+      "name": "用户启用/禁用",
+      "endpoint": "PUT /api/admin/users/{id}/status",
+      "ok": true,
+      "ms": 23,
+      "detail": {
+        "userId": 63,
+        "status": 1
+      }
+    },
+    {
+      "id": "E10002",
+      "name": "错误密码 → 10002",
+      "endpoint": "POST /api/auth/login",
+      "ok": true,
+      "ms": 101,
+      "detail": {
+        "code": 10002
+      }
+    },
+    {
+      "id": "E40101",
+      "name": "无 token → HTTP 401/40101",
+      "endpoint": "GET /api/users/me",
+      "ok": true,
+      "ms": 2,
+      "detail": {
+        "http": 401,
+        "code": 40101
+      }
+    },
+    {
+      "id": "E40301",
+      "name": "学生访问管理端 → HTTP 403/40301",
+      "endpoint": "GET /api/admin/dashboard",
+      "ok": true,
+      "ms": 4,
+      "detail": {
+        "http": 403,
+        "code": 40301
+      }
+    },
+    {
+      "id": "E40001",
+      "name": "参数校验 → HTTP 400/40001",
+      "endpoint": "POST /api/interviews",
+      "ok": true,
+      "ms": 5,
+      "detail": {
+        "http": 400,
+        "code": 40001
+      }
+    },
+    {
+      "id": "E10005",
+      "name": "重复 start → 10005",
+      "endpoint": "POST /api/interviews/{id}/start",
+      "ok": true,
+      "ms": 10,
+      "detail": {
+        "code": 10005
+      }
+    },
+    {
+      "id": "03",
+      "name": "登出成功并拉黑旧 token",
+      "endpoint": "POST /api/auth/logout",
+      "ok": true,
+      "ms": 7,
+      "detail": {
+        "code": 0,
+        "afterLogout": 40101
+      }
+    },
+    {
+      "id": "E40401",
+      "name": "不存在的会话 → 40401",
+      "endpoint": "GET /api/interviews/999999",
+      "ok": true,
+      "ms": 6,
+      "detail": {
+        "code": 40401
+      }
+    }
+  ]
+}

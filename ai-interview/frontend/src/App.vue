@@ -125,12 +125,14 @@ onBeforeUnmount(() => {
   position: relative;
   isolation: isolate;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-content {
   position: relative;
   z-index: 1;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .offline-bar {
