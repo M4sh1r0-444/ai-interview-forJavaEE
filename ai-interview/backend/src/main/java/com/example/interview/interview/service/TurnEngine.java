@@ -115,10 +115,13 @@ public class TurnEngine {
         List<String> knowledgeChunks =
                 knowledgeSearchService.searchForAnswer(s.getPositionId(), lastAnswer);
 
+        Position position = positionMapper.selectById(s.getPositionId());
+        Map<String, String> skillNames = skillNameMapOf(position);
+
         // 逐题评分（M3-3.1）：累积口径（本轮全部问答）评分并快照入暂存，供报告与规则引擎复用；
         // AUDIO 场补 voice 维度（M4-4.2：语速/停顿/语气词指标换算）
         AiTurnEvaluation evaluation =
-                evaluateQuietly(sessionId, round, question, roundMsgs, knowledgeChunks);
+                evaluateQuietly(sessionId, round, question, roundMsgs, knowledgeChunks, skillNames);
         if (evaluation != null && evaluation.getScores() != null && "AUDIO".equals(s.getMode())) {
             voiceCalculator.applyVoiceDimension(evaluation.getScores(),
                     VoiceMetricsCalculator.joinedTranscript(roundMsgs),
@@ -138,7 +141,7 @@ public class TurnEngine {
         FollowupDecision decision = ruleEngine.decide(ruleCtx);
 
         // 拼装 AI 上下文与 Prompt（DEBUG 可观测；知识片段段即 M4-4.4 的 Prompt 注入）
-        NextQuestionContext aiCtx = buildContext(s, question, roundMsgs, followupCount,
+        NextQuestionContext aiCtx = buildContext(s, position, question, roundMsgs, followupCount,
                 lastAnswer, decision, knowledgeChunks);
         String prompt = promptBuilder.buildNextQuestionPrompt(aiCtx);
         log.debug("session={} round={} prompt:\n{}", sessionId, round, prompt);
@@ -264,13 +267,15 @@ public class TurnEngine {
     /** 逐题评分：失败不阻断面试（规则引擎对 null 容忍），仅告警降级。 */
     private AiTurnEvaluation evaluateQuietly(Long sessionId, int round, Question question,
                                              List<InterviewMessage> roundMsgs,
-                                             List<String> knowledgeChunks) {
+                                             List<String> knowledgeChunks,
+                                             Map<String, String> skillNames) {
         try {
             AiTurnEvaluation evaluation = aiProvider.evaluateTurn(TurnEvaluationContext.builder()
                     .sessionId(sessionId)
                     .question(question)
                     .roundMessages(roundMsgs)
                     .knowledgeChunks(knowledgeChunks)
+                    .skillNames(skillNames)
                     .build());
             evaluationStore.append(sessionId, round, evaluation);
             return evaluation;
@@ -308,11 +313,10 @@ public class TurnEngine {
         return scores;
     }
 
-    private NextQuestionContext buildContext(InterviewSession s, Question question,
+    private NextQuestionContext buildContext(InterviewSession s, Position position, Question question,
                                              List<InterviewMessage> roundMsgs, int followupCount,
                                              String lastAnswer, FollowupDecision decision,
                                              List<String> knowledgeChunks) {
-        Position position = positionMapper.selectById(s.getPositionId());
         List<String> positionSkills = parseSkillNames(position);
 
         // FIX-06：只取当前轮及已完成轮次——start 预写的未来主问题（roundNo > currentRound）不进 Prompt
@@ -370,6 +374,30 @@ public class TurnEngine {
         } catch (Exception e) {
             log.warn("能力模型解析失败 positionId={}: {}", position.getId(), e.getMessage());
             return List.of();
+        }
+    }
+
+    /** skillCode → 技能名（FIX-14：注入评分上下文供 Mock match 中文命中）。 */
+    private Map<String, String> skillNameMapOf(Position position) {
+        if (position == null || position.getCompetencyModelJson() == null) {
+            return Map.of();
+        }
+        try {
+            CompetencyModel model = com.example.interview.common.util.JsonUtils.parse(
+                    position.getCompetencyModelJson(), CompetencyModel.class);
+            if (model == null || model.getSkills() == null) {
+                return Map.of();
+            }
+            Map<String, String> names = new HashMap<>();
+            model.getSkills().forEach(sk -> {
+                if (sk.getSkillCode() != null && sk.getSkillName() != null) {
+                    names.put(sk.getSkillCode(), sk.getSkillName());
+                }
+            });
+            return names;
+        } catch (Exception e) {
+            log.warn("能力模型解析失败 positionId={}: {}", position.getId(), e.getMessage());
+            return Map.of();
         }
     }
 

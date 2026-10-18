@@ -53,6 +53,19 @@ public class MockAiProvider implements AiProvider {
             "technical", "技术正确性", "depth", "知识深度", "logic", "逻辑严谨性",
             "match", "岗位匹配度", "communication", "沟通表达", "voice", "语音表现");
 
+    /**
+     * 内置技能关键词回退映射（FIX-14）：skillCode → 中文/英文关键词，回答命中任一即视为
+     * 覆盖该技能（岗位能力模型未注入 skillNames 时使用；与 V2 种子两岗 7 技能对齐）。
+     */
+    private static final Map<String, List<String>> SKILL_KEYWORDS = Map.of(
+            "java_basics", List.of("java", "基础", "集合"),
+            "concurrency_jvm", List.of("并发", "jvm", "线程"),
+            "spring", List.of("spring", "ioc", "aop", "事务"),
+            "mysql", List.of("mysql", "索引", "sql"),
+            "redis_mq", List.of("redis", "缓存", "mq"),
+            "project_design", List.of("项目", "设计", "架构"),
+            "communication", List.of("沟通", "表达"));
+
     // ==================== nextQuestion（M2 已交付） ====================
 
     @Override
@@ -124,7 +137,7 @@ public class MockAiProvider implements AiProvider {
         scores.put("technical", clampScore(40 + 50 * hitRatio - 6.0 * deductionHits));
         scores.put("depth", clampScore(scores.get("technical") + lengthAdjust(answer, q)));
         scores.put("logic", clampScore(logicScore(answer)));
-        scores.put("match", clampScore(matchScore(q, normalized)));
+        scores.put("match", clampScore(matchScore(q, normalized, ctx.getSkillNames())));
         scores.put("communication", clampScore(communicationScore(answer)));
         eval.setScores(scores);
         eval.setCoveredPoints(covered);
@@ -304,16 +317,44 @@ public class MockAiProvider implements AiProvider {
         return score;
     }
 
-    /** 匹配分：题目技能标签在回答中的命中率（编码取下划线前段，如 redis_mq→redis）。 */
-    private double matchScore(Question q, String normalizedAnswer) {
+    /**
+     * 匹配分（FIX-14）：技能标签三路命中——英文 stem（下划线前段，如 redis_mq→redis）|
+     * 岗位能力模型技能名（含按分隔符拆分的可命中词）| 内置种子关键词，任一出现即覆盖，
+     * 全中文回答不再因缺少英文 stem 被压到 55。
+     */
+    private double matchScore(Question q, String normalizedAnswer, Map<String, String> skillNames) {
         if (q == null || q.getSkillTags() == null || q.getSkillTags().isEmpty()) {
             return 70;
         }
         long hits = q.getSkillTags().stream()
-                .map(tag -> tag.contains("_") ? tag.substring(0, tag.indexOf('_')) : tag)
-                .filter(normalizedAnswer::contains)
+                .filter(tag -> skillTagHit(tag, normalizedAnswer, skillNames))
                 .count();
         return 55 + 45.0 * hits / q.getSkillTags().size();
+    }
+
+    private boolean skillTagHit(String tag, String normalizedAnswer, Map<String, String> skillNames) {
+        String stem = (tag.contains("_") ? tag.substring(0, tag.indexOf('_')) : tag)
+                .toLowerCase(java.util.Locale.ROOT);
+        if (normalizedAnswer.contains(stem)) {
+            return true;
+        }
+        String skillName = skillNames != null ? skillNames.get(tag) : null;
+        if (skillName != null) {
+            for (String part : skillName.split("[与/、，,；;\\s]+")) {
+                if (part.length() >= 2 && normalizedAnswer.contains(part.toLowerCase(java.util.Locale.ROOT))) {
+                    return true;
+                }
+            }
+        }
+        List<String> keywords = SKILL_KEYWORDS.get(tag);
+        if (keywords != null) {
+            for (String kw : keywords) {
+                if (normalizedAnswer.contains(kw.toLowerCase(java.util.Locale.ROOT))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** 证据句：命中得分点内容词的原句（最多 3 句，每句截断 80 字）。 */

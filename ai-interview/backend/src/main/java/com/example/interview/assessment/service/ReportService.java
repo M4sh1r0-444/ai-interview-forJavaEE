@@ -271,6 +271,7 @@ public class ReportService {
 
         CompetencyModel.DimensionWeights contentW = weightsOf(model, true);
         CompetencyModel.DimensionWeights expressionW = weightsOf(model, false);
+        Map<String, String> skillNames = skillNameMapOf(model);
         Map<Integer, RoundData> rounds = new TreeMap<>();
         List<ScoreCalculator.TurnScores> turnScores = new ArrayList<>();
         List<List<Double>> contentSequences = new ArrayList<>();
@@ -283,7 +284,7 @@ public class ReportService {
             if (roundMsgs.stream().noneMatch(m -> "USER".equals(m.getSpeaker()))) {
                 continue; // 未作答的轮次不参与评分
             }
-            RoundData round = buildRoundData(s, roundMsgs);
+            RoundData round = buildRoundData(s, roundMsgs, skillNames);
             rounds.put(e.getKey(), round);
 
             List<AiTurnEvaluation> evals = round.evaluations();
@@ -341,7 +342,8 @@ public class ReportService {
      * 单轮数据：主问题（该轮首条 AI 消息）定难度/技能；评分快照优先取运行期暂存，
      * 缺漏时按累积口径逐次重算（第 i 次评分对应前 i+1 条回答，与 TurnEngine 追加一致）。
      */
-    private RoundData buildRoundData(InterviewSession s, List<InterviewMessage> roundMsgs) {
+    private RoundData buildRoundData(InterviewSession s, List<InterviewMessage> roundMsgs,
+                                     Map<String, String> skillNames) {
         InterviewMessage mainQuestion = roundMsgs.stream()
                 .filter(m -> "AI".equals(m.getSpeaker()))
                 .findFirst()
@@ -364,6 +366,7 @@ public class ReportService {
                         .question(question)
                         .roundMessages(roundMsgs.subList(0, indexOfNthUser(roundMsgs, i) + 1))
                         .knowledgeChunks(List.of())
+                        .skillNames(skillNames)
                         .build());
                 // AUDIO 场重算路径同样补 voice 维度（与 TurnEngine 运行期口径一致，M4-4.2）
                 if (eval.getScores() != null && "AUDIO".equals(s.getMode())) {
@@ -408,6 +411,20 @@ public class ReportService {
             log.warn("能力模型解析失败 positionId={}: {}", position.getId(), e.getMessage());
             return null;
         }
+    }
+
+    /** skillCode → 技能名（FIX-14：重算路径同样注入评分上下文）。 */
+    private Map<String, String> skillNameMapOf(CompetencyModel model) {
+        if (model == null || model.getSkills() == null) {
+            return Map.of();
+        }
+        Map<String, String> names = new TreeMap<>();
+        model.getSkills().forEach(sk -> {
+            if (sk.getSkillCode() != null && sk.getSkillName() != null) {
+                names.put(sk.getSkillCode(), sk.getSkillName());
+            }
+        });
+        return names;
     }
 
     /** summary 与正文合并存 report_text 列（无独立列，9 表约束），读取时按首个空行拆分。 */
