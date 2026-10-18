@@ -113,6 +113,28 @@
 
     <build>
         <plugins>
+            <!-- FIX-17：JDK 版本门禁——JDK25 下给出明确的 enforcer 报错，
+                 而非 Byte Buddy/Mockito 难以理解的测试失败（验收报告 §5.9） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-java</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[17,25)</version>
+                                    <message>本项目要求 JDK 17（含 17、不含 25）。请执行：export JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home</message>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

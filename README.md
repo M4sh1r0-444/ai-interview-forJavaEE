@@ -133,7 +133,12 @@
 
 ## 5. 快速开始
 
-前置：JDK 17、Maven 3.9、Docker（colima/Docker Desktop 均可）。
+前置：JDK 17、Maven 3.9、Docker（colima/Docker Desktop 均可）。JDK 检查（FIX-17：构建带 enforcer 门禁，JDK 25 会在构建最开始明确报错）：
+
+```bash
+echo $JAVA_HOME && "$JAVA_HOME/bin/java" -version   # 应为 17.x；否则：
+export JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home && export PATH="$JAVA_HOME/bin:$PATH"
+```
 **完整上手文档（30 分钟路径：环境 → 起服务 → 跑一场面试 → 测试 → 部署 → FAQ）见 [`ai-interview/backend/README.md`](ai-interview/backend/README.md)**；答辩现场走 [`ai-interview/答辩演示脚本.md`](ai-interview/答辩演示脚本.md)。以下为最短路径：
 
 ```bash

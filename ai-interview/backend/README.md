@@ -21,8 +21,12 @@ Spring Boot 3.3 单体后端：**多轮 AI 模拟面试（文字/语音）→ �
 ## 2. 快速开始（约 5 分钟）
 
 ```bash
-# 0) 进入后端工程（仓库根为 ai-interview/）
+# 0) 进入后端工程（仓库根为 ai-interview/），并确认 JDK 17（FIX-17：构建带 enforcer 门禁，
+#    JDK 25 会在构建最开始明确报错"本项目要求 JDK 17"，避免测试期 Byte Buddy 难懂失败）
 cd ai-interview
+echo $JAVA_HOME          # 应指向 jdk-17…；不对就执行下一行
+export JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home && export PATH="$JAVA_HOME/bin:$PATH"
+"$JAVA_HOME/bin/java" -version   # openjdk version "17…"
 
 # 1) 起开发依赖：MySQL 8（3306）+ Redis 7（宿主机 6380）
 docker compose -f docker-compose.dev.yml up -d
