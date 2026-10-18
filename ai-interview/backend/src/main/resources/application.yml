@@ -51,7 +51,8 @@ app:
     pong-timeout-ms: 60000
     allowed-origins: http://localhost:5173,http://127.0.0.1:5173   # WS 握手 Origin 白名单（FIX-04；prod 含 80 入口两源）
   security:
-    login-rate-limit-per-minute: 5     # 登录限流：每 IP 每分钟次数（计划 §7 补充）
+    login-rate-limit-per-minute: 5     # 登录限流：每 IP 每分钟**失败**次数（FIX-09/D2；成功登录清零）
+    trust-proxy: false                 # 可信代理（FIX-09）：dev 直连不信 X-Real-IP；prod/Compose 由 Nginx 前置时置 true
     cors-allowed-origins: http://localhost:5173,http://127.0.0.1:5173   # HTTP CORS 白名单（FIX-04）
   interview:
     max-rounds: 8

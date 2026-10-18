@@ -185,7 +185,7 @@ bash qa/m6_offline_drill.sh         # 一键：切栈 → 断网证明 → 面�
 | 现象 | 原因与处理 |
 |---|---|
 | 起后端报 6379 连接失败 | 本机 6379 被其他项目占用——本项目 dev 固定用 **6380**；确认 `docker-compose.dev.yml` 的 redis 在跑 |
-| 登录返回 42901 | 登录限流（默认 5 次/分/IP）；跑完大量测试后立刻手工登录会触发，等 60s 窗口重置 |
+| 登录返回 42901 | 登录限流：每 IP 每分钟 **5 次失败**尝试（成功登录清零，FIX-09/D2）；跑完大量错误登录测试后立刻手工登录会触发，等 60s 窗口重置。IP 口径：`app.security.trust-proxy=false`（dev 直连）取 `getRemoteAddr()`；`true`（prod/Compose，Nginx 前置）取 Nginx 覆写的 `X-Real-IP`，`X-Forwarded-For` 一律不信任 |
 | 8080 起不来 | 端口被占：换 `--server.port=18080`（不影响测试，测试用 RANDOM_PORT） |
 | mysql/redis 镜像拉取超时 | Docker Hub 直连问题：经镜像加速源拉取后重打官方 tag |
 | `docker compose up` 后 backend 反复重启 | 检查 `.env`：qwen 模式缺 `AI_API_URL/KEY` 会启动即失败（故意的 fail-fast）；演示用 mock |
