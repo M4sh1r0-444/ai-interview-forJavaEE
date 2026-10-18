@@ -90,8 +90,13 @@ $PROD exec -T nginx wget -T 5 -q -O /dev/null http://backend:8080/actuator/healt
   || bad "内网链路异常 mysql=$INT_MYSQL redis=$INT_REDIS nginx→backend=$INT_NGINX"
 
 HOST_HTTP=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/")
-[ "$HOST_HTTP" = "200" ] && ok "宿主机经 Nginx 入口可访问（静态页 200）" \
-                      || bad "宿主机访问 Nginx 失败（HTTP ${HOST_HTTP}）"
+HOST_PAGE=$(curl -s --max-time 5 "$BASE/" | head -c 4000)
+# FIX-19：静态页从"仅 200"升级为内容断言（P9 教训：默认欢迎页也是 200）
+HOST_CONTENT=0
+echo "$HOST_PAGE" | grep -q "AI 模拟面试与能力提升平台" && HOST_CONTENT=1
+[ "$HOST_HTTP" = "200" ] && [ "$HOST_CONTENT" = "1" ] \
+  && ok "宿主机经 Nginx 入口可访问且页面内容含产品名（HTTP ${HOST_HTTP}）" \
+  || bad "宿主机访问 Nginx 失败（HTTP ${HOST_HTTP}，内容断言=${HOST_CONTENT}——默认欢迎页也算 200）"
 
 cat > "$ENV_JSON" <<EOF
 {
@@ -104,6 +109,7 @@ cat > "$ENV_JSON" <<EOF
   "internalRedisOk": $INT_REDIS,
   "nginxToBackendOk": $INT_NGINX,
   "hostViaNginxHttp": "$HOST_HTTP",
+  "hostPageContentOk": $HOST_CONTENT,
   "verifiedAt": "$(date '+%Y-%m-%d %H:%M:%S')"
 }
 EOF

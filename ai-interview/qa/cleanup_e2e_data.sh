@@ -12,8 +12,8 @@
 #   - Redis：rec:* 推荐缓存、rl:login:* 限流计数
 #
 # 前置：开发栈 MySQL/Redis 容器已启动（docker-compose.dev.yml）；默认容器名见下。
-# 用法：bash qa/cleanup_e2e_data.sh
-#       MYSQL_CONTAINER=xxx REDIS_CONTAINER=yyy bash qa/cleanup_e2e_data.sh
+# 用法：bash qa/cleanup_e2e_data.sh --yes   （破坏性操作需显式确认，FIX-19）
+#       MYSQL_CONTAINER=xxx REDIS_CONTAINER=yyy bash qa/cleanup_e2e_data.sh --yes
 set -euo pipefail
 
 MYSQL_CONTAINER="${MYSQL_CONTAINER:-aiinterview-mysql}"
@@ -23,6 +23,13 @@ MYSQL_DATABASE="${MYSQL_DATABASE:-ai_interview}"
 
 if ! docker ps --format '{{.Names}}' | grep -qx "$MYSQL_CONTAINER"; then
   echo "❌ MySQL 容器未运行：$MYSQL_CONTAINER（先 docker compose -f docker-compose.dev.yml up -d）" >&2
+  exit 1
+fi
+
+# FIX-19：破坏性操作需显式 --yes 确认（只按测试前缀删除，绝不触碰种子数据）
+if [ "${1:-}" != "--yes" ]; then
+  echo "⚠️  本脚本会删除 E2E_/ACC_/e2e_/acc_/race_/dis_/shots2_ 前缀测试数据（含关联会话/报告/能力记录）。"
+  echo "    确认执行请运行：bash qa/cleanup_e2e_data.sh --yes"
   exit 1
 fi
 
