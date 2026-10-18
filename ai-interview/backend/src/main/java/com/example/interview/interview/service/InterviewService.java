@@ -1,7 +1,9 @@
 package com.example.interview.interview.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.example.interview.ai.provider.AiProvider;
 import com.example.interview.assessment.service.ReportService;
+import com.example.interview.assessment.service.TurnEvaluationStore;
 import com.example.interview.auth.security.CurrentUser;
 import com.example.interview.common.exception.BizException;
 import com.example.interview.common.result.ResultCode;
@@ -59,6 +61,8 @@ public class InterviewService {
     private final ReportService reportService;
     private final KeywordExtractor keywordExtractor;
     private final AudioStorageService audioStorage;
+    private final TurnEvaluationStore evaluationStore;
+    private final AiProvider aiProvider;
 
     @Value("${app.interview.min-rounds:5}")
     private int minRounds;
@@ -309,6 +313,9 @@ public class InterviewService {
         stateMachine.transition(id, from, InterviewStatus.ABORTED);
         afterCommit(() -> {
             timerScheduler.cancel(id);
+            // FIX-16：中止会话不出报告，立即释放评分暂存与 Provider 会话状态
+            evaluationStore.clear(id);
+            aiProvider.releaseSession(id);
             wsHandler.push(id, WsMessageType.PROGRESS, Map.of(
                     "status", InterviewStatus.ABORTED.name(),
                     "currentRound", s.getCurrentRound(),

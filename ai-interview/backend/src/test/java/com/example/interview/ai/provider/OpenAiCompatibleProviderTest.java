@@ -167,6 +167,31 @@ class OpenAiCompatibleProviderTest {
         AiNextQuestionResult locked = provider.nextQuestion(context());
         assertThat(locked.getReason()).startsWith("mock:");
         assertThat(requestCount.get()).isEqualTo(6);
+
+        // FIX-16：会话终态显式释放——锁与失败计数清空，再次调用重新打到服务端
+        provider.releaseSession(context().getSessionId());
+        provider.nextQuestion(context());
+        assertThat(requestCount.get()).isEqualTo(8); // 解除锁定后再次真实调用（重试 1 次）
+    }
+
+    @Test
+    void evictStaleSessionsClearsIdleState() throws Exception {
+        respondContent = "不是 JSON";
+        for (int i = 0; i < 3; i++) {
+            provider.nextQuestion(context()); // 触发锁定
+        }
+        // 反射把 lastAccess 置为 2 小时前，验证定时淘汰兜底清理（FIX-16）
+        java.lang.reflect.Field f = OpenAiCompatibleProvider.class.getDeclaredField("lastAccess");
+        f.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        java.util.Map<Long, Long> lastAccess = (java.util.Map<Long, Long>) f.get(provider);
+        long now = System.currentTimeMillis();
+        lastAccess.put(context().getSessionId(), now - 2 * 60 * 60_000L);
+        assertThat(provider.evictStaleSessions(now)).isEqualTo(1);
+        // 淘汰后锁定状态消失：再次调用会打到服务端
+        int before = requestCount.get();
+        provider.nextQuestion(context());
+        assertThat(requestCount.get()).isGreaterThan(before);
     }
 
     @Test

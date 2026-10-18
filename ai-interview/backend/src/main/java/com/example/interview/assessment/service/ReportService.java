@@ -78,6 +78,8 @@ public class ReportService {
         try {
             generate(sessionId);
         } catch (Exception e) {
+            // FIX-16：失败路径同样清理评分暂存（重试时走确定性重算），防长期运行泄漏
+            evaluationStore.clear(sessionId);
             log.error("报告生成失败 session={}，可通过重新 finish 触发重试", sessionId, e);
             wsHandler.push(sessionId, WsMessageType.ERROR, Map.of(
                     "code", ResultCode.REPORT_NOT_READY.getCode(),
@@ -156,6 +158,8 @@ public class ReportService {
         }
         // 推荐缓存预生成（计划 §6.6/§6.7：Redis TTL 10min）；监听器在当前异步线程执行
         eventPublisher.publishEvent(new ReportGeneratedEvent(sessionId, s.getUserId(), s.getPositionId()));
+        // FIX-16：报告是该会话最后一次 AI 调用，释放 Provider 会话状态（失败计数/熔断锁）
+        aiProvider.releaseSession(sessionId);
     }
 
     /** 报告读取（计划 §5.3 #17）：未生成 10004；归属本人或 ADMIN。FIX-07：读取不再调用 AI。 */

@@ -21,4 +21,12 @@ public interface AiProvider {
 
     /** 生成整体报告（M3 链路接入）。 */
     AiReport generateReport(ReportContext ctx);
+
+    /**
+     * 会话终态/报告完成后释放该会话的 Provider 内部状态（FIX-16：
+     * 真实 Provider 的失败计数与会话熔断锁）。默认无状态实现可忽略。
+     */
+    default void releaseSession(Long sessionId) {
+        // 无状态 Provider（Mock）无需处理
+    }
 }

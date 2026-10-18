@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -54,6 +55,11 @@ public class OpenAiCompatibleProvider implements AiProvider {
     private final Map<Long, Integer> consecutiveFailures = new ConcurrentHashMap<>();
     /** 已锁定 mock 的会话 */
     private final Map<Long, Boolean> lockedSessions = new ConcurrentHashMap<>();
+    /** 会话状态最后活跃时间（FIX-16：定时淘汰，防终态会话状态永久累积） */
+    private final Map<Long, Long> lastAccess = new ConcurrentHashMap<>();
+    /** 会话状态空闲淘汰阈值 */
+    private static final long SESSION_STATE_IDLE_MILLIS = java.time.Duration.ofHours(1).toMillis();
+    private static final long EVICT_INTERVAL_MILLIS = 600_000L; // 10min（@Scheduled 需编译期常量）
 
     public OpenAiCompatibleProvider(WebClient webClient, AiProperties properties,
                                     AiResponseParser parser, PromptBuilder promptBuilder,
@@ -171,11 +177,13 @@ public class OpenAiCompatibleProvider implements AiProvider {
     }
 
     private boolean locked(Long sessionId) {
+        touch(sessionId);
         return sessionId != null && Boolean.TRUE.equals(lockedSessions.get(sessionId));
     }
 
     private void onSuccess(Long sessionId) {
         if (sessionId != null) {
+            touch(sessionId);
             consecutiveFailures.remove(sessionId);
         }
     }
@@ -183,6 +191,7 @@ public class OpenAiCompatibleProvider implements AiProvider {
     /** 失败统一降级 Mock；连续 3 次失败锁会话（计划 §6.8 第 3 级）。 */
     private <T> T onFallback(String method, Long sessionId, Exception e, java.util.function.Supplier<T> mockCall) {
         if (sessionId != null) {
+            touch(sessionId);
             int failures = consecutiveFailures.merge(sessionId, 1, Integer::sum);
             if (failures >= SESSION_LOCK_THRESHOLD && lockedSessions.putIfAbsent(sessionId, Boolean.TRUE) == null) {
                 log.warn("AI 连续 {} 次调用失败，会话 {} 锁定 mock 直至结束（{}）",
@@ -191,5 +200,44 @@ public class OpenAiCompatibleProvider implements AiProvider {
         }
         log.warn("AI {} 降级 Mock session={}：{}", method, sessionId, e.getMessage());
         return mockCall.get();
+    }
+
+    /** 会话终态/报告完成时释放失败计数与熔断锁（FIX-16）。 */
+    @Override
+    public void releaseSession(Long sessionId) {
+        if (sessionId == null) {
+            return;
+        }
+        consecutiveFailures.remove(sessionId);
+        lockedSessions.remove(sessionId);
+        lastAccess.remove(sessionId);
+    }
+
+    /** 定时淘汰长时间未访问的会话状态（FIX-16 兜底：未显式 release 的泄漏会话）。 */
+    @Scheduled(fixedDelay = EVICT_INTERVAL_MILLIS)
+    public void evictStaleSessions() {
+        evictStaleSessions(System.currentTimeMillis());
+    }
+
+    int evictStaleSessions(long nowMillis) {
+        int evicted = 0;
+        for (Map.Entry<Long, Long> e : lastAccess.entrySet()) {
+            if (nowMillis - e.getValue() > SESSION_STATE_IDLE_MILLIS) {
+                consecutiveFailures.remove(e.getKey());
+                lockedSessions.remove(e.getKey());
+                lastAccess.remove(e.getKey());
+                evicted++;
+            }
+        }
+        if (evicted > 0) {
+            log.info("AI Provider 会话状态定时清理：剔除 {} 个 1 小时未活跃会话", evicted);
+        }
+        return evicted;
+    }
+
+    private void touch(Long sessionId) {
+        if (sessionId != null) {
+            lastAccess.put(sessionId, System.currentTimeMillis());
+        }
     }
 }
