@@ -19,3 +19,7 @@ logs/
 # ===== 本地环境（含密钥时绝不提交）=====
 *.env
 .env.local
+
+# ===== 课程报告/答辩 PPT 产物（本地保留，不入库）=====
+.artifact_build/
+.artifact_output/
