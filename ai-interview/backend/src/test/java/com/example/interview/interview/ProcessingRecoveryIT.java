@@ -2,10 +2,12 @@ package com.example.interview.interview;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.interview.ai.model.AiNextQuestionResult;
+import com.example.interview.ai.model.AiResumeAnalysis;
 import com.example.interview.ai.model.AiReport;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
 import com.example.interview.ai.model.ReportContext;
+import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.ai.provider.AiProvider;
 import com.example.interview.ai.provider.MockAiProvider;
@@ -101,6 +103,11 @@ class ProcessingRecoveryIT {
         @Override
         public AiReport generateReport(ReportContext ctx) {
             return delegate.generateReport(ctx);
+        }
+
+        @Override
+        public AiResumeAnalysis analyzeResume(ResumeAnalysisContext ctx) {
+            return delegate.analyzeResume(ctx);
         }
     }
 

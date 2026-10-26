@@ -3,6 +3,7 @@ package com.example.interview.ai.prompt;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
 import com.example.interview.ai.model.ReportContext;
+import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.interview.entity.InterviewMessage;
 import org.springframework.stereotype.Component;
@@ -136,6 +137,45 @@ public class PromptBuilder {
                 "weaknesses":["2~3条不足，指向具体维度与缺失要点"],
                 "improvementPlan":["3条可执行的练习建议，逐条对应不足"],
                 "reportText":"完整评语，200~400字，面向学生口吻"}
+                """);
+        return sb.toString();
+    }
+
+    // ==================== analyzeResume（R2-3，简历方案 §4.2） ====================
+
+    /** 简历多维分析 Prompt：脱敏全文 + 岗位能力模型 + 六维定义与分档标准 → 强约束 JSON。 */
+    public String buildAnalyzeResumePrompt(ResumeAnalysisContext ctx) {
+        StringBuilder sb = new StringBuilder(2048);
+        sb.append("你是资深技术面试官与简历评审专家，请对候选人简历做多维评分与分级改进建议。\n\n");
+        sb.append("【目标岗位】").append(ctx.getPositionName() != null ? ctx.getPositionName() : "通用软件研发（未指定岗位）")
+                .append('\n');
+        if (ctx.getPositionSkills() != null && !ctx.getPositionSkills().isEmpty()) {
+            sb.append("【岗位能力模型】技能（权重）：");
+            List<String> items = ctx.getPositionSkills().stream()
+                    .map(s -> s.getName() + "（" + (s.getWeight() != null ? s.getWeight() : "-") + "）")
+                    .toList();
+            sb.append(String.join("、", items)).append('\n');
+        }
+        sb.append("\n【简历全文（已脱敏）】\n").append(ctx.getMaskedText()).append('\n');
+        sb.append("""
+
+                【六维评分定义（每维 0~100 整数，括号为总分权重）】
+                basic 基础信息完整度（0.10）：姓名/联系方式/求职意向齐全，板块结构完整
+                education 教育背景（0.10）：学历层次、专业相关度、成绩排名或核心课程
+                skill 技能与岗位匹配（0.25）：岗位技能覆盖率、精通/熟悉/了解分层表述、无关技能堆砌扣分
+                project 项目经历质量（0.25）：STAR 完整度、量化成果比例、复杂度信号（并发/性能/设计权衡）
+                experience 实习与实践经历（0.10）：实习/竞赛/开源/证书与岗位相关度
+                expression 表达与排版规范（0.20）：动词开头句比例、量化句比例、篇幅 800~4000 字、重复表述
+
+                【风险分级标准】HIGH=对应维度分 <40（硬伤必须修改）；MEDIUM=40~69（短板建议优化）；LOW=≥70 的优势维度（保持亮点）
+
+                【输出要求】只输出一个 JSON 对象，不要任何解释或 markdown 围栏，结构如下：
+                {"dimensionScores":{"basic":0-100,"education":0-100,"skill":0-100,"project":0-100,"experience":0-100,"expression":0-100},
+                "strengths":["亮点，最多5条"],
+                "suggestions":[{"riskLevel":"HIGH/MEDIUM/LOW","dimension":"六维key","title":"一句话标题，20字内","issue":"问题描述，引用证据说明","suggestion":"具体可执行的修改建议","evidence":"简历原文证据句"}],
+                "summary":"总评，500字内"}
+                规则：suggestions 共 3~8 条，按风险从高到低排序；evidence 必须引用简历原文句子（找不到时填"无"）；
+                不得编造简历中不存在的内容；所有文案使用中文。
                 """);
         return sb.toString();
     }

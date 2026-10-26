@@ -38,6 +38,8 @@ class ResumeQuotaTest {
     private ResumeStorageService storage;
     @Mock
     private ResumeTextExtractor extractor;
+    @Mock
+    private ResumeAnalysisService analysisService;
 
     private ResumeProperties properties;
     private ResumeService service;
@@ -47,7 +49,8 @@ class ResumeQuotaTest {
         properties = new ResumeProperties();
         properties.setMaxCountPerUser(20);
         properties.setDailyUploadLimit(10);
-        service = new ResumeService(resumeMapper, analysisMapper, positionMapper, storage, extractor, properties);
+        service = new ResumeService(resumeMapper, analysisMapper, positionMapper, storage,
+                extractor, properties, analysisService);
     }
 
     @Test

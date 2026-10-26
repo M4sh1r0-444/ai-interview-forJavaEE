@@ -211,6 +211,50 @@ class OpenAiCompatibleProviderTest {
         assertThat(report.getImprovementPlan()).isNotEmpty();
     }
 
+    // ==================== analyzeResume（R2-3：解析容错与降级） ====================
+
+    private com.example.interview.ai.model.ResumeAnalysisContext resumeContext() {
+        return com.example.interview.ai.model.ResumeAnalysisContext.builder()
+                .userId(5L)
+                .resumeId(9L)
+                .maskedText("姓名：张三 求职意向：Java 后端 专业技能 熟悉 Spring Boot、MySQL")
+                .positionName("Java 后端开发工程师")
+                .positionSkills(List.of(com.example.interview.ai.model.ResumeAnalysisContext.PositionSkill
+                        .builder().name("Spring生态").weight(0.2).build()))
+                .build();
+    }
+
+    @Test
+    void analyzeResumeParsesValidJsonAndLabelsQwen() {
+        respondContent = "{\"dimensionScores\":{\"basic\":80,\"education\":70,\"skill\":65,"
+                + "\"project\":55,\"experience\":60,\"expression\":75},"
+                + "\"strengths\":[\"技能分层清晰\"],\"suggestions\":[],\"summary\":\"整体良好\"}";
+        com.example.interview.ai.model.AiResumeAnalysis r = provider.analyzeResume(resumeContext());
+        assertThat(r.getProvider()).isEqualTo("qwen");
+        assertThat(r.getDimensionScores()).containsEntry("skill", 65);
+        assertThat(requestCount.get()).isEqualTo(1);
+    }
+
+    @Test
+    void analyzeResumeFallsBackToMockRulesOnBadJson() {
+        // 坏 JSON → 重试 1 次 → 仍失败 → 降级 Mock 规则（六维齐全、自报 mock，不抛异常）
+        respondContent = "模型今天只想聊天";
+        com.example.interview.ai.model.AiResumeAnalysis r = provider.analyzeResume(resumeContext());
+        assertThat(r.getProvider()).isEqualTo("mock");
+        assertThat(r.getDimensionScores()).containsKeys("basic", "education", "skill",
+                "project", "experience", "expression");
+        assertThat(requestCount.get()).isEqualTo(2);
+    }
+
+    @Test
+    void analyzeResumeFallsBackWhenDimensionsIncomplete() {
+        // 少于六维的"成功"响应视为不合规 → 降级 Mock（真实 AI 输出不稳定的防线）
+        respondContent = "{\"dimensionScores\":{\"basic\":80},\"suggestions\":[],\"summary\":\"缺维度\"}";
+        com.example.interview.ai.model.AiResumeAnalysis r = provider.analyzeResume(resumeContext());
+        assertThat(r.getProvider()).isEqualTo("mock");
+        assertThat(r.getDimensionScores()).hasSize(6);
+    }
+
     private static String toJsonString(String s) {
         return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\"";
     }

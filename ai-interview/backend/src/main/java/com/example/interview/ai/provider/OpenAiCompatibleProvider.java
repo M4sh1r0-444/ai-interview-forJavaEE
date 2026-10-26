@@ -4,9 +4,11 @@ import com.example.interview.ai.model.AiChatResponse;
 import com.example.interview.ai.model.AiEndpoint;
 import com.example.interview.ai.model.AiNextQuestionResult;
 import com.example.interview.ai.model.AiReport;
+import com.example.interview.ai.model.AiResumeAnalysis;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
 import com.example.interview.ai.model.ReportContext;
+import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.ai.parser.AiFallbackException;
 import com.example.interview.ai.parser.AiResponseParser;
@@ -134,6 +136,27 @@ public class OpenAiCompatibleProvider implements AiProvider {
     }
 
     // ==================== 调用与容错 ====================
+
+    /**
+     * F1 简历多维分析（R2-3）：不参与会话熔断（resumeId 与 sessionId 同为自增 Long，
+     * 直接复用会键冲突误锁面试会话；简历分析为用户单次动作，重试 1 次 + 降级已足够）。
+     * 六维齐全性校验不足即降级；成功自报 provider=qwen（协议口径：真实 Provider 统一记
+     * qwen，用户级端点同口径），降级结果由 Mock 自报 mock。
+     */
+    @Override
+    public AiResumeAnalysis analyzeResume(ResumeAnalysisContext ctx) {
+        try {
+            AiResumeAnalysis r = call(promptBuilder.buildAnalyzeResumePrompt(ctx),
+                    AiResumeAnalysis.class, ctx.getResumeId());
+            if (r.getDimensionScores() == null || r.getDimensionScores().size() < 6) {
+                throw new AiFallbackException("简历分析结果缺少六维分数");
+            }
+            r.setProvider("qwen");
+            return r;
+        } catch (Exception e) {
+            return onFallback("analyzeResume", ctx.getResumeId(), e, () -> mock.analyzeResume(ctx));
+        }
+    }
 
     /** 单次 Chat 调用：POST /chat/completions，解析首个 choice 的 content 为目标 JSON。 */
     private <T> T callOnce(String prompt, Class<T> type) {

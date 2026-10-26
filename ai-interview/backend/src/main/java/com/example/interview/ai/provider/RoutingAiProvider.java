@@ -4,9 +4,11 @@ import com.example.interview.aiconfig.service.UserAiConfigService;
 import com.example.interview.ai.model.AiEndpoint;
 import com.example.interview.ai.model.AiNextQuestionResult;
 import com.example.interview.ai.model.AiReport;
+import com.example.interview.ai.model.AiResumeAnalysis;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
 import com.example.interview.ai.model.ReportContext;
+import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -59,6 +61,13 @@ public class RoutingAiProvider implements AiProvider {
     @Override
     public AiReport generateReport(ReportContext ctx) {
         return route(ctx.getSessionId(), ctx.getUserId()).generateReport(ctx);
+    }
+
+    /** F1 简历分析（R2）：按简历归属用户路由（不记 sessionDelegates——简历无 release 语义，
+     *  且 resumeId 与 sessionId 数值可能相同，避免串台；实例内部状态由 1h 淘汰兜底）。 */
+    @Override
+    public AiResumeAnalysis analyzeResume(ResumeAnalysisContext ctx) {
+        return route(null, ctx.getUserId()).analyzeResume(ctx);
     }
 
     /** 解析该用户的端点：有用户配置走对应实例，否则走平台默认。 */

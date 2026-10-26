@@ -36,11 +36,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * 简历计划 §8.2 ResumeUploadIT（R1 范围，协议 R-01/R-02/R-03/R-06/R-07）：四格式上传同步解析
- * → ANALYZING；扫描件/加密/短文本 → FAILED + failReason；.doc / Content-Type / 缺 file /
- * 非法岗位 → 400/40001；列表分页倒序与用户隔离；详情归属 40401；逻辑删除后不可见；
- * 默认简历仅 ANALYZED 可设且互斥；每日配额 10010 且删除释放额度。
- * "轮询至 ANALYZED → 含 analysis/digest"断言随 R2 异步分析交付后补入。
+ * 简历计划 §8.2 ResumeUploadIT（R1 范围 + R2 异步分析接通，协议 R-01/02/03/06/07）：
+ * 四格式上传同步解析 → ANALYZING → 异步分析（mock 秒级）→ 轮询至 ANALYZED → 详情含
+ * analysis/digest；扫描件/加密/短文本 → FAILED + failReason（无异步触发）；
+ * .doc / Content-Type / 缺 file / 非法岗位 → 400/40001；列表分页倒序、用户隔离与
+ * overallScore（ANALYZED 后）；详情归属 40401；逻辑删除后不可见；默认简历仅 ANALYZED
+ * 可设且互斥；每日配额 10010 且删除释放额度。
+ * R2 起上传即异步分析，"进行中"瞬态不再稳定可断言——一律轮询到终态后断言；
+ * ANALYZING 分支语义由 ResumeAnalysisFlowIT 以状态固定方式覆盖。
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -96,6 +99,31 @@ class ResumeUploadIT {
         return ((Number) d.get("id")).longValue();
     }
 
+    /** 轮询详情至期望状态（mock 分析秒级完成；上限 15s 防环境抖动），返回 data。 */
+    private Map<String, Object> awaitStatus(String token, long id, String expected) throws Exception {
+        long deadline = System.currentTimeMillis() + 15_000;
+        Map<String, Object> d = null;
+        while (System.currentTimeMillis() < deadline) {
+            MvcResult res = mockMvc.perform(get("/api/resumes/" + id)
+                    .header("Authorization", "Bearer " + token)).andReturn();
+            assertThat(code(body(res))).isZero();
+            d = data(res);
+            if (expected.equals(d.get("status"))) {
+                return d;
+            }
+            Thread.sleep(150);
+        }
+        assertThat(d).as("简历 %s 未在 15s 内进入 %s（当前 %s）", id, expected, d.get("status")).isNotNull();
+        throw new IllegalStateException("unreachable");
+    }
+
+    /** 直接改库固定状态（ANALYZING 语义分支的确定性注入，用毕还原）。 */
+    private void pinStatus(long id, String status) {
+        resumeMapper.update(null, Wrappers.<Resume>lambdaUpdate()
+                .eq(Resume::getId, id)
+                .set(Resume::getStatus, status));
+    }
+
     private Map<String, Object> list(String token, int page, int size) throws Exception {
         MvcResult res = mockMvc.perform(get("/api/resumes?page=" + page + "&size=" + size)
                 .header("Authorization", "Bearer " + token)).andReturn();
@@ -127,13 +155,6 @@ class ResumeUploadIT {
         return body(res);
     }
 
-    /** R2 之前无异步分析，IT 直接把状态改为 ANALYZED 以验证 R-06 的互斥规则。 */
-    private void markAnalyzed(long id) {
-        resumeMapper.update(null, Wrappers.<Resume>lambdaUpdate()
-                .eq(Resume::getId, id)
-                .set(Resume::getStatus, "ANALYZED"));
-    }
-
     @SuppressWarnings("unchecked")
     private static Map<String, Object> body(MvcResult res) throws Exception {
         return JsonUtils.parse(res.getResponse().getContentAsString(StandardCharsets.UTF_8), Map.class);
@@ -148,10 +169,10 @@ class ResumeUploadIT {
         return ((Number) body.get("code")).intValue();
     }
 
-    // ==================== R-01：四格式上传与解析护栏 ====================
+    // ==================== R-01：四格式上传 → 异步分析 → ANALYZED ====================
 
     @Test
-    void uploadFourFormatsParsedToAnalyzing() throws Exception {
+    void uploadFourFormatsThenAnalyzedWithAnalysisAndDigest() throws Exception {
         String token = registerAndLogin();
         byte[] gbkTxt = ResumeFixtures.CHINESE_RESUME_MD.getBytes(Charset.forName("GBK"));
 
@@ -162,7 +183,8 @@ class ResumeUploadIT {
         Map<String, Object> pdf = uploadOk(token, "john.pdf", "application/pdf", ResumeFixtures.englishPdf(), 2L);
 
         for (Map<String, Object> d : List.of(md, txt, docx, pdf)) {
-            assertThat(d.get("status")).as("%s", d.get("fileName")).isEqualTo("ANALYZING");
+            // 上传响应为 ANALYZING（解析成功）或异步已完成 ANALYZED（mock 秒级，竞态合法）
+            assertThat(d.get("status")).as("%s", d.get("fileName")).isIn("ANALYZING", "ANALYZED");
             assertThat(((Number) d.get("charCount")).intValue()).isGreaterThanOrEqualTo(200);
             assertThat(((Number) d.get("id")).longValue()).isPositive();
             assertThat(((Number) d.get("fileSize")).longValue()).isPositive();
@@ -177,6 +199,18 @@ class ResumeUploadIT {
         assertThat(docx.get("fileType")).isEqualTo("DOCX");
         assertThat(pdf.get("fileType")).isEqualTo("PDF");
         assertThat(pdf.get("positionId")).isEqualTo(2);
+
+        // R2 异步分析：四格式全部轮询至 ANALYZED，详情含 analysis/digest（协议 R-03）
+        for (Map<String, Object> d : List.of(md, txt, docx, pdf)) {
+            long id = ((Number) d.get("id")).longValue();
+            Map<String, Object> detail = awaitStatus(token, id, "ANALYZED");
+            assertThat(detail).containsKeys("analysis", "digest");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> analysis = (Map<String, Object>) detail.get("analysis");
+            assertThat(((Number) analysis.get("overallScore")).intValue()).isBetween(0, 100);
+            assertThat(analysis.get("dimensionScores")).isNotNull();
+            assertThat((List<?>) analysis.get("suggestions")).hasSizeBetween(3, 8);
+        }
 
         // 文件 UUID 落盘 target/test-uploads/resume/yyyyMM/，四种扩展名各至少一个
         Path dir = Path.of("target/test-uploads/resume",
@@ -211,7 +245,7 @@ class ResumeUploadIT {
         assertThat(fake.get("status")).isEqualTo("FAILED");
         assertThat((String) fake.get("failReason")).contains("不符");
 
-        // 失败态详情：failReason 透出，无 analysis/digest/profile
+        // 失败态详情：failReason 透出，无 analysis/digest/profile（FAILED 不触发异步）
         long id = ((Number) scan.get("id")).longValue();
         Map<String, Object> detail = detail(token, id);
         assertThat(code(detail)).isZero();
@@ -275,6 +309,8 @@ class ResumeUploadIT {
         String bob = registerAndLogin();
         long first = uploadMd(alice);
         long second = uploadMd(alice);   // 同秒内 created_at 相同时按 id 倒序兜底
+        awaitStatus(alice, first, "ANALYZED");
+        awaitStatus(alice, second, "ANALYZED");
 
         Map<String, Object> page = list(alice, 1, 10);
         assertThat(code(page)).isZero();
@@ -291,9 +327,10 @@ class ResumeUploadIT {
         assertThat(item.get("fileType")).isEqualTo("MD");
         assertThat(item.get("positionId")).isEqualTo(1);
         assertThat(item.get("positionName")).isEqualTo("Java 后端开发工程师");
-        assertThat(item.get("status")).isEqualTo("ANALYZING");
+        assertThat(item.get("status")).isEqualTo("ANALYZED");
         assertThat(item.get("isActive")).isEqualTo(false);
-        assertThat(item).doesNotContainKey("overallScore");       // ANALYZED 前缺席
+        // R2：ANALYZED 后列表含 overallScore（0~100）
+        assertThat(((Number) item.get("overallScore")).intValue()).isBetween(0, 100);
 
         // 分页切片
         @SuppressWarnings("unchecked")
@@ -321,19 +358,16 @@ class ResumeUploadIT {
         String alice = registerAndLogin();
         String bob = registerAndLogin();
         long id = uploadMd(alice);
+        Map<String, Object> d = awaitStatus(alice, id, "ANALYZED");
 
-        Map<String, Object> own = detail(alice, id);
-        assertThat(code(own)).isZero();
-        @SuppressWarnings("unchecked")
-        Map<String, Object> d = (Map<String, Object>) own.get("data");
         assertThat(d.get("id")).isEqualTo((int) id);
         assertThat(d.get("fileName")).isEqualTo("简历.md");
         assertThat(d.get("positionName")).isEqualTo("Java 后端开发工程师");
-        assertThat(d.get("status")).isEqualTo("ANALYZING");
+        assertThat(d.get("status")).isEqualTo("ANALYZED");
         assertThat(((Number) d.get("charCount")).intValue()).isGreaterThanOrEqualTo(200);
         assertThat(d.get("isActive")).isEqualTo(false);
-        assertThat(d).containsKeys("createdAt", "updatedAt", "fileSize")
-                .doesNotContainKeys("analysis", "digest", "profile", "failReason");
+        assertThat(d).containsKeys("createdAt", "updatedAt", "fileSize", "analysis", "digest", "profile")
+                .doesNotContainKey("failReason");
 
         // 他人 / 不存在：统一 40401（HTTP 200，不暴露存在性）
         assertThat(code(detail(bob, id))).isEqualTo(40401);
@@ -351,6 +385,8 @@ class ResumeUploadIT {
         String token = registerAndLogin();
         long id = uploadMd(token);
         long keep = uploadMd(token);
+        awaitStatus(token, id, "ANALYZED");
+        awaitStatus(token, keep, "ANALYZED");
 
         Map<String, Object> del = remove(token, id);
         assertThat(code(del)).isZero();
@@ -377,15 +413,16 @@ class ResumeUploadIT {
         String token = registerAndLogin();
         long r1 = uploadMd(token);
         long r2 = uploadMd(token);
+        awaitStatus(token, r1, "ANALYZED");
+        awaitStatus(token, r2, "ANALYZED");
 
-        // ANALYZING 不可设默认 → 400/40001
+        // 非 ANALYZED（固定注入 ANALYZING）不可设默认 → 400/40001
+        pinStatus(r1, "ANALYZING");
         MvcResult notReady = mockMvc.perform(put("/api/resumes/" + r1 + "/active")
                 .header("Authorization", "Bearer " + token)).andReturn();
         assertThat(notReady.getResponse().getStatus()).isEqualTo(400);
         assertThat(code(body(notReady))).isEqualTo(40001);
-
-        markAnalyzed(r1);
-        markAnalyzed(r2);
+        pinStatus(r1, "ANALYZED");
 
         Map<String, Object> a1 = setActive(token, r1);
         assertThat(code(a1)).isZero();

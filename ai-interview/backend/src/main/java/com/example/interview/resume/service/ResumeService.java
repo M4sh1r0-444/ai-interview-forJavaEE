@@ -58,6 +58,7 @@ public class ResumeService {
     private final ResumeStorageService storage;
     private final ResumeTextExtractor extractor;
     private final ResumeProperties properties;
+    private final ResumeAnalysisService analysisService;
 
     // ==================== R-01：上传 ====================
 
@@ -108,7 +109,7 @@ public class ResumeService {
         resumeMapper.insert(r);
         log.info("简历上传 id={} user={} type={} size={} status={} chars={} position={}",
                 r.getId(), uid, fileType, file.getSize(), r.getStatus(), r.getCharCount(), positionId);
-        // R2-4：ANALYZING 时在事务提交后触发 ResumeAnalysisService.analyze（异步 aiExecutor）
+        // R2-4：ANALYZING 的异步分析由 Controller 在本事务提交后触发（见 ResumeController.triggerAnalysis）
         return UploadResumeVO.from(resumeMapper.selectById(r.getId()));
     }
 
@@ -150,6 +151,66 @@ public class ResumeService {
             analysis = a != null ? ResumeAnalysisVO.from(a) : null;
         }
         return ResumeDetailVO.from(r, positionName, analysis);
+    }
+
+    // ==================== R-04：分析结果 ====================
+
+    /**
+     * 仅分析结果（协议 R-04）：ANALYZED → 数据；ANALYZING/PENDING → 10006；
+     * FAILED → 按 fail_reason 前缀映射 [PARSE]→10008 / [AI]→10007（message 透出可读原因）。
+     */
+    public ResumeAnalysisVO analysisOf(Long id) {
+        Resume r = checkOwnership(id);
+        ResumeStatus status = ResumeStatus.valueOf(r.getStatus());
+        switch (status) {
+            case ANALYZED -> {
+                ResumeAnalysis a = analysisMapper.selectOne(Wrappers.<ResumeAnalysis>lambdaQuery()
+                        .eq(ResumeAnalysis::getResumeId, id));
+                if (a == null) {
+                    throw new BizException(ResultCode.RESUME_ANALYSIS_FAILED, "分析结果缺失，可重新发起分析");
+                }
+                return ResumeAnalysisVO.from(a);
+            }
+            case ANALYZING, PENDING -> throw new BizException(ResultCode.RESUME_NOT_READY,
+                    "简历解析/分析进行中，请稍后查看");
+            case FAILED -> {
+                String reason = r.getFailReason() != null ? r.getFailReason() : "";
+                String message = reason.startsWith(PARSE_FAIL_PREFIX)
+                        ? reason.substring(PARSE_FAIL_PREFIX.length())
+                        : reason.startsWith(AI_FAIL_PREFIX)
+                        ? reason.substring(AI_FAIL_PREFIX.length()) : reason;
+                if (reason.startsWith(PARSE_FAIL_PREFIX)) {
+                    throw new BizException(ResultCode.RESUME_PARSE_FAILED,
+                            message.isBlank() ? "简历解析失败，请重新上传" : message);
+                }
+                throw new BizException(ResultCode.RESUME_ANALYSIS_FAILED,
+                        message.isBlank() ? "简历分析失败，可重试" : message);
+            }
+            default -> throw new BizException(ResultCode.INTERNAL_ERROR, "未知简历状态：" + r.getStatus());
+        }
+    }
+
+    // ==================== R-05：重新分析 ====================
+
+    /**
+     * 重分析（协议 R-05）：FAILED（重试）/ ANALYZED（如切换 Provider 后重评）→ ANALYZING
+     * 并清空旧失败原因；ANALYZING/PENDING 中重复调用 → 10006（入口挡并发）。
+     * 异步分析由 Controller 在本事务提交后触发（跨 Bean 代理保证 @Async 生效）。
+     * 旧 analysis 行在分析成功事务内 delete + insert 覆盖。
+     */
+    @Transactional
+    public UploadResumeVO reanalyze(Long id) {
+        Resume r = checkOwnership(id);
+        ResumeStatus status = ResumeStatus.valueOf(r.getStatus());
+        if (status == ResumeStatus.ANALYZING || status == ResumeStatus.PENDING) {
+            throw new BizException(ResultCode.RESUME_NOT_READY, "简历分析进行中，请勿重复发起");
+        }
+        resumeMapper.update(null, Wrappers.<Resume>lambdaUpdate()
+                .eq(Resume::getId, id)
+                .set(Resume::getStatus, ResumeStatus.ANALYZING.name())
+                .set(Resume::getFailReason, null));
+        log.info("简历重分析进入 ANALYZING id={} user={} 上次状态={}", id, r.getUserId(), status);
+        return UploadResumeVO.from(resumeMapper.selectById(id));
     }
 
     // ==================== R-06：默认简历 ====================

@@ -355,7 +355,7 @@ Authorization: Bearer {{TOKEN}}
 
 ### ============================================================
 ### 简历分析与个性化面试（简历协议 §3/§4，用例 R-01~R-10；R1 交付 R-01/02/03/06/07，
-### R-04/05 随 R2、R-08~R-10 随 R3 补入）。样例文件位于 ../qa/samples/。
+### R2 交付 R-04/05，R-08~R-10 随 R3 补入）。样例文件位于 ../qa/samples/。
 ### ============================================================
 
 ### R-01 上传简历（multipart：file 必填 + positionId 可选；pdf/docx/md/txt ≤10MB）
@@ -414,6 +414,18 @@ Authorization: Bearer {{TOKEN}}
 ### R-03 简历详情（轮询端点，2s 间隔/上限 60s）：ANALYZING 期无 analysis/digest/profile；
 ###      ANALYZED 后三者齐全；FAILED 携带 failReason；他人/不存在 → 40401
 GET {{BASE}}/api/resumes/{{RESUME_ID}}
+Authorization: Bearer {{TOKEN}}
+
+### R-04 获取分析结果：ANALYZED 前 10006；ANALYZED 后 200+data（六维/总分/建议 3~8 条
+###      按 HIGH→MEDIUM→LOW 排序、每条含 title/issue/suggestion/evidence）；FAILED 按
+###      failReason 前缀映射 [PARSE]→10008 / [AI]→10007；他人/不存在 → 40401
+GET {{BASE}}/api/resumes/{{RESUME_ID}}/analysis
+Authorization: Bearer {{TOKEN}}
+
+### R-05 重新分析：FAILED（重试）/ ANALYZED（切换 Provider 后重评）→ data.status=ANALYZING；
+###      ANALYZING 中重复调用 → 10006（不并发）；覆盖旧结果（analysis 行 delete+insert，
+###      createdAt 刷新）
+POST {{BASE}}/api/resumes/{{RESUME_ID}}/reanalyze
 Authorization: Bearer {{TOKEN}}
 
 ### R-06 设为默认简历：仅 ANALYZED 可设（否则 400/40001）；每用户至多一份，原默认自动 isActive=false
