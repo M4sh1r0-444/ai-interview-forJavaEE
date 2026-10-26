@@ -64,3 +64,9 @@ app:
     timer-push-seconds: 30             # TIMER 推送粒度（计划 §5.6）
     timer-final-push-seconds: 10       # 最后 60s 内的推送粒度
     timer-final-window-seconds: 60
+  resume:                              # 简历上传与分析（简历计划 §2.2 / 附录B）
+    allowed-types: pdf,docx,md,txt     # 扩展名白名单（Content-Type 复核 + 魔数）
+    min-text-chars: 200                # 抽取字符数低于此值 → 解析失败(FAILED/10008)
+    max-analysis-chars: 20000          # 送模型文本上限，超出截断（全量仍计 char_count）
+    max-count-per-user: ${APP_RESUME_MAX_COUNT_PER_USER:20}   # 保留上限（逻辑删除不占额度）
+    daily-upload-limit: ${APP_RESUME_DAILY_UPLOAD_LIMIT:10}   # 每用户每日上传上限

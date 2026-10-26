@@ -16,11 +16,11 @@
 
 | 项 | 当前值 |
 |---|---|
-| 当前阶段 | **后端 M6 ✅ 完成；前端 F6 ✅ 完成（F1~F6 全部交付）** |
-| 当前里程碑 | 后端 M6 ✅（2026-10-15）；前端 F6 ✅（2026-10-18）；**全部里程碑完成，进入答辩/维护** |
-| 整体进度 | 后端 6/6；前端 6/6（F1 ✅、F2 ✅、F3 ✅、F4 ✅、F5 ✅、F6 ✅） |
-| 上次更新 | 2026-10-18 |
-| 上次更新人 | ZCode（F6 质量/部署/验收会话） |
+| 当前阶段 | **后端 M6 ✅ / 前端 F6 ✅（基线全部交付）；增量功能"简历分析与个性化面试"后端 R1 ✅ 完成，R2 简历分析 ⬜ 下一步** |
+| 当前里程碑 | 基线：后端 M6 ✅（2026-10-15）、前端 F6 ✅（2026-10-18）；增量：**R1 ✅（2026-10-26）**，R2~R4 ⬜ |
+| 整体进度 | 后端基线 6/6；前端 6/6；简历增量后端 **1/4**（R1 ✅、R2 ⬜、R3 ⬜、R4 ⬜；前端消费协议，待后端 R4 后另行排期） |
+| 上次更新 | 2026-10-26 |
+| 上次更新人 | ZCode（简历功能 R1 开发会话） |
 
 ### 里程碑状态
 
@@ -45,6 +45,17 @@
 | F4 | 语音 + 成长 + 推荐 + 个人中心 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
 | F5 | 管理端 7 页 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
 | F6 | 质量 + 部署修复 + 验收 | ✅ 已完成 | 2026-10-18 | 2026-10-18 |
+
+### 简历分析与个性化面试里程碑状态（增量 R1~R4，仅后端）
+
+> 依据《简历分析与个性化面试_总体开发方案》《_接口协议》《_后端开发计划》（产物 #25）；任务编号 R1-1…R4-4 对应后端开发计划 §9。硬约束：不破坏基线验收项、基线 9 表结构不变（仅 `interview_session` 加可空列）、mock 下可离线演示、`mvn verify` 与 JaCoCo ≥60% 不回退。
+
+| 里程碑 | 内容（简历计划 §9） | 状态 | 开始日期 | 完成日期 |
+|---|---|---|---|---|
+| R1 | 简历上传与解析闭环（依赖/配置/V8/存储/4 格式抽取/上传·列表·详情·默认·删除接口/配额） | ✅ 已完成 | 2026-10-26 | 2026-10-26 |
+| R2 | 简历分析（ProfileParser 分段/脱敏/digest、AiProvider.analyzeResume 双实现、异步编排与状态机、评分聚合与分级建议、R-04/R-05 接口） | ⬜ 未开始 | | |
+| R3 | 个性化面试（resumeId 校验链、组卷偏好、题干改写与降级、追问/报告注入、focus-skills、详情新字段） | ⬜ 未开始 | | |
+| R4 | 测试与收口（全量 verify/覆盖率、qwen 冒烟脚本、README/进度记录/演示脚本收口） | ⬜ 未开始 | | |
 
 > ⚠ 2026-10-17 复核：M6-6.3 的"静态页 200"只验证了 HTTP 状态码，**未校验页面内容**；`frontend-dist` 卷实际为 nginx 默认欢迎页（见 P9）。
 > ✅ 2026-10-17 FIX-02 先修复卷挂载（占位页）；2026-10-18 F6-4 用真实 Vue3 产物复验：80 页面含产品名、assets 200、gzip、/api、/ws 101，P9 最终关闭。
@@ -80,6 +91,8 @@
 | 23 | **前端 F6 质量/部署/验收（F6-1~F6-6）** | `frontend/src/api/__tests__/modules.spec.ts`、`frontend/e2e/auth.spec.ts`、`frontend/scripts/contract-check.mjs`、`frontend/artifacts/contract-check.json`、`frontend/Dockerfile`、`docker-compose.yml`、`nginx/nginx.conf`、`frontend/README.md`、`qa/cleanup_e2e_data.sh`、`frontend/docs/F6-验收记录.md`、`frontend/docs/screenshots/f6/` | 2026-10-18 | ✅ 已交付（F6） | 单测 **231/231**（41 文件，F6 新增 17）、覆盖率行 **90.09%**/分支 **82.85%**（阈值 70/60 固化）；E2E **21/21**（新增 E2E-01）；契约 **39/39 REST + 7/7 错误码**；Dockerfile 多阶段构建 + 产物写 `frontend-dist` 卷，Nginx gzip/缓存，80 端口页面含产品名、assets 200、gzip、`/api`、`/ws` 101、离线栈可启动；frontend README/根 README/答辩脚本（P10 修正）/15 张 f6 截图；`qa/cleanup_e2e_data.sh` 清理后 2 岗位/demo01 7 场；修复首页 404（nginx root 继承）与 favicon 403（镜像权限） |
 
 | 24 | **后端验收修复 Phase 3/4（FIX-09~20，P2 收口 + 重新验收）** | 后端 FIX-09~18 代码与 32 个新用例、`nginx/nginx.conf`、`docker-compose.yml`、`pom.xml`（enforcer）、`application*.yml`、`backend/api.http`、`qa/verify_compose_acceptance.sh`、`qa/verify_real_provider_auth.sh`、`qa/cleanup_e2e_data.sh`（--yes）、`qa/m6_offline_drill.sh`（内容断言）、《验收自检_M6_v2.md》、《修复验证记录_20261018.md》 | 2026-10-18 | ✅ 已交付 | Gate 3：JDK17 `mvn -B verify` **166/166 全绿**（基线 134 + 新增 32），JaCoCo 行覆盖 **89.55%**，26 个 IT 类；JDK25 enforcer 明确报错。Gate 4：全新 Compose 验收 **PASS 13/13**（页面内容/assets/401/岗位/同源 WS 101+95s 存活 4×PING/限流 D2 序列/伪造 XFF 仍 429/日志无 token）；本地 Bearer stub 冒烟 PASS（三路径鉴权+零降级）；离线演练复跑 **13/13**（含 hostPageContentOk=1）；#6/#14 按 D5 维持协议级通过（无真实 key，不宣称 15/15）；P10/P11 维持关闭（本轮交叉验证+--yes 加固） |
+| 25 | **简历分析与个性化面试规划三件套** | `开发计划/AI模拟面试与能力提升平台_简历分析与个性化面试_{总体开发方案,接口协议,后端开发计划}.md` | 2026-10-26 | ✅ 已交付（规划） | 总体方案（需求/六维评分/高中低风险建议/个性化四环节/V8 库表/安全/测试/验收 12 条）；接口协议（新增 8 + 扩展 2 端点 R-01~R-10，错误码 10006~10010，轮询契约）；后端开发计划（R1~R4 约 6.5 天任务分解、resume 包类清单、既有文件 12 处改动点、单测/IT 清单） |
+| 26 | **简历功能后端 R1：上传与解析闭环（R1-1~R1-5）** | `backend/pom.xml`(poi-ooxml 5.3.0/pdfbox 3.0.3)、`application.yml`(app.resume.*)、`ResultCode`(+10006~10010)、`common/config/ResumeProperties`、`db/migration/V8__resume_feature.sql`、`resume/{entity/Resume,ResumeAnalysis,ResumeStatus; mapper/ResumeMapper,ResumeAnalysisMapper; storage/ResumeStorageService; service/ResumeTextExtractor,ResumeService; controller/ResumeController; dto/UploadResumeVO,ResumeItemVO,ResumeDetailVO,ResumeAnalysisVO,SuggestionDTO}`、`InterviewSession.resumeId`、测试 `resume/{ResumeFixtures,ResumeUploadIT,service/ResumeTextExtractorTest,ResumeQuotaTest,storage/ResumeStorageServiceTest}`、`backend/api.http`(R-01~R-07)、`qa/samples/resume_demo.md`+`resume_short.txt` | 2026-10-26 | ✅ 已交付（R1） | V8 新增 resume/resume_analysis 两表 + interview_session.resume_id 可空列（空库 V1→V8 与存量库 V7→V8 双路径均验证，dev/测试库已在 V8）；四格式（PDF/DOCX/MD/TXT）魔数校验 + 文本抽取（PDFBox 3 文本层 / POI 段落+表格按文档流 / UTF-8→GBK 回退 + 控制字符占比护栏）；上传同步解析：成功 ANALYZING、失败 FAILED+`[PARSE]` 前缀原因（code=0）；白名单/Content-Type/空文件/岗位非法 → 400/40001；配额保留 20/每日 10 → 10010，逻辑删除释放额度；列表分页倒序（越界 40002）、详情、默认简历（仅 ANALYZED、互斥）、逻辑删除（@TableLogic，文件保留审计）、归属 40401；`mvn verify` **205/205 全绿**（基线 166 + R1 新增 39），JaCoCo 行覆盖 89.94%（resume.service 97.4% / storage 95.9% / controller 100%）；curl 冒烟 R-01/01b/01c/02/03/06/07 全部符合协议 |
 
 > 后续产物（backend 工程、Flyway 脚本、docker-compose 等）交付时在此表**按序追加**，注明对应里程碑任务编号。前端产物的任务编号使用 F1~F6（见前端开发计划 §11），不占用 M 编号。
 
@@ -161,6 +174,19 @@
 | 6.4 | Mock 离线演练 | ✅ | 2026-10-15 | `bash qa/m6_offline_drill.sh` 一键：断网证明 5 项（backend 容器内对外网 IP/DNS 均不通、AI_PROVIDER=mock、内网链路正常、宿主机经 Nginx 可访问）+ 业务演练 **13/13 项通过**：文字面试（Java 岗，75.66 分/追问 15 次）+ 语音面试（前端岗，含 voice 维度）→ 报告 → 历史/成长/推荐 → 管理端看板与知识片段新增 → WS QUESTION 推送；结果留存 qa/offline_drill_{env,result}.json；演练后 dev 栈自动恢复（数据无损）。断网模拟方式见 D30 |
 | 6.5 | 验收自检（对照表 15 条） | ✅ | 2026-10-15 | 计划 §12 逐条 ✅ 并附验证方式与实测证据（双岗/题量/题型比例 SQL、追问消息表实录、知识检索 DEBUG 日志、报告六维与五要素实录、两场后成长曲线 5 条全 2 点、推荐 Top3 实录、管理端 IT、双模式、compose 一键+15 步映射），产出《AI模拟面试与能力提升平台_验收自检_M6.md》 |
 | 6.6 | README + 答辩演示脚本 | ✅ | 2026-10-15 | backend/README.md（环境→快速开始→一场面试→测试门禁→配置→模块→接口与联调契约→部署→FAQ，新人 30 分钟启动路径）；ai-interview/答辩演示脚本.md（方案 §19 15 步逐条映射可执行命令 + 演示前准备清单 + 故障预案） |
+
+### R1 简历上传与解析闭环 ✅（2026-10-26 完成，简历计划 §9-R1）
+
+| 任务 | 内容 | 状态 | 完成日期 | 验证记录/备注 |
+|---|---|---|---|---|
+| R1-1 | pom 依赖 + `app.resume.*` 配置 + ResultCode 5 新码 | ✅ | 2026-10-26 | `poi-ooxml 5.3.0` + `pdfbox 3.0.3`（不引 poi-scratchpad）；`app.resume.{allowed-types,min-text-chars,max-analysis-chars,max-count-per-user,daily-upload-limit}` 绑定 `ResumeProperties`（@ConfigurationProperties，环境变量 `APP_RESUME_*` 覆盖）；`RESUME_NOT_READY 10006 / RESUME_ANALYSIS_FAILED 10007 / RESUME_PARSE_FAILED 10008 / RESUME_NOT_ANALYZED 10009 / RESUME_QUOTA_EXCEEDED 10010`（均 HTTP 200）；JDK17 编译通过 |
+| R1-2 | Flyway V8（2 表 + session 加列）+ 实体/Mapper | ✅ | 2026-10-26 | `V8__resume_feature.sql`：`resume`（含 `idx_resume_user(user_id,deleted)`、`fk_resume_user`）+ `resume_analysis`（`uk_analysis_resume`、`fk_analysis_resume`）+ `interview_session.resume_id BIGINT NULL` + `idx_session_resume`，风格对齐 V1；**空库 V1→V8 全量**（临时库 `ai_interview_r1check`：11 张业务表、resume_id 可空、索引齐全，验后已删）与 **存量库 V7→V8 增量**（测试库 + dev 库，迁移前 mysqldump 至 `~/backups/`）均成功；实体 `Resume`（@TableLogic deleted）/`ResumeAnalysis`（JacksonTypeHandler 三 JSON 列）/`ResumeStatus`，`ResumeMapper.casStatus` 条件更新预留给 R2 状态机 |
+| R1-3 | ResumeStorageService + ResumeTextExtractor | ✅ | 2026-10-26 | 存储：扩展名白名单（.doc 提示另存 .docx）→ Content-Type 复核（放行 octet-stream，剥离 charset 参数）→ 空文件/10MB 兜底 → UUID 落盘 `resume/yyyyMM/` → `resolve` 防穿越；抽取：入口魔数（`%PDF-` / `PK\x03\x04` / OLE2 头单独提示老格式或加密 Word）→ PDFBox 3 `Loader.loadPDF`+`PDFTextStripper`（加密 → "简历已加密"）/ POI 按 `getBodyElements` 文档流遍历段落+表格（单元格空格拼接）/ UTF-8 严格解码失败退 GBK、控制字符占比 >5% 判二进制 → 规整（BOM/换行/空白折叠）→ `< min-text-chars` 判扫描件；`ResumeTextExtractorTest` **19** 用例 + `ResumeStorageServiceTest` **7** 用例全绿 |
+| R1-4 | 上传受理 + 列表/详情/删除/active 接口 | ✅ | 2026-10-26 | `ResumeController` 5 端点（R-01 POST / R-02 GET 分页 / R-03 GET 详情 / R-06 PUT active / R-07 DELETE）；`ResumeService.upload`：配额 → 岗位存在且启用（40001）→ 落盘 → 同步抽取 → 成功 `ANALYZING` + charCount / 失败 `FAILED` + `[PARSE] ` 前缀原因（HTTP 200、code=0）；列表 createdAt/id 倒序、ANALYZED 批量带 overallScore、分页越界 40002；详情 NON_NULL 省略未就绪的 analysis/digest/profile；active 仅 ANALYZED（否则 40001）+ 同用户互斥 + 幂等；删除 @TableLogic 逻辑删（同时清默认标记，文件保留）；归属统一 `checkOwnership` → 40401（ADMIN 亦按本人数据）；`ResumeUploadIT` **8** 用例全绿；api.http 增 R-01/01b/01c/02/03/06/07 并以 curl 对 dev 后端（18080）实测全部符合协议 |
+| R1-5 | 配额校验 | ✅ | 2026-10-26 | `checkQuota`：未删除计数 ≥ `max-count-per-user`(20) → 10010"保留数量已达上限"；当日零点（Asia/Shanghai）起未删除计数 ≥ `daily-upload-limit`(10) → 10010"今日上传次数已达上限"；保留先判、直接 COUNT 不走 Redis；`ResumeQuotaTest` **5** 用例（边界/顺序/可配置）+ IT `dailyQuotaExceededThenReleasedByDelete`（10 次后第 11 次 10010，删 1 份后再传成功）全绿 |
+
+> R1 测试汇总：JDK17 `mvn verify` = **205 用例全绿**（基线 166 + R1 新增 39：ResumeTextExtractorTest 19、ResumeStorageServiceTest 7、ResumeQuotaTest 5、ResumeUploadIT 8），JaCoCo 行覆盖 **89.94%**（≥60% 门禁通过；resume.service 97.4% / storage 95.9% / controller 100%）；既有 IT（InterviewTextFlowIT、AudioAnswerIT、WebSocket*、Admin* 等 26 类）零回归。
+> R1 边界说明：上传成功后状态停留 `ANALYZING`，异步 AI 分析（→ ANALYZED/FAILED）、R-04 analysis / R-05 reanalyze 接口与 profile/digest 写入均属 **R2**；因此 R1 阶段 R-06 在真实数据上只能命中 40001 分支，互斥规则由 IT 直接置 ANALYZED 验证。ResumeUploadIT 的"轮询至 ANALYZED → 详情含 analysis/digest"断言随 R2 补入。
 
 ### F1~F6 前端阶段（F1~F6 ✅ 全部完成）
 
@@ -321,6 +347,14 @@
 | 2026-10-18 | 决策 | **D48：F6 部署与产物口径**——frontend 改为 node:20 多阶段构建 + alpine 初始化容器，产物经 `frontend-dist` 卷交给 nginx（不把 dist 打进 nginx 镜像）；compose 增加 `NPM_REGISTRY` build arg（默认 npmmirror，可 .env 覆盖）；Nginx server 级 `root` + gzip + index no-cache + assets 长缓存 + SPA fallback；镜像内 `chmod -R a+rX` 保证非 root worker 可读；验收必须校验页面内容/assets/gzip/`/api`/`/ws` 101，并跑离线叠加栈。实测修复两个部署缺陷：`location = /index.html` 缺 root 导致首页 404、宿主机 0600 文件导致 favicon 403 | F6-4 / 计划 §10.3/§10.4 |
 | 2026-10-18 | 决策 | **D49：F6 验收数据基线**——清理脚本只按测试前缀删除（`e2e_*`/`acc_*`/`race_*`/`dis_*`/`shots2_*`、`E2E-*`/`E2E_*`/`ACC_*`、`离线演练-*`、`冒烟：*`），demo01 保留 id ≤21 的 7 场基线；种子题 61 恢复 ENABLED；Redis 清 `rec:*` 与 `rl:login:*`；验收后 `GET /positions` 必须仅 2 个种子岗位、启用 2、demo01 历史 7 场。真实麦克风（P19）与 ECharts moderate 审计项作为已知残留，不阻塞课程交付 | F6-6 / 计划 §9.7/§12 |
 
+| 2026-10-26 | 决策 | **D50：R1 交付边界**——上传同步完成"校验+落盘+抽取"后状态停留 `ANALYZING`，不接异步分析触发（`ResumeAnalysisService`、R-04/R-05、profile/digest 写入均为 R2-4/R2-5 交付）；R1 不伪造 ANALYZED，R-06 互斥规则在 IT 中直接置 ANALYZED 验证，ResumeUploadIT 的"轮询至 ANALYZED"断言随 R2 补入 | 简历计划 §6.1/§9-R1 |
+| 2026-10-26 | 决策 | **D51：简历逻辑删除采用 MyBatis-Plus `@TableLogic`**（基线各表用 status 字段、首次引入 @TableLogic）：所有 BaseMapper 查询自动追加 `deleted=0`，`deleteById` 即 `UPDATE deleted=1`，避免某条查询漏加过滤导致已删简历泄漏；不提供物理删除接口，文件保留审计 | 简历方案 §3.1 / 简历计划 §6.9 |
+| 2026-10-26 | 偏差 | **D52：魔数校验落位 `ResumeTextExtractor` 而非 `ResumeStorageService`**（计划 §7-2 写在存储、§4.1/§8.1 写在抽取器，二者不一致）。口径：存储只做"请求级"校验（扩展名/Content-Type/空文件/大小 → 400/40001）；抽取器做"内容级"校验（魔数不符/加密/损坏/扫描件/二进制伪装/编码 → `RESUME_PARSE_FAILED` → 落库 FAILED，HTTP 200 code=0），与协议 §2.2"仅请求本身不合法才 4xx"一致 | 简历计划 §6.1/§6.3/§7 |
+| 2026-10-26 | 偏差 | **D53：`fail_reason` 以 `[PARSE] `/`[AI] ` 前缀落库并原样返回**（协议 R-01 示例无前缀）。前缀是计划 §6.2 约定的 R-04 错误码映射键（10008/10007），单一事实源不做二次拆分；前端如需可按前缀剥离渲染 | 简历协议 R-01/R-04 |
+| 2026-10-26 | 决策 | **D54：简历列表分页越界 → 400/40002（size 上限 50）**，按简历协议 §1/§2.2 执行；与基线 history/管理端列表（FIX-11，@Min/@Max → 40001，上限 100）口径不同，实现为 Service 手工范围校验而非方法级校验注解 | 简历协议 §1 / FIX-11 |
+| 2026-10-26 | 偏差 | **D55：V8 DDL 细节对齐 V1 风格**——`created_at/updated_at` 补 `DEFAULT CURRENT_TIMESTAMP [ON UPDATE]`（方案 DDL 省略）；`idx_resume_user` 改为复合索引 `(user_id, deleted)`；补外键 `fk_resume_user→sys_user`、`fk_analysis_resume→resume`（方案 DDL 无外键，基线表均有）；`resume.profile_json/digest_json` R1 先以 String 映射（类型化 `ResumeProfile/ResumeDigest` 随 R2-1 引入再切 JacksonTypeHandler），`resume_analysis` 三 JSON 列因协议已定型直接类型化（`Map<String,Integer>` / `List<String>` / `List<SuggestionDTO>`） | 简历方案 §5 / 简历计划 §3 |
+| 2026-10-26 | 决策 | **D56：配置承载用 `ResumeProperties`（@ConfigurationProperties，同 AiProperties 模式）**而非分散 @Value，便于单测 `new ResumeProperties()` 直接设限额；依赖版本按计划锁定 `poi-ooxml 5.3.0` / `pdfbox 3.0.3`（阿里云镜像可解析，`mvn dependency` 无冲突） | 简历计划 §2.1/§2.2 |
+
 
 ## 5. 问题与风险跟踪
 
@@ -363,11 +397,11 @@
 | JDK 17 | ✅ Temurin 17.0.20（`~/tools/jdk-17.0.20.1+1`，tarball 安装） | 运行/测试统一 `JAVA_HOME=~/tools/jdk-17.0.20.1+1/Contents/Home` |
 | JDK 25 | 仍存在（系统默认） | 仅做兜底；编译由 `maven.compiler.release=17` 保证 |
 | Maven | 3.9.16（~/tools/apache-maven-3.9.16） | settings.xml 已配阿里云镜像 |
-| Docker | ✅ colima 运行中（4C/4G） | 镜像经 daocloud 源拉取（D7）；node:20-alpine/nginx:1.27-alpine 已本地化；前端构建 npm 默认走 npmmirror（D48/P24） |
-| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库 **V7**（2026-10-17 验收修复迁移：question_evidence_json / planned_duration_minutes / uk_ability_source_skill）+ 演示数据；F6-6 清理后 2 岗位/启用 2/demo01 历史 7 场/30 场总/61 题/28 资源/43 知识（P11 关闭）；测试库 ai_interview_test 同步 V7 |
+| Docker | ✅ colima 运行中（4C/4G；2026-10-26 R1 会话开始时未运行，`colima start` + `docker compose -f docker-compose.dev.yml up -d` 重新拉起，两容器 healthy） | 镜像经 daocloud 源拉取（D7）；node:20-alpine/nginx:1.27-alpine 已本地化；前端构建 npm 默认走 npmmirror（D48/P24） |
+| aiinterview-mysql | ✅ healthy，端口 3306 | dev 库 **V8**（2026-10-26 R1：`resume`/`resume_analysis` 两表 + `interview_session.resume_id`，11 张业务表；迁移前备份 `~/backups/ai_interview_pre_v8_20261026_112706.sql`）+ 演示数据不变（2 岗位/demo01 历史 7 场/61 题/28 资源/43 知识）；冒烟产生的 resume 行与 `uploads/resume/` 已清理；测试库 ai_interview_test 同步 V8 |
 | aiinterview-redis | ✅ healthy，宿主机端口 6380 | 6379 被其他项目占用（D6） |
 | 本机 8080 | ⚠ 2026-10-17 检测空闲；历史 P6 曾被其他项目占用 | 当前 dev 后端跑在 18080（health 200）；前端代理默认 8080，可用 `.env.development.local` 指 18080 |
-| 本机 18080 | ✅ 本项目 dev 后端（health 200） | 前端联调临时用；正式演示用 compose 80 |
+| 本机 18080 | 当前空闲（2026-10-26 R1 用 `java -jar` 临时起 dev 后端做 V8 迁移与 R-01~R-07 curl 冒烟，验后已停） | 前端联调临时用；正式演示用 compose 80 |
 | 本机 5173 | ✅ F1 起由 Vite dev 占用（`npm run dev`） | 固定端口 + `strictPort: true`；后端 18080 通过 `.env.development.local` 代理；F4 语音 E2E 使用注入假麦克风（P19） |
 | 本机 80 | ✅ F6-4 已用正式 compose 栈验证真实 Vue 页面（nginx/1.27.5） | 验证后已撤栈，当前空闲；答辩时 `docker compose up -d` 重新占用，入口 `http://127.0.0.1` |
 | frontend 工程 | ✅ Vue3 + Vite + TS 工程（F6 完成，2026-10-18） | `npm ci && npm run dev`；学生端 12 页 + 管理端 7 页；E2E 21/21、单测 231/231、覆盖率 90.09%/82.85%；Dockerfile 已替换为 node:20 多阶段并验证 `frontend-dist` 卷（P9 关闭） |
@@ -418,3 +452,4 @@ cd backend && mvn spring-boot:run                        # dev profile，Redis �
 | 2026-10-18 | **F5 完成（管理端 7 页）**：F5-1~F5-8 全部 ✅（产物 #22 交付）；看板四卡 + 近 7 日柱线（null 断点/双轴）；题库 CRUD + 筛选分页 URL 同步 + 40003 冲突覆盖/放弃 + 逻辑删；岗位/技能权重动态行 + 三组评分权重实时校验/回读 + `?tab=weights` 与 `/admin/evaluation` 别名；资源 CRUD/下架；用户搜索/启停/自禁用保护；知识库新增/重建并明确无列表；`lint/type-check/format:check` 0/0、单测 **214/214**（40 文件，F5 新增 38）、coverage **76.54%**、build 成功、Playwright E2E **20/20**（F2 6 + F3 4 + F4 5 + F5 5）；10 张截图、0 pageerror、1440/390 无横向滚动；登记 D46、P21；测试数据清理后 demo01 历史 7 场；F5 ✅，下一里程碑 F6 | ZCode（F5 开发会话） |
 | 2026-10-18 | **F6 完成（质量/部署/验收，F1~F6 全部交付）**：F6-1~F6-6 全部 ✅（产物 #23 交付）；新增 API 模块单测 17 用例（39 函数），单测 **231/231**（41 文件）、覆盖率行 **90.09%**/分支 **82.85%**（70/60 阈值固化）；E2E 新增 E2E-01 并全套 **21/21**（首轮 49.2s、verify 42.7s）；契约检查 **39/39 REST + 7/7 错误码**（`artifacts/contract-check.json`）；Dockerfile 多阶段 + 产物卷 + Nginx gzip/缓存：80 页面含产品名、JS/CSS 200+gzip、SPA fallback、favicon 200、`/api` code=0、`/ws` 101、frontend `Exited (0)`、离线叠加栈可启动；frontend README/根 README/答辩脚本（P10 修正）/f6 15 张截图；`qa/cleanup_e2e_data.sh` 后 2 岗位/启用 2/demo01 7 场/30 场；修复 P22/P23（nginx root、favicon 权限）、规避 P24（npm 源）；登记 D47~D49；`npm run verify` 全绿，`npm audit --omit=dev` 1 moderate ECharts（无修复，记录） | ZCode（F6 质量/部署/验收会话） |
 | 2026-10-18 | **后端验收修复 Phase 3/4 完成（FIX-09~20）**：依据《后端修复计划_20261017》§3 执行。**FIX-09**（45f5b2f）登录限流只统计失败+成功清零（D2）、trust-proxy 只信 Nginx X-Real-IP、Lua 原子计数，Nginx 覆写 XFF；**FIX-10**（fc84f58）safe log_format 不记 query + /ws error_log crit 抑制 error log token 旁路（实测发现）；**FIX-11**（fa1a889）7+2 类协议异常映射（40400/40501/41501）+ 5 接口分页 @Min/@Max + StatusUpdateRequest；**FIX-12**（7601f2e）掌握度真幂等——并发实测为 InnoDB 死锁，改为事务外退避重试+逐条捕获+报告败者 waitForReport；**FIX-13**（66baaf0）D37 口径注解（追问难度/提示强度）；**FIX-14**（bad4365）match 三路命中（stem/技能名/种子词），全中文高分 ≥75；**FIX-15**（9d4c006）检索严格(2 词 AND)→宽松(4 词 OR)回退；**FIX-16**（ade58a6）评分暂存 2h 定时清理 + Provider 会话状态 release/1h 淘汰；**FIX-17**（2da070b）enforcer [17,25)+README JDK 检查；**FIX-18**（2f2b46b）管理端入参校验/positionId 存在性/并发注册 10001；**FIX-19**（bbdddce）cleanup --yes/离线演练内容断言/前端契约补协议码/P10 交叉验证；**FIX-20**（f8d4db0+）Gate 3 全绿 + verify_compose_acceptance.sh PASS 13/13 + verify_real_provider_auth.sh PASS + 离线演练复跑 13/13 + 《验收自检 v2》《修复验证记录》。用户决策：无真实 qwen key（D5，#6/#14 协议级通过不宣称 15/15）；离线演练确认执行。偏差与发现见修复验证记录 §7（error log 旁路、死锁收敛、bash3.2 全角变量名等 6 项） | ZCode（后端验收修复会话） |
+| 2026-10-26 | **简历功能后端 R1 完成（R1-1~R1-5，产物 #25 规划三件套登记 + #26 R1 交付）**：pom 增 poi-ooxml 5.3.0/pdfbox 3.0.3，`app.resume.*` 五项配置绑定 `ResumeProperties`，ResultCode +10006~10010；Flyway **V8**（resume/resume_analysis 两表 + interview_session.resume_id 可空列）空库 V1→V8 与存量库 V7→V8 双路径验证通过，dev/测试库已迁 V8（dev 迁移前 mysqldump 备份）；新增 `resume` 包（Resume/ResumeAnalysis/ResumeStatus 实体、2 Mapper、ResumeStorageService、ResumeTextExtractor 四格式魔数+抽取+护栏、ResumeService 上传/列表/详情/默认/删除/配额/归属、ResumeController 5 端点、5 个 VO/DTO），InterviewSession +resumeId；测试新增 39 用例（ResumeTextExtractorTest 19、ResumeStorageServiceTest 7、ResumeQuotaTest 5、ResumeUploadIT 8，共享 ResumeFixtures 内存生成 PDF/DOCX 夹具），JDK17 `mvn verify` **205/205 全绿**、JaCoCo 行覆盖 89.94%；api.http 增 R-01/01b/01c/02/03/06/07 + `qa/samples/{resume_demo.md,resume_short.txt}`，curl 对 dev 后端冒烟全部符合协议；登记 D50~D56（R1 边界/@TableLogic/魔数落位/fail_reason 前缀/分页 40002/V8 DDL 细节/配置承载）；环境：colima 本次重新拉起，18080 冒烟后释放。下一步 R2 简历分析 | ZCode（简历功能 R1 开发会话） |

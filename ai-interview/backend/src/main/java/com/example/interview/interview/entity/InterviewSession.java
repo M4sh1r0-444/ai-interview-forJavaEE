@@ -32,6 +32,8 @@ public class InterviewSession {
     private String status;
     /** 结束后由报告流程回填（M3） */
     private BigDecimal totalScore;
+    /** 个性化面试来源简历（V8，简历计划 R3-1）；空=普通面试，基线行为不变 */
+    private Long resumeId;
     private LocalDateTime startedAt;
     private LocalDateTime finishedAt;
     private LocalDateTime createdAt;

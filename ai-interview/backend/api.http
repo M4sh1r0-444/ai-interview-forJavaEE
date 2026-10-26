@@ -352,3 +352,74 @@ Authorization: Bearer {{TOKEN}}
 ###
 GET {{BASE}}/api/users/me/history?page=0&size=10
 Authorization: Bearer {{TOKEN}}
+
+### ============================================================
+### 简历分析与个性化面试（简历协议 §3/§4，用例 R-01~R-10；R1 交付 R-01/02/03/06/07，
+### R-04/05 随 R2、R-08~R-10 随 R3 补入）。样例文件位于 ../qa/samples/。
+### ============================================================
+
+### R-01 上传简历（multipart：file 必填 + positionId 可选；pdf/docx/md/txt ≤10MB）
+###      断言：code=0，data.status=ANALYZING（R2 前停留；R2 后数秒内转 ANALYZED），charCount≥200
+# @name uploadResume
+POST {{BASE}}/api/resumes
+Authorization: Bearer {{TOKEN}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="positionId"
+
+1
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="resume_demo.md"
+Content-Type: text/markdown
+
+< ../qa/samples/resume_demo.md
+--WebAppBoundary--
+
+@RESUME_ID = {{uploadResume.response.body.data.id}}
+
+### R-01b 上传成功但解析失败（文本不足 200 字符）：HTTP 200 + code=0 + data.status=FAILED + failReason
+POST {{BASE}}/api/resumes
+Authorization: Bearer {{TOKEN}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="resume_short.txt"
+Content-Type: text/plain
+
+< ../qa/samples/resume_short.txt
+--WebAppBoundary--
+
+### R-01c 请求本身不合法 → 400/40001：.doc 老格式（提示另存为 .docx）；
+###       同样 40001：Content-Type 白名单外、缺 file、positionId 不存在；配额超限 → 200/10010
+POST {{BASE}}/api/resumes
+Authorization: Bearer {{TOKEN}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="old.doc"
+Content-Type: application/msword
+
+< ../qa/samples/resume_short.txt
+--WebAppBoundary--
+
+### R-02 简历列表（分页 Page 结构，createdAt 倒序；ANALYZED 后含 overallScore；page≥1、size 1~50 越界 40002）
+GET {{BASE}}/api/resumes?page=1&size=10
+Authorization: Bearer {{TOKEN}}
+
+###
+GET {{BASE}}/api/resumes?page=0&size=10
+Authorization: Bearer {{TOKEN}}
+
+### R-03 简历详情（轮询端点，2s 间隔/上限 60s）：ANALYZING 期无 analysis/digest/profile；
+###      ANALYZED 后三者齐全；FAILED 携带 failReason；他人/不存在 → 40401
+GET {{BASE}}/api/resumes/{{RESUME_ID}}
+Authorization: Bearer {{TOKEN}}
+
+### R-06 设为默认简历：仅 ANALYZED 可设（否则 400/40001）；每用户至多一份，原默认自动 isActive=false
+PUT {{BASE}}/api/resumes/{{RESUME_ID}}/active
+Authorization: Bearer {{TOKEN}}
+
+### R-07 逻辑删除：data {id, deleted:true}；列表消失、详情 40401、再次删除 40401；文件保留审计
+DELETE {{BASE}}/api/resumes/{{RESUME_ID}}
+Authorization: Bearer {{TOKEN}}
