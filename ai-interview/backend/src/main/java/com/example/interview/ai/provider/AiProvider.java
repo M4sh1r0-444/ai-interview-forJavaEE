@@ -1,10 +1,12 @@
 package com.example.interview.ai.provider;
 
 import com.example.interview.ai.model.AiNextQuestionResult;
+import com.example.interview.ai.model.AiQuestionPersonalization;
 import com.example.interview.ai.model.AiReport;
 import com.example.interview.ai.model.AiResumeAnalysis;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
+import com.example.interview.ai.model.QuestionPersonalizeContext;
 import com.example.interview.ai.model.ReportContext;
 import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
@@ -30,6 +32,15 @@ public interface AiProvider {
      * provider 字段自报；两实现显式实现本方法（防漏实现静默失效，简历计划 §4.3）。
      */
     AiResumeAnalysis analyzeResume(ResumeAnalysisContext ctx);
+
+    /**
+     * F2 主问题题干个性化改写（R3-3，简历方案 §4.1）：一次批量改写本场主问题，
+     * 仅绑定候选人背景、保留考查点，questionId 完全不变（评分基准 key_points 不变）。
+     * 真实 Provider 失败链：重试 1 次 → 降级 Mock 模板；调用方（InterviewService.start）
+     * 对最终失败降级整场原题干（all-or-nothing，WARN 不打断 start）。两实现显式实现
+     * 本方法（防漏实现静默失效，简历计划 §4.3）。
+     */
+    AiQuestionPersonalization personalizeQuestions(QuestionPersonalizeContext ctx);
 
     /**
      * 会话终态/报告完成后释放该会话的 Provider 内部状态（FIX-16：

@@ -29,6 +29,10 @@ import com.example.interview.position.entity.Position;
 import com.example.interview.position.mapper.PositionMapper;
 import com.example.interview.question.entity.Question;
 import com.example.interview.question.mapper.QuestionMapper;
+import com.example.interview.resume.dto.ResumeDigest;
+import com.example.interview.resume.service.ResumeSkillMatcher;
+import com.example.interview.resume.entity.Resume;
+import com.example.interview.resume.mapper.ResumeMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,6 +75,7 @@ public class ReportService {
     private final TransactionTemplate transactionTemplate;
     private final MasteryUpdater masteryUpdater;
     private final ApplicationEventPublisher eventPublisher;
+    private final ResumeMapper resumeMapper;
 
     /** 异步入口（计划 §4.4：报告生成不阻塞请求/定时器线程）。 */
     @Async("aiExecutor")
@@ -110,6 +115,7 @@ public class ReportService {
         CompetencyModel model = parseModel(position);
         Aggregation agg = aggregate(s, position, model);
 
+        ResumeDigest digest = resumeDigestOf(s);
         AiReport aiReport = aiProvider.generateReport(ReportContext.builder()
                 .sessionId(sessionId)
                 .userId(s.getUserId())
@@ -119,7 +125,11 @@ public class ReportService {
                 .totalScore(agg.total)
                 .turnEvaluations(agg.latestPerRound)
                 .dimensionScores(agg.dimensions)
+                .resumeDigest(digest) // R3-5：个性化报告注入简历要点
                 .build());
+        // R3-5"简历 vs 实测"对比（简历方案 §3.6⑤）：Mock 与真实 Provider 同规则，
+        // 追加进既有 strengths/weaknesses（evaluation_report 不加列，前端按前缀渲染）
+        appendResumeComparison(aiReport, digest, agg);
 
         EvaluationReport report = new EvaluationReport();
         report.setSessionId(sessionId);
@@ -437,6 +447,82 @@ public class ReportService {
     private String joinText(AiReport report) {
         return (report.getSummary() != null ? report.getSummary() : "") + "\n\n"
                 + (report.getReportText() != null ? report.getReportText() : "");
+    }
+
+    // ==================== R3-5：简历 vs 实测对比（简历方案 §3.6⑤） ====================
+
+    /** 个性化会话（resume_id 非空）加载 digest；缺失/解析失败返回 null（报告按普通口径）。 */
+    private ResumeDigest resumeDigestOf(InterviewSession s) {
+        if (s.getResumeId() == null) {
+            return null;
+        }
+        Resume resume = resumeMapper.selectById(s.getResumeId());
+        if (resume == null || resume.getDigestJson() == null) {
+            log.warn("个性化会话简历摘要缺失 session={}，报告不追加对比条目", s.getId());
+            return null;
+        }
+        try {
+            return JsonUtils.parse(resume.getDigestJson(), ResumeDigest.class);
+        } catch (Exception e) {
+            log.warn("简历摘要解析失败 session={} resume={}：{}", s.getId(), s.getResumeId(), e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * "digest 技能 ↔ 相关题目内容分"映射：简历自述技能对应题目平均分 <60 → weaknesses
+     * 追加"简历中自述掌握 {skill}，但相关题目表现偏弱（{score} 分），建议重点巩固"；
+     * ≥80 → strengths 追加"简历中的 {skill} 经受住了追问验证"。每侧至多 2 条（取最极端），
+     * 无相关题目（题库未覆盖该技能）的技能不输出。
+     */
+    private void appendResumeComparison(AiReport report, ResumeDigest digest, Aggregation agg) {
+        if (digest == null || digest.getSkills() == null || digest.getSkills().isEmpty()
+                || agg.skillTurns.isEmpty()
+                || report.getWeaknesses() == null || report.getStrengths() == null) {
+            return;
+        }
+        List<SkillComparison> comparisons = new ArrayList<>();
+        for (ResumeDigest.Skill skill : digest.getSkills()) {
+            if (skill == null || skill.getName() == null) {
+                continue;
+            }
+            String normalized = ResumeSkillMatcher.normalize(skill.getName());
+            List<double[]> related = new ArrayList<>(); // {score, weight}
+            for (MasteryUpdater.SkillTurn turn : agg.skillTurns) {
+                boolean hit = turn.skillTags() != null && turn.skillTags().stream()
+                        .anyMatch(tag -> ResumeSkillMatcher.tagMatches(tag, normalized));
+                if (hit) {
+                    related.add(new double[]{turn.score(), turn.weight()});
+                }
+            }
+            if (related.isEmpty()) {
+                continue; // 本场未考察该技能，无从对比
+            }
+            double avg = calculator.weightedAverage(related);
+            comparisons.add(new SkillComparison(skill.getName(), avg));
+        }
+        comparisons.sort(java.util.Comparator.comparingDouble(SkillComparison::score));
+        comparisons.stream().limit(2)
+                .filter(c -> c.score() < 60)
+                .forEach(c -> report.getWeaknesses().add(
+                        "简历中自述掌握 " + c.name() + "，但相关题目表现偏弱（"
+                                + Math.round(c.score()) + " 分），建议重点巩固"));
+        comparisons.stream()
+                .filter(c -> c.score() >= 80)
+                .sorted(java.util.Comparator.comparingDouble(SkillComparison::score).reversed())
+                .limit(2)
+                .forEach(c -> report.getStrengths().add(
+                        "简历中的 " + c.name() + " 经受住了追问验证（相关题目平均 "
+                                + Math.round(c.score()) + " 分）"));
+        if (!comparisons.isEmpty()) {
+            log.info("报告追加简历对比条目 session 相关技能={} 弱项≤{} 强项≤{}",
+                    comparisons.size(),
+                    report.getWeaknesses().size(), report.getStrengths().size());
+        }
+    }
+
+    /** 技能对比中间结果（技能名 + 相关题目加权平均内容分）。 */
+    private record SkillComparison(String name, double score) {
     }
 
     private double round2(double v) {

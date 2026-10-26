@@ -3,10 +3,12 @@ package com.example.interview.ai.provider;
 import com.example.interview.aiconfig.service.UserAiConfigService;
 import com.example.interview.ai.model.AiEndpoint;
 import com.example.interview.ai.model.AiNextQuestionResult;
+import com.example.interview.ai.model.AiQuestionPersonalization;
 import com.example.interview.ai.model.AiReport;
 import com.example.interview.ai.model.AiResumeAnalysis;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
+import com.example.interview.ai.model.QuestionPersonalizeContext;
 import com.example.interview.ai.model.ReportContext;
 import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
@@ -68,6 +70,12 @@ public class RoutingAiProvider implements AiProvider {
     @Override
     public AiResumeAnalysis analyzeResume(ResumeAnalysisContext ctx) {
         return route(null, ctx.getUserId()).analyzeResume(ctx);
+    }
+
+    /** F2 题干改写（R3）：start 阶段调用，按会话归属用户路由（与其他会话调用同口径）。 */
+    @Override
+    public AiQuestionPersonalization personalizeQuestions(QuestionPersonalizeContext ctx) {
+        return route(ctx.getSessionId(), ctx.getUserId()).personalizeQuestions(ctx);
     }
 
     /** 解析该用户的端点：有用户配置走对应实例，否则走平台默认。 */

@@ -6,10 +6,14 @@ import com.example.interview.auth.security.CurrentUser;
 import com.example.interview.common.config.ResumeProperties;
 import com.example.interview.common.exception.BizException;
 import com.example.interview.common.result.ResultCode;
+import com.example.interview.common.util.JsonUtils;
+import com.example.interview.position.dto.CompetencyModel;
 import com.example.interview.position.entity.Position;
 import com.example.interview.position.mapper.PositionMapper;
+import com.example.interview.resume.dto.FocusSkillsVO;
 import com.example.interview.resume.dto.ResumeAnalysisVO;
 import com.example.interview.resume.dto.ResumeDetailVO;
+import com.example.interview.resume.dto.ResumeDigest;
 import com.example.interview.resume.dto.ResumeItemVO;
 import com.example.interview.resume.dto.UploadResumeVO;
 import com.example.interview.resume.entity.Resume;
@@ -28,6 +32,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -254,6 +259,101 @@ public class ResumeService {
         resp.put("id", id);
         resp.put("deleted", true);
         return resp;
+    }
+
+    // ==================== R-08：个性化重点考察预览 ====================
+
+    /**
+     * 纯规则计算（协议 R-08，简历方案 §3.6⑥）：digest.skills ∩ 岗位能力模型 →
+     * 命中技能（含权重与简历证据）+ 缺口技能 + 权重占比 hitRatio。positionId 可选，
+     * 缺省用简历绑定岗位；两者皆空 → 40001。无 AI、无副作用，供面试设置页展示。
+     * digest 缺失（未分析完成）按空技能处理：matched 空、gaps 全量、hitRatio=0。
+     */
+    public FocusSkillsVO focusSkills(Long id, Long positionId) {
+        Resume r = checkOwnership(id);
+        Long pid = positionId != null ? positionId : r.getPositionId();
+        if (pid == null) {
+            throw new BizException(ResultCode.PARAM_INVALID,
+                    "未指定 positionId 且简历未绑定岗位，无法计算重点技能");
+        }
+        Position p = positionMapper.selectById(pid);
+        if (p == null) {
+            throw new BizException(ResultCode.PARAM_INVALID, "岗位不存在：positionId=" + pid);
+        }
+        List<CompetencyModel.SkillItem> modelSkills = competencySkillsOf(p);
+        ResumeDigest digest = digestOf(r);
+
+        List<FocusSkillsVO.MatchedSkill> matched = new ArrayList<>();
+        List<FocusSkillsVO.GapSkill> gaps = new ArrayList<>();
+        double hitWeight = 0;
+        double totalWeight = 0;
+        for (CompetencyModel.SkillItem s : modelSkills) {
+            List<String> terms = matchedTerms(s.getSkillName(), digest);
+            double weight = s.getWeight() != null ? s.getWeight() : 0;
+            totalWeight += weight;
+            if (terms.isEmpty()) {
+                gaps.add(FocusSkillsVO.GapSkill.builder()
+                        .skillCode(s.getSkillCode()).skillName(s.getSkillName()).build());
+            } else {
+                hitWeight += weight;
+                matched.add(FocusSkillsVO.MatchedSkill.builder()
+                        .skillCode(s.getSkillCode()).skillName(s.getSkillName())
+                        .weight(s.getWeight()).matchedTerms(terms).build());
+            }
+        }
+        matched.sort((a, b) -> Double.compare(
+                b.getWeight() != null ? b.getWeight() : 0, a.getWeight() != null ? a.getWeight() : 0));
+        double hitRatio = totalWeight > 0 ? hitWeight / totalWeight : 0;
+        log.info("重点技能预览 resume={} position={} matched={} gaps={} hitRatio={}",
+                id, pid, matched.size(), gaps.size(), hitRatio);
+        return FocusSkillsVO.builder()
+                .resumeId(id)
+                .positionId(pid)
+                .positionName(p.getName())
+                .matched(matched)
+                .gaps(gaps)
+                .hitRatio(hitRatio)
+                .build();
+    }
+
+    /** digest 解析（缺失/失败返回 null，按空技能处理）。 */
+    private ResumeDigest digestOf(Resume r) {
+        if (r.getDigestJson() == null) {
+            return null;
+        }
+        try {
+            return JsonUtils.parse(r.getDigestJson(), ResumeDigest.class);
+        } catch (Exception e) {
+            log.warn("简历摘要解析失败，按空技能预览 id={}：{}", r.getId(), e.getMessage());
+            return null;
+        }
+    }
+
+    /** 岗位能力模型技能列表；模型缺失/解析失败返回空列表（matched 空、gaps 空、ratio 0）。 */
+    private List<CompetencyModel.SkillItem> competencySkillsOf(Position p) {
+        if (p.getCompetencyModelJson() == null) {
+            return List.of();
+        }
+        try {
+            CompetencyModel model = JsonUtils.parse(p.getCompetencyModelJson(), CompetencyModel.class);
+            return model == null || model.getSkills() == null ? List.of() : model.getSkills();
+        } catch (Exception e) {
+            log.warn("岗位能力模型解析失败，按空技能预览 positionId={}：{}", p.getId(), e.getMessage());
+            return List.of();
+        }
+    }
+
+    /** 简历中体现该岗位技能的原文表述（digest 技能名，按词典序稳定）。 */
+    private List<String> matchedTerms(String positionSkillName, ResumeDigest digest) {
+        if (digest == null || digest.getSkills() == null || positionSkillName == null) {
+            return List.of();
+        }
+        return digest.getSkills().stream()
+                .filter(s -> s != null && s.getName() != null)
+                .map(s -> s.getName())
+                .filter(name -> ResumeSkillMatcher.nameMatches(positionSkillName, name))
+                .distinct()
+                .toList();
     }
 
     // ==================== 归属与配额 ====================

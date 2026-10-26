@@ -1,12 +1,15 @@
 package com.example.interview.interview.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.example.interview.ai.model.AiQuestionPersonalization;
+import com.example.interview.ai.model.QuestionPersonalizeContext;
 import com.example.interview.ai.provider.AiProvider;
 import com.example.interview.assessment.service.ReportService;
 import com.example.interview.assessment.service.TurnEvaluationStore;
 import com.example.interview.auth.security.CurrentUser;
 import com.example.interview.common.exception.BizException;
 import com.example.interview.common.result.ResultCode;
+import com.example.interview.common.util.JsonUtils;
 import com.example.interview.interview.dto.CreateInterviewRequest;
 import com.example.interview.interview.dto.InterviewDetailVO;
 import com.example.interview.interview.dto.MessageVO;
@@ -26,6 +29,11 @@ import com.example.interview.position.entity.Position;
 import com.example.interview.position.mapper.PositionMapper;
 import com.example.interview.question.entity.Question;
 import com.example.interview.question.service.QuestionService;
+import com.example.interview.resume.dto.ResumeDigest;
+import com.example.interview.resume.entity.Resume;
+import com.example.interview.resume.entity.ResumeStatus;
+import com.example.interview.resume.mapper.ResumeMapper;
+import com.example.interview.resume.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,6 +71,8 @@ public class InterviewService {
     private final AudioStorageService audioStorage;
     private final TurnEvaluationStore evaluationStore;
     private final AiProvider aiProvider;
+    private final ResumeService resumeService;
+    private final ResumeMapper resumeMapper;
 
     @Value("${app.interview.min-rounds:5}")
     private int minRounds;
@@ -90,6 +100,16 @@ public class InterviewService {
         if (!"TEXT".equals(req.getMode()) && !"AUDIO".equals(req.getMode())) {
             throw new BizException(ResultCode.PARAM_OUT_OF_RANGE, "mode 只能为 TEXT 或 AUDIO");
         }
+        // R3-1 个性化校验链（协议 §4 R-09）：归属 40401 → 状态非 ANALYZED 10009；
+        // 简历绑定岗位与面试岗位允许不同（digest 与岗位无关，技能匹配按面试岗位能力模型）
+        Long resumeId = null;
+        if (req.getResumeId() != null) {
+            Resume resume = resumeService.checkOwnership(req.getResumeId());
+            if (!ResumeStatus.ANALYZED.name().equals(resume.getStatus())) {
+                throw new BizException(ResultCode.RESUME_NOT_ANALYZED);
+            }
+            resumeId = resume.getId();
+        }
         InterviewSession s = new InterviewSession();
         s.setUserId(CurrentUser.currentUserId());
         s.setPositionId(req.getPositionId());
@@ -99,10 +119,11 @@ public class InterviewService {
         s.setPlannedDurationMinutes(req.getDurationMinutes()); // FIX-08：时长落库（V7），重启不丢
         s.setCurrentRound(0);
         s.setStatus(InterviewStatus.CREATED.name());
+        s.setResumeId(resumeId);
         sessionMapper.insert(s);
-        log.info("创建面试会话 id={} user={} position={} mode={} rounds={} duration={}min",
+        log.info("创建面试会话 id={} user={} position={} mode={} rounds={} duration={}min resume={} personalized={}",
                 s.getId(), s.getUserId(), s.getPositionId(), s.getMode(),
-                req.getRounds(), req.getDurationMinutes());
+                req.getRounds(), req.getDurationMinutes(), resumeId, resumeId != null);
         return detail(s.getId());
     }
 
@@ -111,6 +132,9 @@ public class InterviewService {
     /**
      * CREATED→RUNNING（组卷并写入全部主问题消息）→WAITING_USER，返回首题。
      * 事务内完成，避免并发观察者看到"RUNNING 但无题目"的中间态。
+     * R3：个性化会话（resume_id 非空）在此增加三步（简历计划 §6.7）：加载 digest →
+     * 偏好组卷 → 批量改写题干（all-or-nothing，失败整场原题干）；question_id 与
+     * 评分基准完全不变。
      */
     @Transactional
     public MessageVO start(Long id) {
@@ -118,7 +142,9 @@ public class InterviewService {
         if (!stateMachine.tryTransition(id, InterviewStatus.CREATED, InterviewStatus.RUNNING)) {
             throw new BizException(ResultCode.STATUS_CONFLICT, "面试已开始或已结束，无法重复 start");
         }
-        List<Question> paper = questionService.assemblePaper(s.getPositionId(), s.getDifficulty(), s.getPlannedRounds());
+        ResumeDigest digest = resumeDigestOf(s.getResumeId());
+        List<Question> paper = questionService.assemblePaper(
+                s.getPositionId(), s.getDifficulty(), s.getPlannedRounds(), digest);
         if (paper.isEmpty()) {
             throw new BizException(ResultCode.INTERNAL_ERROR, "岗位题库无可用题目，无法开始面试");
         }
@@ -128,9 +154,13 @@ public class InterviewService {
             s.setPlannedRounds(paper.size());
             sessionMapper.updateById(s);
         }
-        // 主问题序列一次性落库（round_no=0..N-1），此后不再组卷，避免题目漂移（计划 §6.3）
+        Map<Long, String> personalized = s.getResumeId() == null
+                ? Map.of() : personalizeQuietly(s, digest, paper);
+        // 主问题序列一次性落库（round_no=0..N-1），此后不再组卷，避免题目漂移（计划 §6.3）；
+        // 改写文本存 content_text，question_id 照旧关联（评分基准 key_points 不变）
         for (int i = 0; i < paper.size(); i++) {
-            messageMapper.insert(aiQuestionMessage(s.getId(), i, paper.get(i)));
+            messageMapper.insert(aiQuestionMessage(s.getId(), i, paper.get(i),
+                    personalized.get(paper.get(i).getId())));
         }
         stateMachine.transition(id, InterviewStatus.RUNNING, InterviewStatus.WAITING_USER);
 
@@ -138,14 +168,72 @@ public class InterviewService {
         int duration = s.getPlannedDurationMinutes() != null
                 ? s.getPlannedDurationMinutes() : defaultDurationMinutes;
         Question first = paper.get(0);
+        String firstAsk = composeAskText(first, personalized.get(first.getId()));
         afterCommit(() -> {
             timerScheduler.register(id, LocalDateTime.now().plusMinutes(duration));
-            wsHandler.push(id, WsMessageType.QUESTION, questionPayload(0, 0, first));
+            wsHandler.push(id, WsMessageType.QUESTION, questionPayload(0, 0, first, firstAsk));
         });
-        log.info("面试开始 session={} rounds={} 首题 questionId={}", id, paper.size(), first.getId());
+        log.info("面试开始 session={} rounds={} 首题 questionId={} personalized={}",
+                id, paper.size(), first.getId(), !personalized.isEmpty());
 
         InterviewMessage firstMsg = roundMessages(id, 0).get(0);
         return MessageVO.from(firstMsg, 0);
+    }
+
+    /**
+     * R3-3 题干批量改写 + 服务侧复核；任何失败降级整场原题干（all-or-nothing，
+     * 可测可解释），不报错不打断 start。digest 缺失（解析失败/字段空）同样跳过改写。
+     */
+    private Map<Long, String> personalizeQuietly(InterviewSession s, ResumeDigest digest,
+                                                 List<Question> paper) {
+        if (digest == null) {
+            log.warn("个性化会话简历摘要缺失 session={} resume={}，题干不做改写", s.getId(), s.getResumeId());
+            return Map.of();
+        }
+        try {
+            Position position = positionMapper.selectById(s.getPositionId());
+            QuestionPersonalizeContext ctx = QuestionPersonalizeContext.builder()
+                    .sessionId(s.getId())
+                    .userId(s.getUserId())
+                    .positionName(position != null ? position.getName() : "")
+                    .digest(digest)
+                    .questions(paper.stream().map(q -> QuestionPersonalizeContext.QuestionBrief.builder()
+                            .questionId(q.getId())
+                            .type(q.getType())
+                            .skillTags(q.getSkillTags())
+                            .content(q.getContent())
+                            .build()).toList())
+                    .build();
+            AiQuestionPersonalization r = aiProvider.personalizeQuestions(ctx);
+            if (r == null || !r.isValidFor(paper.stream().map(Question::getId).toList())) {
+                throw new IllegalStateException("改写结果 questionId/长度复核未通过");
+            }
+            Map<Long, String> contents = new HashMap<>();
+            r.getItems().forEach(i -> contents.put(i.getQuestionId(), i.getContent().strip()));
+            log.info("个性化题干改写成功 session={} 题数={}", s.getId(), contents.size());
+            return contents;
+        } catch (Exception e) {
+            log.warn("题干个性化失败，整场使用原题干 session={}：{}", s.getId(), e.getMessage());
+            return Map.of();
+        }
+    }
+
+    /** resume.digest_json → ResumeDigest（R3）；缺失/解析失败返回 null，按无 digest 继续（WARN）。 */
+    private ResumeDigest resumeDigestOf(Long resumeId) {
+        if (resumeId == null) {
+            return null;
+        }
+        Resume resume = resumeMapper.selectById(resumeId);
+        if (resume == null || resume.getDigestJson() == null) {
+            log.warn("简历摘要缺失 resume={} session 关联不受影响，按无 digest 组卷", resumeId);
+            return null;
+        }
+        try {
+            return JsonUtils.parse(resume.getDigestJson(), ResumeDigest.class);
+        } catch (Exception e) {
+            log.warn("简历摘要解析失败 resume={}：{}，按无 digest 组卷", resumeId, e.getMessage());
+            return null;
+        }
     }
 
     // ==================== 用例 11：文字回答受理 ====================
@@ -327,11 +415,17 @@ public class InterviewService {
 
     // ==================== 用例 15/16：查询 ====================
 
-    /** 归属本人或 ADMIN 可读（计划 §5.3 #15）。 */
+    /** 归属本人或 ADMIN 可读（计划 §5.3 #15）。R3-6：个性化会话附简历文件名。 */
     public InterviewDetailVO detail(Long id) {
         InterviewSession s = loadForRead(id);
         Position p = positionMapper.selectById(s.getPositionId());
-        return InterviewDetailVO.from(s, p != null ? p.getName() : null, timerScheduler.remainSeconds(id));
+        String resumeFileName = null;
+        if (s.getResumeId() != null) {
+            Resume resume = resumeMapper.selectById(s.getResumeId());
+            resumeFileName = resume != null ? resume.getFileName() : null;
+        }
+        return InterviewDetailVO.from(s, p != null ? p.getName() : null,
+                timerScheduler.remainSeconds(id), resumeFileName);
     }
 
     /**
@@ -396,29 +490,40 @@ public class InterviewService {
         return s;
     }
 
-    /** AI 主问题消息：背景与题干合并为提问文本。 */
-    private InterviewMessage aiQuestionMessage(Long sessionId, int roundNo, Question q) {
+    /** AI 主问题消息：背景与题干（或改写题干）合并为提问文本。 */
+    private InterviewMessage aiQuestionMessage(Long sessionId, int roundNo, Question q, String personalizedContent) {
         InterviewMessage m = new InterviewMessage();
         m.setSessionId(sessionId);
         m.setRoundNo(roundNo);
         m.setSpeaker("AI");
-        m.setContentText(composeAskText(q));
+        m.setContentText(composeAskText(q, personalizedContent));
         m.setQuestionId(q.getId());
         return m;
     }
 
-    /** 提问文本 = 背景（可空）+ 题干。 */
+    /** 提问文本 = 背景（可空）+ 题干；personalizedContent 非空时替换题干（R3-3）。 */
     static String composeAskText(Question q) {
+        return composeAskText(q, null);
+    }
+
+    static String composeAskText(Question q, String personalizedContent) {
+        String content = personalizedContent != null && !personalizedContent.isBlank()
+                ? personalizedContent : q.getContent();
         return q.getBackground() != null && !q.getBackground().isBlank()
-                ? q.getBackground() + "\n" + q.getContent()
-                : q.getContent();
+                ? q.getBackground() + "\n" + content
+                : content;
     }
 
     Map<String, Object> questionPayload(int roundNo, int followupCount, Question q) {
+        return questionPayload(roundNo, followupCount, q, composeAskText(q));
+    }
+
+    /** content 非空时以落库文本为准（个性化改写后的题干，R3-3），保持 WS 推送与消息表一致。 */
+    Map<String, Object> questionPayload(int roundNo, int followupCount, Question q, String content) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("roundNo", roundNo);
         payload.put("followupCount", followupCount);
-        payload.put("content", composeAskText(q));
+        payload.put("content", content != null && !content.isBlank() ? content : composeAskText(q));
         payload.put("difficulty", q.getDifficulty());
         payload.put("targetSkills", q.getSkillTags());
         return payload;

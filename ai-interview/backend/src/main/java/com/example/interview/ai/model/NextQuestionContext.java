@@ -1,5 +1,6 @@
 package com.example.interview.ai.model;
 
+import com.example.interview.resume.dto.ResumeDigest;
 import lombok.Builder;
 import lombok.Data;
 
@@ -29,10 +30,15 @@ public class NextQuestionContext {
     private Long questionId;
     private String questionContent;
     private Integer questionDifficulty;
+    /** TECHNICAL / PROJECT / SCENARIO / BEHAVIORAL（R3-4：Mock 项目深挖追问选池用） */
+    private String questionType;
     private List<String> keyPoints;
     private List<String> deductionPoints;
     private List<String> followupTemplates;
     private List<String> targetSkills;
+
+    /** 个性化会话的简历摘要（R3-4）；null = 普通面试，Prompt 不追加简历段（与基线逐字节一致） */
+    private ResumeDigest resumeDigest;
 
     // 近 10 条历史（speaker + content，按时间升序）
     private List<HistoryMessage> history;

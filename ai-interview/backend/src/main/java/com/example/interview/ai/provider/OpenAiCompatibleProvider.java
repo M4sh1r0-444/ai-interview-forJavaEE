@@ -3,10 +3,12 @@ package com.example.interview.ai.provider;
 import com.example.interview.ai.model.AiChatResponse;
 import com.example.interview.ai.model.AiEndpoint;
 import com.example.interview.ai.model.AiNextQuestionResult;
+import com.example.interview.ai.model.AiQuestionPersonalization;
 import com.example.interview.ai.model.AiReport;
 import com.example.interview.ai.model.AiResumeAnalysis;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
+import com.example.interview.ai.model.QuestionPersonalizeContext;
 import com.example.interview.ai.model.ReportContext;
 import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
@@ -155,6 +157,31 @@ public class OpenAiCompatibleProvider implements AiProvider {
             return r;
         } catch (Exception e) {
             return onFallback("analyzeResume", ctx.getResumeId(), e, () -> mock.analyzeResume(ctx));
+        }
+    }
+
+    /**
+     * F2 题干个性化改写（R3-3，简历方案 §4.4）：参与会话熔断（start 阶段调用，sessionId 即
+     * 面试会话）。一次批量调用 + all-or-nothing 校验（questionId 集合一致、每条 10~500 字），
+     * 失败链：重试 1 次 → 降级 Mock 模板；调用方对 Mock 也异常的场景降级整场原题干。
+     */
+    @Override
+    public AiQuestionPersonalization personalizeQuestions(QuestionPersonalizeContext ctx) {
+        if (locked(ctx.getSessionId())) {
+            return mock.personalizeQuestions(ctx);
+        }
+        try {
+            AiQuestionPersonalization r = call(promptBuilder.buildPersonalizePrompt(ctx),
+                    AiQuestionPersonalization.class, ctx.getSessionId());
+            if (!r.isValidFor(ctx.getQuestions().stream()
+                    .map(QuestionPersonalizeContext.QuestionBrief::getQuestionId).toList())) {
+                throw new AiFallbackException("改写结果 questionId/长度校验未通过");
+            }
+            onSuccess(ctx.getSessionId());
+            return r;
+        } catch (Exception e) {
+            return onFallback("personalizeQuestions", ctx.getSessionId(), e,
+                    () -> mock.personalizeQuestions(ctx));
         }
     }
 

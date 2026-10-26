@@ -11,6 +11,7 @@ import com.example.interview.question.dto.QuestionAdminVO;
 import com.example.interview.question.dto.QuestionUpsertRequest;
 import com.example.interview.question.entity.Question;
 import com.example.interview.question.mapper.QuestionMapper;
+import com.example.interview.resume.dto.ResumeDigest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,11 +33,16 @@ public class QuestionService {
 
     /** M2-2.2 组卷：取岗位全部 ENABLED 题目，交纯逻辑组卷器选题（计划 §6.3）。 */
     public List<Question> assemblePaper(Long positionId, int difficulty, int rounds) {
+        return assemblePaper(positionId, difficulty, rounds, null);
+    }
+
+    /** R3-2 组卷透传：个性化会话按 digest 偏好选题（digest=null 或零命中时行为同三参版本）。 */
+    public List<Question> assemblePaper(Long positionId, int difficulty, int rounds, ResumeDigest digest) {
         List<Question> candidates = questionMapper.selectList(
                 Wrappers.<Question>lambdaQuery()
                         .eq(Question::getPositionId, positionId)
                         .eq(Question::getStatus, "ENABLED"));
-        return paperAssembler.assemble(candidates, difficulty, rounds);
+        return paperAssembler.assemble(candidates, difficulty, rounds, digest);
     }
 
     /** 用例 21：分页查询（positionId/type/difficulty 可选过滤）。 */

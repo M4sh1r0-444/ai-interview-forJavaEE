@@ -1,5 +1,6 @@
 package com.example.interview.ai.model;
 
+import com.example.interview.resume.dto.ResumeDigest;
 import lombok.Builder;
 import lombok.Data;
 
@@ -29,4 +30,6 @@ public class ReportContext {
     private Map<String, Double> dimensionScores;
     /** 近 10 条历史 */
     private List<NextQuestionContext.HistoryMessage> history;
+    /** 个性化会话的简历摘要（R3-5）；null = 普通面试，报告不追加"简历 vs 实测"对比条目 */
+    private ResumeDigest resumeDigest;
 }

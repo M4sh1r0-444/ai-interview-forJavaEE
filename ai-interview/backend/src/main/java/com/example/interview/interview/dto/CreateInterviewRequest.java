@@ -20,4 +20,7 @@ public class CreateInterviewRequest {
     private Integer rounds;
     @NotNull(message = "durationMinutes 必填")
     private Integer durationMinutes;
+    /** 个性化面试来源简历（R3-1，可选）：须为本人且 ANALYZED（40401/10009，Service 校验）；
+     *  不传 = 普通面试，行为与基线完全一致。简历绑定岗位与面试岗位允许不同。 */
+    private Long resumeId;
 }

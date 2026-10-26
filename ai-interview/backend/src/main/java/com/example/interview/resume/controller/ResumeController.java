@@ -2,6 +2,7 @@ package com.example.interview.resume.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.interview.common.result.Result;
+import com.example.interview.resume.dto.FocusSkillsVO;
 import com.example.interview.resume.dto.ResumeAnalysisVO;
 import com.example.interview.resume.dto.ResumeDetailVO;
 import com.example.interview.resume.dto.ResumeItemVO;
@@ -81,6 +82,13 @@ public class ResumeController {
     @DeleteMapping("/{id}")
     public Result<Map<String, Object>> delete(@PathVariable Long id) {
         return Result.ok(resumeService.delete(id));
+    }
+
+    /** R-08：个性化重点考察预览（纯规则，无 AI 无副作用；positionId 缺省用简历绑定岗位）。 */
+    @GetMapping("/{id}/focus-skills")
+    public Result<FocusSkillsVO> focusSkills(@PathVariable Long id,
+                                             @RequestParam(value = "positionId", required = false) Long positionId) {
+        return Result.ok(resumeService.focusSkills(id, positionId));
     }
 
     /** 事务已提交（service 方法返回）且状态为 ANALYZING 时触发异步分析；解析失败（FAILED）不触发。 */

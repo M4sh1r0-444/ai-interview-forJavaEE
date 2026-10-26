@@ -1,14 +1,17 @@
 package com.example.interview.ai.provider;
 
 import com.example.interview.ai.model.AiNextQuestionResult;
+import com.example.interview.ai.model.AiQuestionPersonalization;
 import com.example.interview.ai.model.AiReport;
 import com.example.interview.ai.model.AiResumeAnalysis;
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
+import com.example.interview.ai.model.QuestionPersonalizeContext;
 import com.example.interview.ai.model.ReportContext;
 import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.question.entity.Question;
+import com.example.interview.resume.dto.ResumeDigest;
 import com.example.interview.resume.dto.ResumeProfile;
 import com.example.interview.resume.dto.SuggestionDTO;
 import com.example.interview.resume.service.ResumeProfileParser;
@@ -91,17 +94,114 @@ public class MockAiProvider implements AiProvider {
         return r;
     }
 
-    /** 模板挑选：VAGUE 用方案 §6.5 指定话术；其余按追问次数轮转题目模板，用尽转通用池。 */
+    /** 模板挑选：VAGUE 用方案 §6.5 指定话术；PROJECT 轮且有简历摘要 → 项目深挖池（R3-4）；
+     *  其余按追问次数轮转题目模板，用尽转通用池。 */
     private String pickFollowupContent(NextQuestionContext ctx) {
         if ("VAGUE".equals(ctx.getReasonCode())) {
             // 计划 §6.4 规则 2 的 Mock 实现：回答模糊 → 要求举例
             return "你的回答偏简略，能结合一个具体的例子说明吗？";
+        }
+        String projectDeepDive = projectDeepDive(ctx);
+        if (projectDeepDive != null) {
+            return projectDeepDive;
         }
         List<String> templates = ctx.getFollowupTemplates();
         if (templates != null && !templates.isEmpty()) {
             return templates.get(ctx.getFollowupCount() % templates.size());
         }
         return GENERIC_FOLLOWUPS.get(ctx.getFollowupCount() % GENERIC_FOLLOWUPS.size());
+    }
+
+    // ==================== personalizeQuestions：模板拼接（简历计划 §6.6，R3-3） ====================
+
+    /**
+     * 题干个性化（Mock 模板，确定性零耗时）："结合你在《{项目名}》项目中使用 {技术栈前2} 的
+     * 经历——" + 原题干；无项目 → 技术栈版前缀；都无 → 原题干。questionId 原样保留。
+     */
+    @Override
+    public AiQuestionPersonalization personalizeQuestions(QuestionPersonalizeContext ctx) {
+        String prefix = personalPrefix(ctx != null ? ctx.getDigest() : null);
+        AiQuestionPersonalization r = new AiQuestionPersonalization();
+        r.setItems(ctx.getQuestions().stream().map(q -> {
+            AiQuestionPersonalization.Item item = new AiQuestionPersonalization.Item();
+            item.setQuestionId(q.getQuestionId());
+            item.setContent(prefix != null ? prefix + q.getContent() : q.getContent());
+            return item;
+        }).toList());
+        log.debug("MockAiProvider.personalizeQuestions session={} 题数={} 前缀={}",
+                ctx.getSessionId(), r.getItems().size(), prefix != null);
+        return r;
+    }
+
+    /** 改写前缀：项目版（首项目 + techStack 前 2 项）＞技术栈版（技能前 3 项）；都无 → null（原题干）。 */
+    private String personalPrefix(ResumeDigest digest) {
+        if (digest == null) {
+            return null;
+        }
+        if (digest.getProjects() != null && !digest.getProjects().isEmpty()) {
+            ResumeDigest.Project p = digest.getProjects().get(0);
+            List<String> tech = p.getTechStack() == null ? List.of()
+                    : p.getTechStack().stream().limit(2).toList();
+            if (!tech.isEmpty()) {
+                return "结合你在《" + p.getName() + "》项目中使用 " + String.join("、", tech) + " 的经历——";
+            }
+            return "结合你在《" + p.getName() + "》项目的经历——";
+        }
+        if (digest.getSkills() != null && !digest.getSkills().isEmpty()) {
+            String names = digest.getSkills().stream()
+                    .limit(3)
+                    .map(ResumeDigest.Skill::getName)
+                    .reduce((a, b) -> a + "、" + b).orElse("");
+            if (!names.isBlank()) {
+                return "结合你掌握 " + names + " 的技术背景——";
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 项目深挖追问池（R3-4，简历方案 §3.6④）：当前主问题为 PROJECT 且 digest 含项目时，
+     * 追问句内插项目名/技术栈并按追问次数轮转；选型对比的替代技术取 digest 中另一技能。
+     */
+    private String projectDeepDive(NextQuestionContext ctx) {
+        ResumeDigest digest = ctx.getResumeDigest();
+        if (digest == null || digest.getProjects() == null || digest.getProjects().isEmpty()
+                || !"PROJECT".equals(ctx.getQuestionType())) {
+            return null;
+        }
+        ResumeDigest.Project p = digest.getProjects().get(0);
+        String tech = p.getTechStack() != null && !p.getTechStack().isEmpty()
+                ? p.getTechStack().get(0) : null;
+        String alt = alternativeTech(digest, tech);
+        switch (Math.abs(ctx.getFollowupCount()) % 3) {
+            case 0 -> {
+                return tech != null && alt != null
+                        ? "在《" + p.getName() + "》里，" + tech + " 的选型为什么不用 " + alt + "？请说明取舍。"
+                        : "你在《" + p.getName() + "》项目里负责的部分，落地时遇到的最大困难是什么？";
+            }
+            case 1 -> {
+                return tech != null
+                        ? "《" + p.getName() + "》项目中 " + tech + " 的具体落地细节能展开讲讲吗？踩过什么坑？"
+                        : "《" + p.getName() + "》项目中你具体负责哪部分？怎么验证效果的？";
+            }
+            default -> {
+                return tech != null
+                        ? "如果《" + p.getName() + "》的流量扩大十倍，" + tech + " 这部分你会怎么重新设计？"
+                        : "如果重构《" + p.getName() + "》，你会优先改进什么？为什么？";
+            }
+        }
+    }
+
+    /** 替代技术：digest 技能（或首项目技术栈外）中第一个不同于当前技术的名称。 */
+    private String alternativeTech(ResumeDigest digest, String tech) {
+        if (digest.getSkills() != null) {
+            for (ResumeDigest.Skill s : digest.getSkills()) {
+                if (s.getName() != null && !s.getName().equals(tech)) {
+                    return s.getName();
+                }
+            }
+        }
+        return null;
     }
 
     private int defaultDiff(NextQuestionContext ctx) {

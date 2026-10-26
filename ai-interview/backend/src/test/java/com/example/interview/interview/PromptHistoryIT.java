@@ -88,6 +88,12 @@ class PromptHistoryIT {
         public AiResumeAnalysis analyzeResume(ResumeAnalysisContext ctx) {
             return delegate.analyzeResume(ctx);
         }
+
+        @Override
+        public com.example.interview.ai.model.AiQuestionPersonalization personalizeQuestions(
+                com.example.interview.ai.model.QuestionPersonalizeContext ctx) {
+            return delegate.personalizeQuestions(ctx);
+        }
     }
 
     @BeforeEach

@@ -2,13 +2,16 @@ package com.example.interview.ai.prompt;
 
 import com.example.interview.ai.model.AiTurnEvaluation;
 import com.example.interview.ai.model.NextQuestionContext;
+import com.example.interview.ai.model.QuestionPersonalizeContext;
 import com.example.interview.ai.model.ReportContext;
 import com.example.interview.ai.model.ResumeAnalysisContext;
 import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.interview.entity.InterviewMessage;
+import com.example.interview.resume.dto.ResumeDigest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Prompt 拼装（计划 §4.3 / §6.2 第 5 步）：岗位能力模型 + 近 10 条历史 + 知识片段 +
@@ -39,6 +42,9 @@ public class PromptBuilder {
         }
 
         appendKnowledge(sb, ctx.getKnowledgeChunks());
+
+        // R3-4：个性化会话追加"候选人简历要点"段（digest 为 null 时不追加，Prompt 与基线逐字节一致）
+        appendResumeDigest(sb, ctx.getResumeDigest());
 
         if (ctx.getHistory() != null && !ctx.getHistory().isEmpty()) {
             sb.append("\n【最近对话】\n");
@@ -180,7 +186,93 @@ public class PromptBuilder {
         return sb.toString();
     }
 
+    // ==================== personalizeQuestions（R3-3，简历方案 §4.2） ====================
+
+    /** 题干改写 Prompt：岗位 + 简历摘要 + 题目列表（ID/题型/技能/原题干）→ 强约束 JSON。 */
+    public String buildPersonalizePrompt(QuestionPersonalizeContext ctx) {
+        StringBuilder sb = new StringBuilder(1024);
+        sb.append("你是技术面试官，请把下列面试题改写为结合候选人简历背景的个性化题干。\n\n");
+        sb.append("【目标岗位】").append(ctx.getPositionName() != null ? ctx.getPositionName() : "")
+                .append('\n');
+        ResumeDigest digest = ctx.getDigest();
+        if (digest != null) {
+            sb.append("\n【候选人简历摘要（已脱敏）】\n");
+            List<String> skills = digest.getSkills() == null ? List.of()
+                    : digest.getSkills().stream().limit(10)
+                            .map(s -> s.getName() + (s.getLevel() != null ? "（" + s.getLevel() + "）" : ""))
+                            .collect(Collectors.toList());
+            if (!skills.isEmpty()) {
+                sb.append("技能：").append(String.join("、", skills)).append('\n');
+            }
+            digestProjects(digest, 3).forEach(p -> sb.append("项目：").append(p).append('\n'));
+            if (digest.getExperiences() != null && !digest.getExperiences().isEmpty()) {
+                sb.append("经历：").append(digest.getExperiences().stream()
+                                .limit(3)
+                                .map(e -> (e.getOrg() != null ? e.getOrg() : "") + " "
+                                        + (e.getRole() != null ? e.getRole() : ""))
+                                .filter(s -> !s.isBlank())
+                                .collect(Collectors.joining("；")))
+                        .append('\n');
+            }
+        }
+        sb.append("\n【题目列表】\n");
+        for (QuestionPersonalizeContext.QuestionBrief q : ctx.getQuestions()) {
+            sb.append("ID ").append(q.getQuestionId()).append("（").append(q.getType()).append("）：")
+                    .append(abbreviate(q.getContent(), 300)).append('\n');
+        }
+        sb.append("""
+
+
+                【输出要求】只输出一个 JSON 对象，不要任何解释或 markdown 围栏，结构如下：
+                {"items":[{"questionId":题库ID,"content":"改写后的完整题干"}]}
+                规则：每条 content 以"结合你在……的经历——"类前缀绑定候选人的项目/技能，再接原题考查点，长度 10~500 字；
+                不得改变题目的考查点与难度，不得泄露参考答案或关键得分点；
+                返回 items 必须与输入题目一一对应（questionId 完全一致，不多不少）；所有文案使用中文。
+                """);
+        return sb.toString();
+    }
+
     // ==================== 公共段 ====================
+
+    /**
+     * 候选人简历要点段（R3-4，简历方案 §3.6④ 固定文案）：技术栈 + 主要项目（名+亮点），
+     * 明示"追问可结合其项目深挖实现细节、技术选型原因、遇到的困难"；digest 为 null 不追加。
+     */
+    private void appendResumeDigest(StringBuilder sb, ResumeDigest digest) {
+        if (digest == null) {
+            return;
+        }
+        List<String> skills = digest.getSkills() == null ? List.of()
+                : digest.getSkills().stream().limit(8).map(ResumeDigest.Skill::getName).toList();
+        List<String> projects = digestProjects(digest, 2);
+        sb.append("\n【候选人简历要点】");
+        if (!skills.isEmpty()) {
+            sb.append("技术栈 ").append(String.join("、", skills)).append("；");
+        }
+        if (!projects.isEmpty()) {
+            sb.append("主要项目 ").append(String.join("；", projects)).append("。");
+        } else {
+            sb.append("项目信息未提供。");
+        }
+        sb.append("追问可结合其项目深挖实现细节、技术选型原因、遇到的困难。\n");
+    }
+
+    /** 项目条目文案：《名》（亮点：xxx）；无亮点句只保留书名号。 */
+    private List<String> digestProjects(ResumeDigest digest, int limit) {
+        if (digest.getProjects() == null || digest.getProjects().isEmpty()) {
+            return List.of();
+        }
+        return digest.getProjects().stream()
+                .limit(limit)
+                .map(p -> {
+                    String highlight = p.getHighlights() == null || p.getHighlights().isEmpty()
+                            ? null : p.getHighlights().get(0);
+                    return highlight != null
+                            ? "《" + p.getName() + "》（亮点：" + abbreviate(highlight, 60) + "）"
+                            : "《" + p.getName() + "》";
+                })
+                .toList();
+    }
 
     /** 知识片段段（M4-4.4）：检索命中的 RAG 片段进入 Prompt。 */
     private void appendKnowledge(StringBuilder sb, List<String> knowledgeChunks) {

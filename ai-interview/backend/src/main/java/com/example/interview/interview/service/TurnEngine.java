@@ -30,6 +30,9 @@ import com.example.interview.position.entity.Position;
 import com.example.interview.position.mapper.PositionMapper;
 import com.example.interview.question.entity.Question;
 import com.example.interview.question.mapper.QuestionMapper;
+import com.example.interview.resume.dto.ResumeDigest;
+import com.example.interview.resume.entity.Resume;
+import com.example.interview.resume.mapper.ResumeMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,6 +80,7 @@ public class TurnEngine {
     private final ReportService reportService;
     private final KnowledgeSearchService knowledgeSearchService;
     private final VoiceMetricsCalculator voiceCalculator;
+    private final ResumeMapper resumeMapper;
 
     @Value("${app.interview.followup-limit:3}")
     private int followupLimit;
@@ -218,8 +222,9 @@ public class TurnEngine {
                 log.info("推进轮次状态竞争失败（会话已终态），丢弃 session={}", s.getId());
                 return;
             }
+            // R3：以落库文本推送（个性化会话即改写题干），与消息表保持一致
             wsHandler.push(s.getId(), WsMessageType.QUESTION,
-                    interviewService.questionPayload(next, 0, nextQuestion));
+                    interviewService.questionPayload(next, 0, nextQuestion, nextQuestionMsg.getContentText()));
             log.info("进入下一题 session={} round={} questionId={}",
                     s.getId(), next, nextQuestion.getId());
             return;
@@ -347,6 +352,7 @@ public class TurnEngine {
                 .questionId(question != null ? question.getId() : null)
                 .questionContent(question != null ? question.getContent() : "")
                 .questionDifficulty(question != null ? question.getDifficulty() : null)
+                .questionType(question != null ? question.getType() : null)
                 .keyPoints(question != null ? question.getKeyPoints() : null)
                 .deductionPoints(question != null ? question.getDeductionPoints() : null)
                 .followupTemplates(question != null ? question.getFollowupTemplates() : null)
@@ -354,12 +360,31 @@ public class TurnEngine {
                 .history(history)
                 .knowledgeChunks(knowledgeChunks)
                 .lastUserAnswer(abbreviate(lastAnswer))
+                .resumeDigest(resumeDigestOf(s)) // R3-4：个性化会话追问注入简历要点（null 不追加）
                 .requestedAction(decision.getAction().name())
                 .instruction(decision.getInstruction())
                 .difficultyDelta(decision.getDifficultyDelta())
                 .reasonCode(decision.getReasonCode())
                 .followupCount(followupCount)
                 .build();
+    }
+
+    /** 个性化会话（resume_id 非空）加载 digest；缺失/解析失败返回 null，追问按无简历上下文生成。 */
+    private ResumeDigest resumeDigestOf(InterviewSession s) {
+        if (s.getResumeId() == null) {
+            return null;
+        }
+        Resume resume = resumeMapper.selectById(s.getResumeId());
+        if (resume == null || resume.getDigestJson() == null) {
+            log.warn("个性化会话简历摘要缺失 session={} resume={}，追问不注入简历要点", s.getId(), s.getResumeId());
+            return null;
+        }
+        try {
+            return com.example.interview.common.util.JsonUtils.parse(resume.getDigestJson(), ResumeDigest.class);
+        } catch (Exception e) {
+            log.warn("简历摘要解析失败 session={} resume={}：{}", s.getId(), s.getResumeId(), e.getMessage());
+            return null;
+        }
     }
 
     private List<String> parseSkillNames(Position position) {

@@ -355,7 +355,8 @@ Authorization: Bearer {{TOKEN}}
 
 ### ============================================================
 ### 简历分析与个性化面试（简历协议 §3/§4，用例 R-01~R-10；R1 交付 R-01/02/03/06/07，
-### R2 交付 R-04/05，R-08~R-10 随 R3 补入）。样例文件位于 ../qa/samples/。
+### R2 交付 R-04/05，R3 交付 R-08/09/10——重点技能预览、个性化面试创建/详情/改写）。
+### 样例文件位于 ../qa/samples/。
 ### ============================================================
 
 ### R-01 上传简历（multipart：file 必填 + positionId 可选；pdf/docx/md/txt ≤10MB）
@@ -434,6 +435,49 @@ Authorization: Bearer {{TOKEN}}
 
 ### R-07 逻辑删除：data {id, deleted:true}；列表消失、详情 40401、再次删除 40401；文件保留审计
 DELETE {{BASE}}/api/resumes/{{RESUME_ID}}
+Authorization: Bearer {{TOKEN}}
+
+### R-08 个性化重点考察预览（纯规则，无 AI 无副作用）：positionId 可选（缺省用简历绑定岗位，
+###      两者皆空 → 400/40001）；matched 按岗位权重降序含 matchedTerms，gaps 为岗位要求
+###      但简历未体现，hitRatio=命中权重占比（0 → 将按通用策略组卷）；他人简历 → 40401
+GET {{BASE}}/api/resumes/{{RESUME_ID}}/focus-skills?positionId=1
+Authorization: Bearer {{TOKEN}}
+
+### R-08b 换岗位预览（技能匹配按面试岗位能力模型，与简历绑定岗位无关）
+GET {{BASE}}/api/resumes/{{RESUME_ID}}/focus-skills?positionId=2
+Authorization: Bearer {{TOKEN}}
+
+### R-09 创建个性化面试（既有 POST /api/interviews + 可选 resumeId）：
+###      校验链 既有参数校验(40002) → 归属(40401) → 状态非 ANALYZED(10009)；
+###      data 增量字段 {resumeId, personalized}；不传 resumeId = 普通面试，行为与基线一致
+# @name createPersonalized
+POST {{BASE}}/api/interviews
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"positionId": 1, "mode": "TEXT", "difficulty": 3, "rounds": 5, "durationMinutes": 15, "resumeId": {{RESUME_ID}}}
+
+@P_SESSION_ID = {{createPersonalized.response.body.data.id}}
+
+### R-09b 校验链分支：resumeId 不存在/他人 → 40401；状态 ANALYZING/FAILED（未完成分析）→ 10009
+POST {{BASE}}/api/interviews
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"positionId": 1, "mode": "TEXT", "difficulty": 3, "rounds": 5, "durationMinutes": 15, "resumeId": 999999}
+
+### R-10 开始个性化面试：返回首题 = 改写题干（含候选人项目名前缀，questionId 仍指向题库
+###      原题，评分基准不变）；AI 改写失败自动降级整场原题干（无感知）
+POST {{BASE}}/api/interviews/{{P_SESSION_ID}}/start
+Authorization: Bearer {{TOKEN}}
+
+### R-10b 面试详情三新字段：resumeId / resumeFileName / personalized（普通面试前两者缺席、
+###      personalized=false）；消息接口 contentText 即个性化题干、questionId 照旧
+GET {{BASE}}/api/interviews/{{P_SESSION_ID}}
+Authorization: Bearer {{TOKEN}}
+
+###
+GET {{BASE}}/api/interviews/{{P_SESSION_ID}}/messages
 Authorization: Bearer {{TOKEN}}
 
 ### ==================== 用户级 AI 服务配置（V9，个人中心「AI 服务配置」） ====================

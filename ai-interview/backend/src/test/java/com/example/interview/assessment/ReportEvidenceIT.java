@@ -89,6 +89,12 @@ class ReportEvidenceIT {
         public AiResumeAnalysis analyzeResume(ResumeAnalysisContext ctx) {
             return delegate.analyzeResume(ctx);
         }
+
+        @Override
+        public com.example.interview.ai.model.AiQuestionPersonalization personalizeQuestions(
+                com.example.interview.ai.model.QuestionPersonalizeContext ctx) {
+            return delegate.personalizeQuestions(ctx);
+        }
     }
 
     private record Session(String token, long sessionId, long userId) {
