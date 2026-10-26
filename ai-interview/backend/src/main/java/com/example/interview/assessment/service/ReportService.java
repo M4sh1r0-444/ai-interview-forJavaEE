@@ -112,6 +112,7 @@ public class ReportService {
 
         AiReport aiReport = aiProvider.generateReport(ReportContext.builder()
                 .sessionId(sessionId)
+                .userId(s.getUserId())
                 .positionName(position != null ? position.getName() : "")
                 .difficulty(s.getDifficulty())
                 .roundCount(agg.rounds.size())
@@ -367,6 +368,7 @@ public class ReportService {
             for (int i = 0; i < answers.size(); i++) {
                 AiTurnEvaluation eval = aiProvider.evaluateTurn(TurnEvaluationContext.builder()
                         .sessionId(s.getId())
+                        .userId(s.getUserId())
                         .question(question)
                         .roundMessages(roundMsgs.subList(0, indexOfNthUser(roundMsgs, i) + 1))
                         .knowledgeChunks(List.of())

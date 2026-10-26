@@ -46,6 +46,7 @@ ai:
 
 app:
   upload-dir: ${UPLOAD_DIR:./uploads}  # 音频存储目录（prod 指向挂载卷 /app/uploads）
+  cipher-key: ${APP_CIPHER_KEY:}       # 用户级 AI 配置 api_key 加密密钥（base64 32B；空=内置开发密钥，prod 必配）
   websocket:                           # WS 心跳（FIX-03）：周期 PING，无 PONG 超时关闭(4408)
     heartbeat-interval-ms: 30000
     pong-timeout-ms: 60000

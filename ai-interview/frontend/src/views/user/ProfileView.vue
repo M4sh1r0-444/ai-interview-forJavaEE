@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Lock, Refresh, User } from '@element-plus/icons-vue'
+import { Lock, Refresh, User, ArrowRight, Cpu } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 import { errorMessage, isBizError } from '@/api/http'
@@ -124,6 +124,19 @@ watch(user, syncForm, { immediate: true })
         </el-button>
       </template>
     </AppPageHeader>
+
+    <router-link class="profile-ai-entry" :to="{ name: 'profile-ai-config' }" data-testid="profile-ai-config-entry">
+      <GlassPanel class="profile-ai-entry__panel" hoverable :padded="false">
+        <span class="profile-ai-entry__icon" aria-hidden="true">
+          <el-icon><Cpu /></el-icon>
+        </span>
+        <span class="profile-ai-entry__body">
+          <strong>AI 服务配置</strong>
+          <small>接入你自己的 OpenAI 兼容大模型，面试即时使用（可选）</small>
+        </span>
+        <el-icon class="profile-ai-entry__arrow"><ArrowRight /></el-icon>
+      </GlassPanel>
+    </router-link>
 
     <div class="profile-grid">
       <GlassPanel class="account-card" tone="strong" :padded="false" data-testid="profile-account">
@@ -260,6 +273,53 @@ watch(user, syncForm, { immediate: true })
   flex-direction: column;
   gap: var(--space-4);
   padding-bottom: var(--space-6);
+}
+
+.profile-ai-entry {
+  text-decoration: none;
+  color: inherit;
+}
+
+.profile-ai-entry__panel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.profile-ai-entry__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  color: #fff;
+  font-size: 18px;
+}
+
+.profile-ai-entry__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profile-ai-entry__body strong {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.profile-ai-entry__body small {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.profile-ai-entry__arrow {
+  flex: none;
+  margin-left: auto;
+  color: var(--color-text-tertiary);
 }
 
 .profile-grid {

@@ -72,4 +72,7 @@ declare module 'vue' {
     WeightsEditorPanel: typeof import('./components/admin/WeightsEditorPanel.vue')['default']
     WsStatusBadge: typeof import('./components/interview/WsStatusBadge.vue')['default']
   }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
+  }
 }

@@ -21,6 +21,8 @@ public enum ResultCode {
     RESUME_PARSE_FAILED(10008, "简历解析失败", 200),
     RESUME_NOT_ANALYZED(10009, "简历尚未完成分析，无法用于个性化面试", 200),
     RESUME_QUOTA_EXCEEDED(10010, "简历数量/频次超出限额", 200),
+    // ---- 用户级 AI 服务配置（V9 个人中心）：业务失败 HTTP 200 ----
+    AI_CONFIG_INVALID(10011, "AI 服务配置不合法", 200),
     PARAM_INVALID(40001, "参数校验失败", 400),
     PARAM_OUT_OF_RANGE(40002, "参数超出允许范围", 400),
     VERSION_CONFLICT(40003, "数据已被修改，请刷新后重试", 200),

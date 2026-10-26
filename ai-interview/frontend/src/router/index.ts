@@ -20,6 +20,7 @@ const HistoryView = () => import('@/views/growth/HistoryView.vue')
 const GrowthView = () => import('@/views/growth/GrowthView.vue')
 const RecommendationView = () => import('@/views/growth/RecommendationView.vue')
 const ProfileView = () => import('@/views/user/ProfileView.vue')
+const AiConfigView = () => import('@/views/user/AiConfigView.vue')
 
 const DashboardView = () => import('@/views/admin/DashboardView.vue')
 const PositionAdminView = () => import('@/views/admin/PositionAdminView.vue')
@@ -127,6 +128,13 @@ const routes: RouteRecordRaw[] = [
         component: ProfileView,
         // 管理员也允许修改自己的资料（计划 §4.1）
         meta: { title: '个人中心', activeMenu: '/profile', roles: ['STUDENT', 'ADMIN'] },
+      },
+      {
+        // 个人中心子页面（V9 用户级 AI 配置）：侧边栏仍高亮「个人中心」
+        path: 'profile/ai-config',
+        name: 'profile-ai-config',
+        component: AiConfigView,
+        meta: { title: 'AI 服务配置', activeMenu: '/profile', roles: ['STUDENT', 'ADMIN'] },
       },
     ],
   },

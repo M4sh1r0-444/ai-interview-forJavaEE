@@ -423,3 +423,35 @@ Authorization: Bearer {{TOKEN}}
 ### R-07 逻辑删除：data {id, deleted:true}；列表消失、详情 40401、再次删除 40401；文件保留审计
 DELETE {{BASE}}/api/resumes/{{RESUME_ID}}
 Authorization: Bearer {{TOKEN}}
+
+### ==================== 用户级 AI 服务配置（V9，个人中心「AI 服务配置」） ====================
+### 协议：GET/PUT/DELETE /api/users/me/ai-config + POST /test；apiKey 只回掩码；10011 配置不合法
+
+### AC-01 查询我的配置：未配置 data 缺省（code=0）；已配置回 {apiUrl, model, hasApiKey, apiKeyMasked}
+GET {{BASE}}/api/users/me/ai-config
+Authorization: Bearer {{TOKEN}}
+
+### AC-02 保存/更新（保存后面试即时走个人端点）：apiKey 留空=保留已保存值；首次保存必填（否则 10011）
+PUT {{BASE}}/api/users/me/ai-config
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"apiUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1", "apiKey": "sk-your-key", "model": "qwen-plus"}
+
+### AC-02b 非法 URL（非 http/https、缺主机名、去尾斜杠前格式错误）→ 200/10011；缺 apiUrl/model → 400/40001
+PUT {{BASE}}/api/users/me/ai-config
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"apiUrl": "ftp://a.com/v1", "apiKey": "sk-x", "model": "m"}
+
+### AC-03 连通性测试：apiKey 留空用已保存值；返回 {ok, message, latencyMs?}，失败不抛协议错
+POST {{BASE}}/api/users/me/ai-config/test
+Authorization: Bearer {{TOKEN}}
+Content-Type: application/json
+
+{"apiUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1", "model": "qwen-plus"}
+
+### AC-04 清除配置：data {deleted:true}；幂等；清除后回平台默认
+DELETE {{BASE}}/api/users/me/ai-config
+Authorization: Bearer {{TOKEN}}

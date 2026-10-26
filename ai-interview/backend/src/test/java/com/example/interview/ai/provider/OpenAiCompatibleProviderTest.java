@@ -1,12 +1,12 @@
 package com.example.interview.ai.provider;
 
+import com.example.interview.ai.model.AiEndpoint;
 import com.example.interview.ai.model.AiNextQuestionResult;
 import com.example.interview.ai.model.AiReport;
 import com.example.interview.ai.model.NextQuestionContext;
 import com.example.interview.ai.model.ReportContext;
 import com.example.interview.ai.parser.AiResponseParser;
 import com.example.interview.ai.prompt.PromptBuilder;
-import com.example.interview.common.config.AiProperties;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,14 +63,10 @@ class OpenAiCompatibleProviderTest {
         });
         server.start();
 
-        AiProperties props = new AiProperties();
-        props.setProvider("qwen");
-        props.setApiUrl("http://127.0.0.1:" + server.getAddress().getPort() + "/v1");
-        props.setApiKey("test-key");
-        props.setModel("qwen-plus");
-        props.setTimeout(3000);
         WebClient webClient = WebClient.builder().build();
-        provider = new OpenAiCompatibleProvider(webClient, props,
+        provider = new OpenAiCompatibleProvider(webClient,
+                new AiEndpoint("http://127.0.0.1:" + server.getAddress().getPort() + "/v1",
+                        "test-key", "qwen-plus"),
                 new AiResponseParser(), new PromptBuilder(), new MockAiProvider());
     }
 

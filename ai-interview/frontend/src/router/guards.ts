@@ -41,11 +41,12 @@ export function setupGuards(router: Router): void {
       if (!currentRole) {
         return { name: 'login', query: { redirect: to.fullPath } }
       }
-      // 管理员误入学生区：不展示 403，直接回管理端；个人中心允许
+      // 管理员误入学生区：不展示 403，直接回管理端；个人中心及其子页允许
       if (
         currentRole === 'ADMIN' &&
         roles.includes('STUDENT') &&
         to.name !== 'profile' &&
+        to.name !== 'profile-ai-config' &&
         to.name !== 'forbidden'
       ) {
         return resolveForbiddenTarget(currentRole)

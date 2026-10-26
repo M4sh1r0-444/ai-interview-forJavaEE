@@ -18,6 +18,8 @@ public class TurnEvaluationContext {
 
     /** 所属面试会话（真实 Provider 会话级熔断与日志追踪用） */
     private Long sessionId;
+    /** 归属用户（V9 用户级 AI 配置路由用；null 走平台默认） */
+    private Long userId;
     private Question question;
     /** 该轮全部消息（含主问题、追问与回答，按时间升序） */
     private List<InterviewMessage> roundMessages;

@@ -1,6 +1,7 @@
 package com.example.interview.ai.provider;
 
 import com.example.interview.ai.model.AiChatResponse;
+import com.example.interview.ai.model.AiEndpoint;
 import com.example.interview.ai.model.AiNextQuestionResult;
 import com.example.interview.ai.model.AiReport;
 import com.example.interview.ai.model.AiTurnEvaluation;
@@ -10,7 +11,6 @@ import com.example.interview.ai.model.TurnEvaluationContext;
 import com.example.interview.ai.parser.AiFallbackException;
 import com.example.interview.ai.parser.AiResponseParser;
 import com.example.interview.ai.prompt.PromptBuilder;
-import com.example.interview.common.config.AiProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -26,7 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * OpenAI 兼容真实 Provider（计划 §6.8 / 方案 §6.6）：WebClient POST {api-url}/chat/completions，
- * system 限定只输出 JSON + response_format=json_object；超时取 ai.timeout。
+ * system 限定只输出 JSON + response_format=json_object；超时取 WebClient 装配的 ai.timeout。
+ * 端点（api-url/api-key/model）由构造传入的 {@link AiEndpoint} 决定——全局默认端点
+ * 在 AiConfig 从 AiProperties 派生，用户级端点由 AiProviderFactory 按 V9 用户配置构建。
  *
  * <p>三级容错（计划 §6.8）：
  * ① 正常调用 → JSON 校验失败/超时/5xx 时重试 1 次（退避 1s）；
@@ -46,7 +48,7 @@ public class OpenAiCompatibleProvider implements AiProvider {
     private static final int SESSION_LOCK_THRESHOLD = 3;
 
     private final WebClient webClient;
-    private final AiProperties properties;
+    private final AiEndpoint endpoint;
     private final AiResponseParser parser;
     private final PromptBuilder promptBuilder;
     private final MockAiProvider mock;
@@ -61,11 +63,11 @@ public class OpenAiCompatibleProvider implements AiProvider {
     private static final long SESSION_STATE_IDLE_MILLIS = java.time.Duration.ofHours(1).toMillis();
     private static final long EVICT_INTERVAL_MILLIS = 600_000L; // 10min（@Scheduled 需编译期常量）
 
-    public OpenAiCompatibleProvider(WebClient webClient, AiProperties properties,
+    public OpenAiCompatibleProvider(WebClient webClient, AiEndpoint endpoint,
                                     AiResponseParser parser, PromptBuilder promptBuilder,
                                     MockAiProvider mock) {
         this.webClient = webClient;
-        this.properties = properties;
+        this.endpoint = endpoint;
         this.parser = parser;
         this.promptBuilder = promptBuilder;
         this.mock = mock;
@@ -136,12 +138,12 @@ public class OpenAiCompatibleProvider implements AiProvider {
     /** 单次 Chat 调用：POST /chat/completions，解析首个 choice 的 content 为目标 JSON。 */
     private <T> T callOnce(String prompt, Class<T> type) {
         AiChatResponse resp = webClient.post()
-                .uri(properties.getApiUrl() + "/chat/completions")
+                .uri(endpoint.apiUrl() + "/chat/completions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getApiKey())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + endpoint.apiKey())
                 .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(Map.of(
-                        "model", properties.getModel(),
+                        "model", endpoint.model(),
                         "messages", List.of(
                                 Map.of("role", "system", "content", SYSTEM_PROMPT),
                                 Map.of("role", "user", "content", prompt)),

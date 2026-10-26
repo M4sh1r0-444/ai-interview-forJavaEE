@@ -121,7 +121,7 @@ public class TurnEngine {
         // 逐题评分（M3-3.1）：累积口径（本轮全部问答）评分并快照入暂存，供报告与规则引擎复用；
         // AUDIO 场补 voice 维度（M4-4.2：语速/停顿/语气词指标换算）
         AiTurnEvaluation evaluation =
-                evaluateQuietly(sessionId, round, question, roundMsgs, knowledgeChunks, skillNames);
+                evaluateQuietly(sessionId, s.getUserId(), round, question, roundMsgs, knowledgeChunks, skillNames);
         if (evaluation != null && evaluation.getScores() != null && "AUDIO".equals(s.getMode())) {
             voiceCalculator.applyVoiceDimension(evaluation.getScores(),
                     VoiceMetricsCalculator.joinedTranscript(roundMsgs),
@@ -265,13 +265,14 @@ public class TurnEngine {
     }
 
     /** 逐题评分：失败不阻断面试（规则引擎对 null 容忍），仅告警降级。 */
-    private AiTurnEvaluation evaluateQuietly(Long sessionId, int round, Question question,
+    private AiTurnEvaluation evaluateQuietly(Long sessionId, Long userId, int round, Question question,
                                              List<InterviewMessage> roundMsgs,
                                              List<String> knowledgeChunks,
                                              Map<String, String> skillNames) {
         try {
             AiTurnEvaluation evaluation = aiProvider.evaluateTurn(TurnEvaluationContext.builder()
                     .sessionId(sessionId)
+                    .userId(userId)
                     .question(question)
                     .roundMessages(roundMsgs)
                     .knowledgeChunks(knowledgeChunks)
@@ -337,6 +338,7 @@ public class TurnEngine {
 
         return NextQuestionContext.builder()
                 .sessionId(s.getId())
+                .userId(s.getUserId())
                 .positionName(position != null ? position.getName() : "")
                 .positionSkills(positionSkills)
                 .difficulty(s.getDifficulty())

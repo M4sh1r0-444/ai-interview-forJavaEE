@@ -288,6 +288,31 @@ describe('成长 API', () => {
   })
 })
 
+describe('AI 服务配置 API', () => {
+  it('查/存/删/连通性测试四个接口', async () => {
+    await api.getAiConfig()
+    expect(lastRequestConfig()).toEqual({ url: '/api/users/me/ai-config', method: 'GET' })
+
+    const payload = { apiUrl: 'https://a.com/v1', model: 'qwen-plus' }
+    await api.saveAiConfig(payload)
+    expect(lastRequestConfig()).toEqual({
+      url: '/api/users/me/ai-config',
+      method: 'PUT',
+      data: payload,
+    })
+
+    await api.deleteAiConfig()
+    expect(lastRequestConfig()).toEqual({ url: '/api/users/me/ai-config', method: 'DELETE' })
+
+    await api.testAiConfig(payload)
+    expect(lastRequestConfig()).toEqual({
+      url: '/api/users/me/ai-config/test',
+      method: 'POST',
+      data: payload,
+    })
+  })
+})
+
 describe('管理端 API', () => {
   it('看板与题库 CRUD', async () => {
     await api.adminDashboard()
@@ -449,7 +474,7 @@ describe('管理端 API', () => {
 })
 
 describe('统一 API 入口', () => {
-  it('导出计划约定的 39 个 REST 函数', () => {
+  it('导出计划约定的 REST 函数（39 基线 + V9 AI 配置 4 个）', () => {
     const functionNames = [
       'register',
       'login',
@@ -490,9 +515,13 @@ describe('统一 API 入口', () => {
       'adminDeleteResource',
       'adminListUsers',
       'adminUpdateUserStatus',
+      'getAiConfig',
+      'saveAiConfig',
+      'deleteAiConfig',
+      'testAiConfig',
     ]
 
-    expect(functionNames).toHaveLength(39)
+    expect(functionNames).toHaveLength(43)
     for (const name of functionNames) {
       expect(typeof (api as Record<string, unknown>)[name], `${name} 应导出为函数`).toBe('function')
     }

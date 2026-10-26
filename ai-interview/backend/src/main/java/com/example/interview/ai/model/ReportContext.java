@@ -15,6 +15,8 @@ public class ReportContext {
 
     /** 所属面试会话（真实 Provider 会话级熔断与日志追踪用） */
     private Long sessionId;
+    /** 归属用户（V9 用户级 AI 配置路由用；null 走平台默认） */
+    private Long userId;
     private String positionName;
     private Integer difficulty;
     /** 完成的主问题轮次数 */
