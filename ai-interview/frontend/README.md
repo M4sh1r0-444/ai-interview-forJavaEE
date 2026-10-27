@@ -269,7 +269,7 @@ Nginx 已启用静态 gzip、`index.html` no-cache、`/assets/` 长缓存；`/ap
 
 ## 10. 文档索引
 
-- 前端计划：[`../../开发计划/AI模拟面试与能力提升平台_前端开发计划.md`](../../开发计划/AI模拟面试与能力提升平台_前端开发计划.md)
+- 前端计划：[`../../开发计划/AI模拟面试与能力提升平台_开发计划.md`](../../开发计划/AI模拟面试与能力提升平台_开发计划.md)
 - 验收记录：[`docs/F1-验收记录.md`](docs/F1-验收记录.md) ~ [`docs/F6-验收记录.md`](docs/F6-验收记录.md)
 - 截图：[`docs/screenshots/`](docs/screenshots/)（f1~f6，f6 为答辩 15 步索引）
 - 后端契约：[`../backend/README.md`](../backend/README.md)、[`../backend/api.http`](../backend/api.http)
